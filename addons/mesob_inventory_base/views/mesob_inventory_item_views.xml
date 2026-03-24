@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <list string="Items">
                 <field name="item_code"/>
+                <field name="major_code"/>
                 <field name="name"/>
                 <field name="active"/>
             </list>
@@ -24,6 +25,9 @@
                             <field name="name"/>
                         </group>
                         <group>
+                            <field name="major_code"/>
+                            <field name="sub_code"/>
+                            <field name="specific_code"/>
                             <field name="active"/>
                         </group>
                     </group>
@@ -44,6 +48,8 @@
             <search string="Items">
                 <field name="item_code"/>
                 <field name="name"/>
+                <field name="major_code"/>
+                <filter string="Group by Major Code" context="{'group_by': 'major_code'}"/>
             </search>
         </field>
     </record>
