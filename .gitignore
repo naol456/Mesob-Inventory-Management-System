@@ -1,0 +1,20 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Logs/build artifacts
+*.log
+
+# User requirement: do not track docs folder
+docs/
+
+# Optional: local environment files
+.env
