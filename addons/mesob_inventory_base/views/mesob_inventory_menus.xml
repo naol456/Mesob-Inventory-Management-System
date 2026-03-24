@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_mesob_inventory_root" name="Mesob Inventory">
+        <menuitem id="menu_mesob_inventory_master_data" name="Master Data">
+            <menuitem id="menu_mesob_inventory_items" action="action_mesob_inventory_item"/>
+        </menuitem>
+    </menuitem>
+</odoo>
