@@ -5,6 +5,7 @@
     "summary": "Base module for FDRE-compliant inventory customizations",
     "depends": ["base"],
     "data": [
+        "security/mesob_inventory_groups.xml",
         "security/ir.model.access.csv",
         "views/mesob_inventory_item_views.xml",
         "views/mesob_inventory_menus.xml",

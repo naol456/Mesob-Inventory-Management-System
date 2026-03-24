@@ -1,2 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_mesob_inventory_item,access_mesob_inventory_item,model_mesob_inventory_item,base.group_user,1,1,1,1
+access_mesob_inventory_item_user_ro,access_mesob_inventory_item_user_ro,model_mesob_inventory_item,base.group_user,1,0,0,0
+access_mesob_inventory_item_inventory_user,access_mesob_inventory_item_inventory_user,model_mesob_inventory_item,mesob_inventory_base.group_mesob_inventory_user,1,1,1,1
