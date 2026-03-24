@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_mesob_inventory_requisition_list" model="ir.ui.view">
+        <field name="name">mesob.inventory.requisition.list</field>
+        <field name="model">mesob.inventory.requisition</field>
+        <field name="arch" type="xml">
+            <list string="Requisitions">
+                <field name="name"/>
+                <field name="requested_by_id"/>
+                <field name="requested_on"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_inventory_requisition_form" model="ir.ui.view">
+        <field name="name">mesob.inventory.requisition.form</field>
+        <field name="model">mesob.inventory.requisition</field>
+        <field name="arch" type="xml">
+            <form string="Requisition">
+                <header>
+                    <button name="action_submit" type="object" string="Submit" groups="mesob_inventory_base.group_mesob_inventory_user"/>
+                    <button name="action_approve" type="object" string="Approve" groups="mesob_inventory_base.group_mesob_pao"/>
+                    <button name="action_reject" type="object" string="Reject" groups="mesob_inventory_base.group_mesob_pao"/>
+                    <button name="action_set_to_draft" type="object" string="Reset to Draft" groups="mesob_inventory_base.group_mesob_inventory_user"/>
+                    <button name="action_cancel" type="object" string="Cancel" groups="mesob_inventory_base.group_mesob_inventory_user"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="state"/>
+                        </group>
+                        <group>
+                            <field name="requested_by_id"/>
+                            <field name="requested_on"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Lines">
+                            <field name="line_ids">
+                                <list>
+                                    <field name="item_id"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_name"/>
+                                    <field name="note"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Approval">
+                            <group>
+                                <field name="approved_by_id"/>
+                                <field name="approved_on"/>
+                            </group>
+                        </page>
+                        <page string="Notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_mesob_inventory_requisition_search" model="ir.ui.view">
+        <field name="name">mesob.inventory.requisition.search</field>
+        <field name="model">mesob.inventory.requisition</field>
+        <field name="arch" type="xml">
+            <search string="Requisitions">
+                <field name="name"/>
+                <field name="requested_by_id"/>
+                <field name="state"/>
+                <filter string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Submitted" domain="[('state', '=', 'submitted')]"/>
+                <filter string="Approved" domain="[('state', '=', 'approved')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_mesob_inventory_requisition" model="ir.actions.act_window">
+        <field name="name">Requisitions</field>
+        <field name="res_model">mesob.inventory.requisition</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
