@@ -49,7 +49,7 @@
                 <field name="item_code"/>
                 <field name="name"/>
                 <field name="major_code"/>
-                <filter string="Group by Major Code" context="{'group_by': 'major_code'}"/>
+                <filter string="Group by Major Code" name="group_by_major_code" context="{'group_by': 'major_code'}"/>
             </search>
         </field>
     </record>

@@ -71,9 +71,9 @@
                 <field name="name"/>
                 <field name="requested_by_id"/>
                 <field name="state"/>
-                <filter string="Draft" domain="[('state', '=', 'draft')]"/>
-                <filter string="Submitted" domain="[('state', '=', 'submitted')]"/>
-                <filter string="Approved" domain="[('state', '=', 'approved')]"/>
+                <filter string="Draft" name="filter_draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Submitted" name="filter_submitted" domain="[('state', '=', 'submitted')]"/>
+                <filter string="Approved" name="filter_approved" domain="[('state', '=', 'approved')]"/>
             </search>
         </field>
     </record>
