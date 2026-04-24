@@ -1,0 +1,305 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* mesob_inventory_base
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-04-21 00:00+0000\n"
+"PO-Revision-Date: 2026-04-21 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Amharic\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: am\n"
+
+#. module: mesob_inventory_base
+#: model:ir.model,name:mesob_inventory_base.model_mesob_inventory_major_classification
+msgid "Major Stock Classification (4401–4418)"
+msgstr "ዋና የክምችት ምደባ (4401–4418)"
+
+#. module: mesob_inventory_base
+#: model:ir.model,name:mesob_inventory_base.model_mesob_inventory_item
+msgid "Inventory Item"
+msgstr "የክምችት ዕቃ"
+
+#. module: mesob_inventory_base
+#: model:ir.model,name:mesob_inventory_base.model_mesob_inventory_requisition
+msgid "Stores Requisition (Model 20)"
+msgstr "የመጋዘን ጥያቄ (ሞዴል 20)"
+
+#. module: mesob_inventory_base
+#: model:ir.model,name:mesob_inventory_base.model_mesob_inventory_requisition_line
+msgid "Stores Requisition Line"
+msgstr "የመጋዘን ጥያቄ መስመር"
+
+#. module: mesob_inventory_base
+#: model_terms:ir.ui.view,arch_db:mesob_inventory_base.view_mesob_inventory_item_form
+msgid "Item Code"
+msgstr "የዕቃ ኮድ"
+
+#. module: mesob_inventory_base
+msgid "Name (English)"
+msgstr "ስም (እንግሊዝኛ)"
+
+#. module: mesob_inventory_base
+msgid "Name (Amharic)"
+msgstr "ስም (አማርኛ)"
+
+#. module: mesob_inventory_base
+msgid "Major Classification"
+msgstr "ዋና ምደባ"
+
+#. module: mesob_inventory_base
+msgid "Classification Code"
+msgstr "የምደባ ኮድ"
+
+#. module: mesob_inventory_base
+msgid "Major Code"
+msgstr "ዋና ኮድ"
+
+#. module: mesob_inventory_base
+msgid "Sub Code"
+msgstr "ንዑስ ኮድ"
+
+#. module: mesob_inventory_base
+msgid "Specific Code"
+msgstr "ልዩ ኮድ"
+
+#. module: mesob_inventory_base
+msgid "Unit of Measure"
+msgstr "የመለኪያ አሃድ"
+
+#. module: mesob_inventory_base
+msgid "Minimum Level"
+msgstr "ዝቅተኛ ደረጃ"
+
+#. module: mesob_inventory_base
+msgid "Maximum Level"
+msgstr "ከፍተኛ ደረጃ"
+
+#. module: mesob_inventory_base
+msgid "Reorder Level"
+msgstr "የድጋሚ ማዘዣ ደረጃ"
+
+#. module: mesob_inventory_base
+msgid "Hastening Level"
+msgstr "የማፋጠኛ ደረጃ"
+
+#. module: mesob_inventory_base
+msgid "Safety Stock"
+msgstr "የደህንነት ክምችት"
+
+#. module: mesob_inventory_base
+msgid "Administrative Lead Time (days)"
+msgstr "የአስተዳደር ጊዜ (ቀናት)"
+
+#. module: mesob_inventory_base
+msgid "Supplier Lead Time (days)"
+msgstr "የአቅራቢ ጊዜ (ቀናት)"
+
+#. module: mesob_inventory_base
+msgid "ABC Class"
+msgstr "ኤቢሲ ክፍል"
+
+#. module: mesob_inventory_base
+msgid "A — High Value / High Priority"
+msgstr "ሀ — ከፍተኛ ዋጋ / ከፍተኛ ቅድሚያ"
+
+#. module: mesob_inventory_base
+msgid "B — Medium Value / Medium Priority"
+msgstr "ለ — መካከለኛ ዋጋ / መካከለኛ ቅድሚያ"
+
+#. module: mesob_inventory_base
+msgid "C — Low Value / Low Priority"
+msgstr "ሐ — ዝቅተኛ ዋጋ / ዝቅተኛ ቅድሚያ"
+
+#. module: mesob_inventory_base
+msgid "Controlled Material"
+msgstr "ቁጥጥር የሚደረግበት ቁሳቁስ"
+
+#. module: mesob_inventory_base
+msgid "Exclude from Catalog"
+msgstr "ከካታሎግ አስቀር"
+
+#. module: mesob_inventory_base
+msgid "Stock Control"
+msgstr "የክምችት ቁጥጥር"
+
+#. module: mesob_inventory_base
+msgid "Stock Levels"
+msgstr "የክምችት ደረጃዎች"
+
+#. module: mesob_inventory_base
+msgid "Lead Times"
+msgstr "የጊዜ ገደቦች"
+
+#. module: mesob_inventory_base
+msgid "Description"
+msgstr "ገለጻ"
+
+#. module: mesob_inventory_base
+msgid "Requisition Reference"
+msgstr "የጥያቄ ማጣቀሻ"
+
+#. module: mesob_inventory_base
+msgid "Issue Mode"
+msgstr "የማውጫ ዘዴ"
+
+#. module: mesob_inventory_base
+msgid "Imprest Basis"
+msgstr "በወጪ መሰረት"
+
+#. module: mesob_inventory_base
+msgid "Replacement Issue"
+msgstr "ምትክ ማውጣት"
+
+#. module: mesob_inventory_base
+msgid "Non-Stock Issue"
+msgstr "ከክምችት ውጪ ማውጣት"
+
+#. module: mesob_inventory_base
+msgid "Requested By"
+msgstr "የጠየቀው"
+
+#. module: mesob_inventory_base
+msgid "Requesting Department"
+msgstr "ጥያቄ አቅራቢ ክፍል"
+
+#. module: mesob_inventory_base
+msgid "Requested On"
+msgstr "የተጠየቀበት ቀን"
+
+#. module: mesob_inventory_base
+msgid "Approved By (PAO)"
+msgstr "ያጸደቀው (ንብረት አስተዳዳሪ)"
+
+#. module: mesob_inventory_base
+msgid "Approved On"
+msgstr "የጸደቀበት ቀን"
+
+#. module: mesob_inventory_base
+msgid "Rejection Reason"
+msgstr "የውድቅ ምክንያት"
+
+#. module: mesob_inventory_base
+msgid "Draft"
+msgstr "ረቂቅ"
+
+#. module: mesob_inventory_base
+msgid "Submitted"
+msgstr "ቀርቧል"
+
+#. module: mesob_inventory_base
+msgid "Approved"
+msgstr "ጸድቋል"
+
+#. module: mesob_inventory_base
+msgid "Rejected"
+msgstr "ውድቅ ተደርጓል"
+
+#. module: mesob_inventory_base
+msgid "Cancelled"
+msgstr "ተሰርዟል"
+
+#. module: mesob_inventory_base
+msgid "Requisition Lines"
+msgstr "የጥያቄ መስመሮች"
+
+#. module: mesob_inventory_base
+msgid "Quantity Requested"
+msgstr "የተጠየቀ ብዛት"
+
+#. module: mesob_inventory_base
+msgid "Remarks"
+msgstr "ማስታወሻ"
+
+#. module: mesob_inventory_base
+msgid "Internal Notes"
+msgstr "ውስጣዊ ማስታወሻዎች"
+
+#. module: mesob_inventory_base
+msgid "Submit"
+msgstr "አቅርብ"
+
+#. module: mesob_inventory_base
+msgid "Approve"
+msgstr "አጽድቅ"
+
+#. module: mesob_inventory_base
+msgid "Reject"
+msgstr "ውድቅ አድርግ"
+
+#. module: mesob_inventory_base
+msgid "Reset to Draft"
+msgstr "ወደ ረቂቅ መልስ"
+
+#. module: mesob_inventory_base
+msgid "Cancel"
+msgstr "ሰርዝ"
+
+#. module: mesob_inventory_base
+msgid "Operations"
+msgstr "ሥራዎች"
+
+#. module: mesob_inventory_base
+msgid "Master Data"
+msgstr "ዋና መረጃ"
+
+#. module: mesob_inventory_base
+msgid "Inventory Items"
+msgstr "የክምችት ዕቃዎች"
+
+#. module: mesob_inventory_base
+msgid "Major Classifications"
+msgstr "ዋና ምደባዎች"
+
+#. module: mesob_inventory_base
+msgid "Configuration"
+msgstr "ውቅር"
+
+#. module: mesob_inventory_base
+msgid "Mesob Inventory"
+msgstr "መሶብ ክምችት"
+
+#. module: mesob_inventory_base
+#: model:res.groups,name:mesob_inventory_base.group_mesob_inventory_user
+msgid "Inventory User"
+msgstr "የክምችት ተጠቃሚ"
+
+#. module: mesob_inventory_base
+#: model:res.groups,name:mesob_inventory_base.group_mesob_storekeeper
+msgid "Storekeeper"
+msgstr "ግምጃ ቤት ሹም"
+
+#. module: mesob_inventory_base
+#: model:res.groups,name:mesob_inventory_base.group_mesob_stock_clerk
+msgid "Stock Clerk"
+msgstr "የክምችት ጸሐፊ"
+
+#. module: mesob_inventory_base
+#: model:res.groups,name:mesob_inventory_base.group_mesob_procurement
+msgid "Procurement Officer"
+msgstr "የግዥ ኦፊሰር"
+
+#. module: mesob_inventory_base
+#: model:res.groups,name:mesob_inventory_base.group_mesob_pao
+msgid "Property Admin Officer (PAO)"
+msgstr "የንብረት አስተዳዳሪ (ፒኤኦ)"
+
+#. module: mesob_inventory_base
+#: model:res.groups,name:mesob_inventory_base.group_mesob_dept_head
+msgid "User Department Head"
+msgstr "የክፍል ኃላፊ"
+
+#. module: mesob_inventory_base
+#: model:res.groups,name:mesob_inventory_base.group_mesob_auditor
+msgid "Internal Auditor"
+msgstr "ውስጥ ኦዲተር"
+
+#. module: mesob_inventory_base
+#: model:res.groups,name:mesob_inventory_base.group_mesob_security_guard
+msgid "Security Guard"
+msgstr "የጥበቃ ሠራተኛ"

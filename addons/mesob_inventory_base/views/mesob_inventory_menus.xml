@@ -1,11 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <menuitem id="menu_mesob_inventory_root" name="Mesob Inventory" groups="mesob_inventory_base.group_mesob_inventory_user">
-        <menuitem id="menu_mesob_inventory_operations" name="Operations">
-            <menuitem id="menu_mesob_inventory_requisitions" action="action_mesob_inventory_requisition"/>
-        </menuitem>
-        <menuitem id="menu_mesob_inventory_master_data" name="Master Data">
-            <menuitem id="menu_mesob_inventory_items" action="action_mesob_inventory_item"/>
-        </menuitem>
-    </menuitem>
+    <!-- ── Root Menu ──────────────────────────────────────────────── -->
+    <menuitem id="menu_mesob_inventory_root" 
+              name="Mesob Inventory" 
+              groups="mesob_inventory_base.group_mesob_inventory_user"
+              sequence="10"/>
+
+    <!-- ── Operations ─────────────────────────────────────────────── -->
+    <menuitem id="menu_mesob_inventory_operations"
+              name="Operations"
+              parent="menu_mesob_inventory_root"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_inventory_requisitions" 
+              name="Requisitions (Model 20)"
+              parent="menu_mesob_inventory_operations"
+              action="action_mesob_inventory_requisition"
+              sequence="10"/>
+
+    <!-- ── Master Data ────────────────────────────────────────────── -->
+    <menuitem id="menu_mesob_inventory_master_data"
+              name="Master Data"
+              parent="menu_mesob_inventory_root"
+              sequence="20"/>
+
+    <menuitem id="menu_mesob_inventory_items"
+              name="Inventory Items" 
+              parent="menu_mesob_inventory_master_data"
+              action="action_mesob_inventory_item"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_inventory_classifications"
+              name="Major Classifications"
+              parent="menu_mesob_inventory_master_data"
+              action="action_mesob_major_classification"
+              sequence="20"/>
+
+    <!-- ── Configuration ──────────────────────────────────────────── -->
+    <menuitem id="menu_mesob_inventory_config"
+              name="Configuration"
+              parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_pao"
+              sequence="90"/>
 </odoo>

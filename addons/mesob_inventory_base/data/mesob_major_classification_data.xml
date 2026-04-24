@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <!--
+        Seed data for 18 major stock classifications (4401-4418).
+        Aligned to Ethiopian Government chart-of-accounts codes.
+        SRS: FR-ID-001, BR-COD-001
+    -->
+
+    <record id="classification_4401" model="mesob.inventory.major.classification">
+        <field name="code">4401</field>
+        <field name="name">Office Supplies</field>
+        <field name="name_am">የቢሮ ቁሳቁሶች</field>
+    </record>
+
+    <record id="classification_4402" model="mesob.inventory.major.classification">
+        <field name="code">4402</field>
+        <field name="name">Cleaning Materials</field>
+        <field name="name_am">የጽዳት ቁሳቁሶች</field>
+    </record>
+
+    <record id="classification_4403" model="mesob.inventory.major.classification">
+        <field name="code">4403</field>
+        <field name="name">Educational Materials</field>
+        <field name="name_am">የትምህርት ቁሳቁሶች</field>
+    </record>
+
+    <record id="classification_4404" model="mesob.inventory.major.classification">
+        <field name="code">4404</field>
+        <field name="name">Food Items</field>
+        <field name="name_am">የምግብ ዕቃዎች</field>
+    </record>
+
+    <record id="classification_4405" model="mesob.inventory.major.classification">
+        <field name="code">4405</field>
+        <field name="name">Medical Supplies</field>
+        <field name="name_am">የሕክምና ቁሳቁሶች</field>
+    </record>
+
+    <record id="classification_4406" model="mesob.inventory.major.classification">
+        <field name="code">4406</field>
+        <field name="name">Laboratory Materials</field>
+        <field name="name_am">የላቦራቶሪ ቁሳቁሶች</field>
+    </record>
+
+    <record id="classification_4407" model="mesob.inventory.major.classification">
+        <field name="code">4407</field>
+        <field name="name">Construction Materials</field>
+        <field name="name_am">የግንባታ ቁሳቁሶች</field>
+    </record>
+
+    <record id="classification_4408" model="mesob.inventory.major.classification">
+        <field name="code">4408</field>
+        <field name="name">Electrical Materials</field>
+        <field name="name_am">የኤሌክትሪክ ቁሳቁሶች</field>
+    </record>
+
+    <record id="classification_4409" model="mesob.inventory.major.classification">
+        <field name="code">4409</field>
+        <field name="name">Plumbing Materials</field>
+        <field name="name_am">የቧንቧ ቁሳቁሶች</field>
+    </record>
+
+    <record id="classification_4410" model="mesob.inventory.major.classification">
+        <field name="code">4410</field>
+        <field name="name">Mechanical &amp; Auto Parts</field>
+        <field name="name_am">የማሽን እና የመኪና ዕቃዎች</field>
+    </record>
+
+    <record id="classification_4411" model="mesob.inventory.major.classification">
+        <field name="code">4411</field>
+        <field name="name">Agricultural Supplies</field>
+        <field name="name_am">የግብርና ቁሳቁሶች</field>
+    </record>
+
+    <record id="classification_4412" model="mesob.inventory.major.classification">
+        <field name="code">4412</field>
+        <field name="name">Fuel &amp; Lubricants</field>
+        <field name="name_am">ነዳጅ እና ቅባቶች</field>
+    </record>
+
+    <record id="classification_4413" model="mesob.inventory.major.classification">
+        <field name="code">4413</field>
+        <field name="name">Spare Parts</field>
+        <field name="name_am">መለዋወጫ ዕቃዎች</field>
+    </record>
+
+    <record id="classification_4414" model="mesob.inventory.major.classification">
+        <field name="code">4414</field>
+        <field name="name">Textile Materials</field>
+        <field name="name_am">የጨርቃ ጨርቅ ቁሳቁሶች</field>
+    </record>
+
+    <record id="classification_4415" model="mesob.inventory.major.classification">
+        <field name="code">4415</field>
+        <field name="name">Printing Materials</field>
+        <field name="name_am">የማተሚያ ቁሳቁሶች</field>
+    </record>
+
+    <record id="classification_4416" model="mesob.inventory.major.classification">
+        <field name="code">4416</field>
+        <field name="name">Chemical Materials</field>
+        <field name="name_am">የኬሚካል ቁሳቁሶች</field>
+    </record>
+
+    <record id="classification_4417" model="mesob.inventory.major.classification">
+        <field name="code">4417</field>
+        <field name="name">Furniture &amp; Equipment (Consumable)</field>
+        <field name="name_am">የቤት ዕቃዎች እና መሳሪያዎች</field>
+    </record>
+
+    <record id="classification_4418" model="mesob.inventory.major.classification">
+        <field name="code">4418</field>
+        <field name="name">Other Materials</field>
+        <field name="name_am">ሌሎች ቁሳቁሶች</field>
+    </record>
+</odoo>
