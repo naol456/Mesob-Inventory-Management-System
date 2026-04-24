@@ -1,39 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <!-- ── List View ──────────────────────────────────────────────── -->
     <record id="view_mesob_inventory_item_list" model="ir.ui.view">
         <field name="name">mesob.inventory.item.list</field>
         <field name="model">mesob.inventory.item</field>
         <field name="arch" type="xml">
-            <list string="Items">
+            <list string="Inventory Items" default_order="item_code">
                 <field name="item_code"/>
-                <field name="major_code"/>
                 <field name="name"/>
-                <field name="active"/>
+                <field name="classification_id"/>
+                <field name="uom_id"/>
+                <field name="abc_class" optional="show"/>
+                <field name="is_controlled" optional="hide"/>
+                <field name="reorder_level" optional="hide"/>
+                <field name="active" column_invisible="True"/>
             </list>
         </field>
     </record>
 
+    <!-- ── Form View ──────────────────────────────────────────────── -->
     <record id="view_mesob_inventory_item_form" model="ir.ui.view">
         <field name="name">mesob.inventory.item.form</field>
         <field name="model">mesob.inventory.item</field>
         <field name="arch" type="xml">
-            <form string="Item">
+            <form string="Inventory Item">
                 <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Item name (English)..."/>
+                        </h1>
+                        <field name="name_am" placeholder="Item name (Amharic)..."/>
+                    </div>
+
                     <group>
-                        <group>
-                            <field name="item_code"/>
-                            <field name="name"/>
+                        <group string="Item Code">
+                            <field name="item_code" placeholder="e.g. 4401-001-001"/>
+                            <field name="classification_id"/>
+                            <field name="major_code" readonly="True"/>
+                            <field name="sub_code" readonly="True"/>
+                            <field name="specific_code" readonly="True"/>
                         </group>
-                        <group>
-                            <field name="major_code"/>
-                            <field name="sub_code"/>
-                            <field name="specific_code"/>
+                        <group string="General">
+                            <field name="uom_id"/>
+                            <field name="abc_class"/>
+                            <field name="is_controlled"/>
+                            <field name="exclude_from_catalog"/>
                             <field name="active"/>
                         </group>
                     </group>
+
                     <notebook>
-                        <page string="Description">
-                            <field name="description"/>
+                        <page string="Stock Control" name="stock_control">
+                            <group>
+                                <group string="Stock Levels">
+                                    <field name="minimum_level"/>
+                                    <field name="reorder_level"/>
+                                    <field name="hastening_level"/>
+                                    <field name="maximum_level"/>
+                                    <field name="safety_stock"/>
+                                </group>
+                                <group string="Lead Times">
+                                    <field name="admin_lead_time"/>
+                                    <field name="supplier_lead_time"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="Additional details about this item..."/>
                         </page>
                     </notebook>
                 </sheet>
@@ -41,22 +75,40 @@
         </field>
     </record>
 
+    <!-- ── Search View ────────────────────────────────────────────── -->
     <record id="view_mesob_inventory_item_search" model="ir.ui.view">
         <field name="name">mesob.inventory.item.search</field>
         <field name="model">mesob.inventory.item</field>
         <field name="arch" type="xml">
-            <search string="Items">
+            <search string="Inventory Items">
                 <field name="item_code"/>
                 <field name="name"/>
-                <field name="major_code"/>
-                <filter string="Group by Major Code" name="group_by_major_code" context="{'group_by': 'major_code'}"/>
+                <field name="classification_id"/>
+                <filter string="Controlled" name="filter_controlled"
+                        domain="[('is_controlled', '=', True)]"/>
+                <filter string="Class A" name="filter_abc_a"
+                        domain="[('abc_class', '=', 'A')]"/>
+                <filter string="Class B" name="filter_abc_b"
+                        domain="[('abc_class', '=', 'B')]"/>
+                <filter string="Class C" name="filter_abc_c"
+                        domain="[('abc_class', '=', 'C')]"/>
             </search>
         </field>
     </record>
 
+    <!-- ── Action ─────────────────────────────────────────────────── -->
     <record id="action_mesob_inventory_item" model="ir.actions.act_window">
-        <field name="name">Items</field>
+        <field name="name">Inventory Items</field>
         <field name="res_model">mesob.inventory.item</field>
         <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create an inventory item
+            </p>
+            <p>
+                Items use the FDRE coding format ####-###-### and are linked
+                to a major classification (4401–4418) for stock accounting.
+            </p>
+        </field>
     </record>
 </odoo>
