@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ── List View ──────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_receiving_list" model="ir.ui.view">
+        <field name="name">mesob.inventory.receiving.list</field>
+        <field name="model">mesob.inventory.receiving</field>
+        <field name="arch" type="xml">
+            <list string="Receiving Orders" default_order="received_date desc"
+                  decoration-info="state == 'draft'"
+                  decoration-warning="state == 'inspecting'"
+                  decoration-success="state in ('accepted', 'done')"
+                  decoration-danger="state == 'rejected'"
+                  decoration-muted="state == 'cancelled'">
+                <field name="name"/>
+                <field name="source_type"/>
+                <field name="supplier_id" optional="show"/>
+                <field name="received_by_id"/>
+                <field name="received_date"/>
+                <field name="inspection_type" optional="hide"/>
+                <field name="inspector_id" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state in ('received', 'inspecting')"
+                       decoration-success="state in ('accepted', 'done')"
+                       decoration-danger="state in ('rejected', 'cancelled')"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Form View ──────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_receiving_form" model="ir.ui.view">
+        <field name="name">mesob.inventory.receiving.form</field>
+        <field name="model">mesob.inventory.receiving</field>
+        <field name="arch" type="xml">
+            <form string="Receiving Order">
+                <header>
+                    <button name="action_receive" type="object" string="Mark Received"
+                            class="btn-primary"
+                            invisible="state != 'draft'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <button name="action_start_inspection" type="object"
+                            string="Start Inspection"
+                            class="btn-primary"
+                            invisible="state != 'received'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <button name="action_accept" type="object" string="Accept"
+                            class="btn-success"
+                            invisible="state != 'inspecting'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <button name="action_reject" type="object" string="Reject"
+                            class="btn-danger"
+                            invisible="state != 'inspecting'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <button name="action_done" type="object" string="Finalize"
+                            class="btn-primary"
+                            invisible="state not in ('accepted', 'rejected')"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state in ('done', 'cancelled')"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"
+                            confirm="Are you sure you want to cancel this receiving order?"/>
+                    <button name="action_set_to_draft" type="object"
+                            string="Reset to Draft"
+                            invisible="state != 'cancelled'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,received,inspecting,accepted,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_model19" type="object"
+                                class="oe_stat_button" icon="fa-file-text-o"
+                                invisible="not model19_id">
+                            <span class="o_stat_text">Model 19</span>
+                        </button>
+                        <button name="action_view_dsr" type="object"
+                                class="oe_stat_button" icon="fa-exclamation-triangle"
+                                invisible="not dsr_id">
+                            <span class="o_stat_text">DSR</span>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Source Details">
+                            <field name="source_type"
+                                   readonly="state != 'draft'"/>
+                            <field name="supplier_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="purchase_order_ref"
+                                   readonly="state != 'draft'"/>
+                            <field name="is_no_payment"
+                                   invisible="source_type != 'dept_return'"
+                                   readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Authority (FR-REC-001)">
+                            <field name="authority_ref"
+                                   readonly="state not in ('draft', 'received')"/>
+                            <field name="authority_date"
+                                   readonly="state not in ('draft', 'received')"/>
+                            <field name="received_by_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="received_date"
+                                   readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+
+                    <group invisible="state == 'draft'">
+                        <group string="Inspection Details">
+                            <field name="inspection_type"
+                                   readonly="state not in ('received', 'inspecting')"/>
+                            <field name="inspector_id"
+                                   readonly="state not in ('received', 'inspecting')"/>
+                            <field name="inspection_date" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Receiving Lines" name="lines">
+                            <field name="line_ids"
+                                   readonly="state in ('done', 'cancelled')">
+                                <list editable="bottom">
+                                    <field name="item_id"/>
+                                    <field name="description"/>
+                                    <field name="qty_expected"/>
+                                    <field name="qty_received"/>
+                                    <field name="qty_accepted"/>
+                                    <field name="qty_rejected"/>
+                                    <field name="uom_id"/>
+                                    <field name="unit_price"/>
+                                    <field name="total_price"/>
+                                    <field name="rejection_reason"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Inspection Notes" name="inspection"
+                              invisible="state == 'draft'">
+                            <field name="inspection_notes"
+                                   placeholder="Record inspection observations..."
+                                   readonly="state not in ('inspecting',)"/>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note"
+                                   placeholder="Internal notes..."/>
+                        </page>
+                    </notebook>
+
+                    <!-- Hidden fields for smart button visibility -->
+                    <field name="model19_id" invisible="1"/>
+                    <field name="dsr_id" invisible="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Search View ────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_receiving_search" model="ir.ui.view">
+        <field name="name">mesob.inventory.receiving.search</field>
+        <field name="model">mesob.inventory.receiving</field>
+        <field name="arch" type="xml">
+            <search string="Receiving Orders">
+                <field name="name"/>
+                <field name="supplier_id"/>
+                <field name="received_by_id"/>
+                <filter string="Draft" name="filter_draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter string="Received" name="filter_received"
+                        domain="[('state', '=', 'received')]"/>
+                <filter string="Under Inspection" name="filter_inspecting"
+                        domain="[('state', '=', 'inspecting')]"/>
+                <filter string="Accepted" name="filter_accepted"
+                        domain="[('state', '=', 'accepted')]"/>
+                <filter string="Rejected" name="filter_rejected"
+                        domain="[('state', '=', 'rejected')]"/>
+                <filter string="From Supplier" name="filter_supplier"
+                        domain="[('source_type', '=', 'supplier')]"/>
+                <filter string="From Donor" name="filter_donor"
+                        domain="[('source_type', '=', 'donor')]"/>
+                <filter string="Dept Return" name="filter_dept_return"
+                        domain="[('source_type', '=', 'dept_return')]"/>
+                <filter string="My Receivings" name="filter_mine"
+                        domain="[('received_by_id', '=', uid)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Action ─────────────────────────────────────────────────── -->
+    <record id="action_mesob_inventory_receiving" model="ir.actions.act_window">
+        <field name="name">Receiving Orders</field>
+        <field name="res_model">mesob.inventory.receiving</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_mine': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new receiving order
+            </p>
+            <p>
+                Record goods arriving from suppliers, donors, or department
+                returns. Each order goes through inspection before acceptance
+                (Model 19) or rejection (DSR).
+            </p>
+        </field>
+    </record>
+</odoo>

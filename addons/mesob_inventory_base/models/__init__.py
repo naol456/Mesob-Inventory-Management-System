@@ -2,3 +2,9 @@ from . import mesob_inventory_major_classification
 from . import mesob_inventory_item
 from . import mesob_inventory_requisition
 from . import mesob_inventory_requisition_line
+from . import mesob_inventory_receiving
+from . import mesob_inventory_receiving_line
+from . import mesob_inventory_model19
+from . import mesob_inventory_model19_line
+from . import mesob_inventory_dsr
+from . import mesob_inventory_dsr_line

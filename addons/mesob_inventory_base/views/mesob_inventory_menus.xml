@@ -12,11 +12,35 @@
               parent="menu_mesob_inventory_root"
               sequence="10"/>
 
+    <menuitem id="menu_mesob_inventory_receiving"
+              name="Receiving Orders"
+              parent="menu_mesob_inventory_operations"
+              action="action_mesob_inventory_receiving"
+              sequence="5"/>
+
     <menuitem id="menu_mesob_inventory_requisitions" 
               name="Requisitions (Model 20)"
               parent="menu_mesob_inventory_operations"
               action="action_mesob_inventory_requisition"
               sequence="10"/>
+
+    <!-- ── Documents ──────────────────────────────────────────────── -->
+    <menuitem id="menu_mesob_inventory_documents"
+              name="Documents"
+              parent="menu_mesob_inventory_root"
+              sequence="15"/>
+
+    <menuitem id="menu_mesob_inventory_model19"
+              name="Receipts (Model 19)"
+              parent="menu_mesob_inventory_documents"
+              action="action_mesob_inventory_model19"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_inventory_dsr"
+              name="Damage/Shortage Reports (DSR)"
+              parent="menu_mesob_inventory_documents"
+              action="action_mesob_inventory_dsr"
+              sequence="20"/>
 
     <!-- ── Master Data ────────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_master_data"

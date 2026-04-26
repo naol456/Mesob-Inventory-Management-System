@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ── List View ──────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_dsr_list" model="ir.ui.view">
+        <field name="name">mesob.inventory.dsr.list</field>
+        <field name="model">mesob.inventory.dsr</field>
+        <field name="arch" type="xml">
+            <list string="Damage/Shortage Reports" default_order="date desc"
+                  decoration-info="state == 'draft'"
+                  decoration-warning="state == 'confirmed'"
+                  decoration-success="state == 'returned'">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="supplier_id"/>
+                <field name="receiving_id" optional="show"/>
+                <field name="copy_supplier" optional="show"/>
+                <field name="copy_accounts" optional="show"/>
+                <field name="copy_procurement" optional="hide"/>
+                <field name="copy_storekeeper" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'confirmed'"
+                       decoration-success="state == 'returned'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Form View ──────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_dsr_form" model="ir.ui.view">
+        <field name="name">mesob.inventory.dsr.form</field>
+        <field name="model">mesob.inventory.dsr</field>
+        <field name="arch" type="xml">
+            <form string="Damage/Shortage Report (DSR)">
+                <header>
+                    <button name="action_confirm" type="object"
+                            string="Confirm" class="btn-primary"
+                            invisible="state != 'draft'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <button name="action_mark_returned" type="object"
+                            string="Mark Goods Returned" class="btn-success"
+                            invisible="state != 'confirmed'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,returned"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Report Details">
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="supplier_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="receiving_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Rejected Items" name="lines">
+                            <field name="line_ids"
+                                   readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="item_id"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id"/>
+                                    <field name="discrepancy_type"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Copy Distribution (FR-REC-008)"
+                              name="copies">
+                            <group>
+                                <group string="Distribution Status">
+                                    <field name="copy_supplier"
+                                           readonly="state == 'returned'"/>
+                                    <field name="copy_accounts"
+                                           readonly="state == 'returned'"/>
+                                    <field name="copy_procurement"
+                                           readonly="state == 'returned'"/>
+                                    <field name="copy_storekeeper"
+                                           readonly="state == 'returned'"/>
+                                </group>
+                                <group string="Status">
+                                    <field name="all_copies_distributed"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note"
+                                   placeholder="Notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Search View ────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_dsr_search" model="ir.ui.view">
+        <field name="name">mesob.inventory.dsr.search</field>
+        <field name="model">mesob.inventory.dsr</field>
+        <field name="arch" type="xml">
+            <search string="Damage/Shortage Reports">
+                <field name="name"/>
+                <field name="supplier_id"/>
+                <filter string="Draft" name="filter_draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter string="Confirmed" name="filter_confirmed"
+                        domain="[('state', '=', 'confirmed')]"/>
+                <filter string="Goods Returned" name="filter_returned"
+                        domain="[('state', '=', 'returned')]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Action ─────────────────────────────────────────────────── -->
+    <record id="action_mesob_inventory_dsr" model="ir.actions.act_window">
+        <field name="name">Damage/Shortage Reports</field>
+        <field name="res_model">mesob.inventory.dsr</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No damage/shortage reports yet
+            </p>
+            <p>
+                DSRs are auto-generated when items are rejected during
+                receiving inspection. Track four-copy distribution to
+                Supplier, Accounts, Procurement, and Storekeeper.
+            </p>
+        </field>
+    </record>
+</odoo>
