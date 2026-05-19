@@ -24,6 +24,12 @@
               action="action_mesob_inventory_requisition"
               sequence="10"/>
 
+    <menuitem id="menu_mesob_inventory_issue_vouchers" 
+              name="Issue Vouchers (Model 22)"
+              parent="menu_mesob_inventory_operations"
+              action="action_mesob_inventory_issue_voucher"
+              sequence="20"/>
+
     <!-- ── Documents ──────────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_documents"
               name="Documents"

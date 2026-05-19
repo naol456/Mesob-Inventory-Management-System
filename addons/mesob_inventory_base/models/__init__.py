@@ -8,3 +8,4 @@ from . import mesob_inventory_model19
 from . import mesob_inventory_model19_line
 from . import mesob_inventory_dsr
 from . import mesob_inventory_dsr_line
+from . import mesob_inventory_issue_voucher

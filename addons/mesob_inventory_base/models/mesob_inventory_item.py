@@ -20,15 +20,11 @@ class MesobInventoryItem(models.Model):
     _rec_name = "item_code"
     _order = "item_code"
 
-    _item_code_unique = models.Constraint(
-        "UNIQUE(item_code)",
-        "Item Code must be unique.",
-    )
-
-    _item_code_format = models.Constraint(
-        "CHECK(item_code ~ '^[0-9]{4}-[0-9]{3}-[0-9]{3}$')",
-        "Item Code must follow the format ####-###-### (digits and dashes).",
-    )
+    _sql_constraints = [
+        ('item_code_unique', 'UNIQUE(item_code)', 'Item Code must be unique.'),
+        ('item_code_format', "CHECK(item_code ~ '^[0-9]{4}-[0-9]{3}-[0-9]{3}$')", 
+         'Item Code must follow the format ####-###-### (digits and dashes).'),
+    ]
 
     # ── Identification ──────────────────────────────────────────────────
 
@@ -88,6 +84,15 @@ class MesobInventoryItem(models.Model):
         "uom.uom",
         string="Unit of Measure",
         help="Default unit of measure for this item.",
+    )
+
+    # ── Product Linkage ─────────────────────────────────────────────────
+
+    product_id = fields.Many2one(
+        "product.product",
+        string="Linked Product",
+        help="Odoo product for stock operations and valuation.",
+        index=True,
     )
 
     # ── Stock Control Levels (FR-SC-001) ────────────────────────────────

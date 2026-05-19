@@ -8,15 +8,17 @@
                "and FDRE-compliant stock control parameters.",
     "author": "Mesob Center",
     "license": "LGPL-3",
-    "depends": ["stock"],
+    "depends": ["stock", "mail"],
     "data": [
         # Security (load first)
         "security/mesob_inventory_groups.xml",
         "security/ir.model.access.csv",
+        "security/mesob_inventory_record_rules.xml",
         # Seed / reference data
         "data/mesob_major_classification_data.xml",
         "data/mesob_requisition_sequence.xml",
         "data/mesob_receiving_sequence.xml",
+        "data/mesob_issue_voucher_sequence.xml",
         # Views
         "views/mesob_inventory_major_classification_views.xml",
         "views/mesob_inventory_item_views.xml",
@@ -24,7 +26,10 @@
         "views/mesob_inventory_receiving_views.xml",
         "views/mesob_inventory_model19_views.xml",
         "views/mesob_inventory_dsr_views.xml",
+        "views/mesob_inventory_issue_voucher_views.xml",
         "views/mesob_inventory_menus.xml",
+        # Wizards
+        "wizard/mesob_inventory_issue_receipt_wizard_views.xml",
     ],
     "demo": [],
     "installable": True,
