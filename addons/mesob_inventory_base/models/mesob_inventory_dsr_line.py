@@ -51,7 +51,7 @@ class MesobInventoryDSRLine(models.Model):
         default="damaged",
         help="Type of discrepancy found (FR-REC-009).",
     )
-
+    
     notes = fields.Text(
         string="Discrepancy Details",
         help="Detailed description of the discrepancy.",

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_mesob_inventory_issue_voucher_list" model="ir.ui.view">
+        <field name="name">mesob.inventory.issue.voucher.list</field>
+        <field name="model">mesob.inventory.issue.voucher</field>
+        <field name="arch" type="xml">
+            <list string="Issue Vouchers">
+                <field name="name"/>
+                <field name="requisition_id"/>
+                <field name="issue_date"/>
+                <field name="issued_by_id"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_inventory_issue_voucher_form" model="ir.ui.view">
+        <field name="name">mesob.inventory.issue.voucher.form</field>
+        <field name="model">mesob.inventory.issue.voucher</field>
+        <field name="arch" type="xml">
+            <form string="Issue Voucher">
+                <header>
+                    <button name="action_issue" string="Issue Materials" type="object" 
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_confirm_receipt" string="Confirm Receipt" type="object" 
+                            class="oe_highlight" invisible="state != 'issued'"/>
+                    <button name="action_cancel" string="Cancel" type="object" 
+                            invisible="state in ('received', 'cancelled')"/>
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="draft,issued,received"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="requisition_id" readonly="1"/>
+                            <field name="requesting_department"/>
+                        </group>
+                        <group>
+                            <field name="issue_date" readonly="state != 'draft'"/>
+                            <field name="issued_by_id" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Issue Lines">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="item_id"/>
+                                    <field name="quantity_issued"/>
+                                    <field name="uom_id"/>
+                                    <field name="note"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Distribution" invisible="state == 'draft'">
+                            <group>
+                                <field name="original_to_stock_clerk" readonly="1"/>
+                                <field name="duplicate_to_department" readonly="1"/>
+                                <field name="triplicate_retained" readonly="1"/>
+                            </group>
+                        </page>
+                        <page string="Receipt" invisible="state not in ('issued', 'received')">
+                            <group>
+                                <group>
+                                    <field name="received_by_id" readonly="1"/>
+                                    <field name="received_on" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="quantity_verified" readonly="1"/>
+                                    <field name="inspection_confirmed" readonly="1"/>
+                                    <field name="approval_verified" readonly="1"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="receipt_notes" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_mesob_inventory_issue_voucher_search" model="ir.ui.view">
+        <field name="name">mesob.inventory.issue.voucher.search</field>
+        <field name="model">mesob.inventory.issue.voucher</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="requisition_id"/>
+                <field name="issued_by_id"/>
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Issued" name="issued" domain="[('state', '=', 'issued')]"/>
+                <filter string="Received" name="received" domain="[('state', '=', 'received')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_mesob_inventory_issue_voucher" model="ir.actions.act_window">
+        <field name="name">Issue Vouchers</field>
+        <field name="res_model">mesob.inventory.issue.voucher</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

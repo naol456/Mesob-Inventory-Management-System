@@ -1,0 +1,1 @@
+from . import mesob_inventory_issue_receipt_wizard

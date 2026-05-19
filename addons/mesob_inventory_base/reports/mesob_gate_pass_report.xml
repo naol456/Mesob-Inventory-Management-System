@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Gate Pass Report Action -->
+    <record id="action_report_mesob_gate_pass" model="ir.actions.report">
+        <field name="name">Gate Pass</field>
+        <field name="model">mesob.gate.pass</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mesob_inventory_base.report_mesob_gate_pass_document</field>
+        <field name="report_file">mesob_inventory_base.report_mesob_gate_pass_document</field>
+        <field name="binding_model_id" ref="model_mesob_gate_pass"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Gate Pass Report Template -->
+    <template id="report_mesob_gate_pass_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Header -->
+                        <div class="text-center">
+                            <h2>GATE PASS FOR MATERIAL DISPATCH</h2>
+                            <h3 t-field="o.name"/>
+                            <p>
+                                <strong>Date:</strong> <span t-field="o.dispatch_date"/><br/>
+                                <strong>Status:</strong> <span t-field="o.state" class="badge badge-info"/>
+                            </p>
+                        </div>
+
+                        <hr/>
+
+                        <!-- Authorization Section -->
+                        <div class="row mt-4">
+                            <div class="col-6">
+                                <h4>Authorization</h4>
+                                <t t-if="o.issue_voucher_id">
+                                    <p>
+                                        <strong>Issue Voucher:</strong> <span t-field="o.issue_voucher_id.name"/><br/>
+                                    </p>
+                                </t>
+                                <t t-if="o.written_authorization">
+                                    <p>
+                                        <strong>Written Authorization:</strong><br/>
+                                        <span t-field="o.written_authorization"/>
+                                    </p>
+                                </t>
+                                <t t-if="o.authorized_by_id">
+                                    <p>
+                                        <strong>Authorized By:</strong> <span t-field="o.authorized_by_id.name"/><br/>
+                                        <strong>Authorization Date:</strong> <span t-field="o.authorized_on"/>
+                                    </p>
+                                </t>
+                            </div>
+                            <div class="col-6">
+                                <h4>Receiver Details</h4>
+                                <p>
+                                    <strong>Destination:</strong> <span t-field="o.destination"/><br/>
+                                    <strong>Receiver Name:</strong> <span t-field="o.receiver_name"/><br/>
+                                    <strong>Organization:</strong> <span t-field="o.receiver_organization"/>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Vehicle Details (if applicable) -->
+                        <t t-if="o.vehicle_plate or o.driver_name">
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <h4>Transport Details</h4>
+                                    <p>
+                                        <t t-if="o.vehicle_plate">
+                                            <strong>Vehicle Plate:</strong> <span t-field="o.vehicle_plate"/><br/>
+                                        </t>
+                                        <t t-if="o.driver_name">
+                                            <strong>Driver Name:</strong> <span t-field="o.driver_name"/><br/>
+                                        </t>
+                                        <t t-if="o.driver_license">
+                                            <strong>Driver License:</strong> <span t-field="o.driver_license"/>
+                                        </t>
+                                    </p>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Line Items Table -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h4>Materials Being Dispatched</h4>
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr class="bg-light">
+                                            <th>#</th>
+                                            <th>Item</th>
+                                            <th>Description</th>
+                                            <th class="text-right">Quantity</th>
+                                            <th>UOM</th>
+                                            <th>Serial Numbers</th>
+                                            <th>Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-set="line_num" t-value="0"/>
+                                        <tr t-foreach="o.line_ids" t-as="line">
+                                            <t t-set="line_num" t-value="line_num + 1"/>
+                                            <td><span t-esc="line_num"/></td>
+                                            <td><span t-field="line.item_id.item_code"/></td>
+                                            <td><span t-field="line.description"/></td>
+                                            <td class="text-right"><span t-field="line.quantity"/></td>
+                                            <td><span t-field="line.uom_id.name"/></td>
+                                            <td><span t-field="line.serial_numbers"/></td>
+                                            <td><span t-field="line.remarks"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Dispatch Verification (if dispatched) -->
+                        <t t-if="o.state == 'dispatched'">
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <h4>Dispatch Verification</h4>
+                                    <p>
+                                        <strong>Security Guard:</strong> <span t-field="o.security_verified_by_id.name"/><br/>
+                                        <strong>Dispatch Time:</strong> <span t-field="o.security_verified_on"/><br/>
+                                        <strong>Copy Distribution:</strong> Original→Receiver, Duplicate→Storekeeper, Triplicate→Security
+                                    </p>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Signatures Section -->
+                        <div class="row mt-5">
+                            <div class="col-4 text-center">
+                                <p>
+                                    _______________________<br/>
+                                    <strong>Prepared By</strong><br/>
+                                    <span t-field="o.created_by_id.name"/>
+                                </p>
+                            </div>
+                            <div class="col-4 text-center">
+                                <p>
+                                    _______________________<br/>
+                                    <strong>Authorized By (PAO)</strong><br/>
+                                    <span t-field="o.authorized_by_id.name"/>
+                                </p>
+                            </div>
+                            <div class="col-4 text-center">
+                                <p>
+                                    _______________________<br/>
+                                    <strong>Security Guard</strong><br/>
+                                    <span t-field="o.security_verified_by_id.name"/>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Footer Note -->
+                        <div class="row mt-4">
+                            <div class="col-12 text-center text-muted">
+                                <small>
+                                    This Gate Pass authorizes the dispatch of materials outside the compound.<br/>
+                                    Three copies: Original (Receiver), Duplicate (Storekeeper), Triplicate (Security)
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

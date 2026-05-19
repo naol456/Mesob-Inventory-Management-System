@@ -220,6 +220,12 @@ class MesobInventoryReceiving(models.Model):
                 raise UserError(
                     "Only orders under inspection can be accepted."
                 )
+            
+            # Auto-fill qty_received from qty_accepted if not set
+            for line in rec.line_ids:
+                if line.qty_accepted > 0 and line.qty_received == 0:
+                    line.qty_received = line.qty_accepted + line.qty_rejected
+            
             if not rec.has_accepted_lines:
                 raise UserError(
                     "No accepted quantities found. Fill in accepted "
@@ -247,6 +253,12 @@ class MesobInventoryReceiving(models.Model):
                 raise UserError(
                     "Only orders under inspection can be rejected."
                 )
+            
+            # Auto-fill qty_received from qty_rejected if not set
+            for line in rec.line_ids:
+                if line.qty_rejected > 0 and line.qty_received == 0:
+                    line.qty_received = line.qty_accepted + line.qty_rejected
+            
             if not rec.has_rejected_lines:
                 raise UserError(
                     "No rejected quantities found. Fill in rejected "

@@ -1,0 +1,1356 @@
+/* ══════════════════════════════════════════════════════════════
+   MESOB INVENTORY - PREMIUM MODERN UI
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+    /* Premium Color Palette */
+    --mesob-primary: #6366f1;
+    --mesob-primary-dark: #4f46e5;
+    --mesob-primary-light: #818cf8;
+    --mesob-primary-subtle: #eef2ff;
+    
+    --mesob-success: #10b981;
+    --mesob-success-light: #d1fae5;
+    --mesob-warning: #f59e0b;
+    --mesob-warning-light: #fef3c7;
+    --mesob-danger: #ef4444;
+    --mesob-danger-light: #fee2e2;
+    --mesob-info: #3b82f6;
+    --mesob-info-light: #dbeafe;
+    
+    /* Neutral Palette */
+    --mesob-gray-50: #f9fafb;
+    --mesob-gray-100: #f3f4f6;
+    --mesob-gray-200: #e5e7eb;
+    --mesob-gray-300: #d1d5db;
+    --mesob-gray-400: #9ca3af;
+    --mesob-gray-500: #6b7280;
+    --mesob-gray-600: #4b5563;
+    --mesob-gray-700: #374151;
+    --mesob-gray-800: #1f2937;
+    --mesob-gray-900: #111827;
+    
+    /* Spacing & Layout */
+    --mesob-radius-sm: 8px;
+    --mesob-radius-md: 12px;
+    --mesob-radius-lg: 16px;
+    --mesob-radius-xl: 20px;
+    
+    /* Shadows - Premium depth */
+    --mesob-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --mesob-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --mesob-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --mesob-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --mesob-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PREMIUM HEADER & NAVIGATION
+   ══════════════════════════════════════════════════════════════ */
+
+.o_main_navbar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    box-shadow: var(--mesob-shadow-lg) !important;
+    border-bottom: none !important;
+}
+
+.o_menu_brand {
+    font-weight: 700 !important;
+    font-size: 18px !important;
+    letter-spacing: -0.5px !important;
+    color: white !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PREMIUM OPERATIONS DROPDOWN
+   ══════════════════════════════════════════════════════════════ */
+
+.o_menu_sections button.dropdown-toggle,
+.o_menu_sections .dropdown > button {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: var(--mesob-radius-md) !important;
+    padding: 8px 20px !important;
+    font-weight: 600 !important;
+    color: white !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.o_menu_sections button.dropdown-toggle:hover,
+.o_menu_sections .dropdown > button:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2) !important;
+}
+
+.o_menu_sections .dropdown-menu {
+    background: white !important;
+    border: none !important;
+    border-radius: var(--mesob-radius-lg) !important;
+    box-shadow: var(--mesob-shadow-2xl) !important;
+    padding: 12px !important;
+    margin-top: 8px !important;
+    min-width: 280px !important;
+    animation: slideDown 0.3s ease-out !important;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.o_menu_sections .dropdown-menu .dropdown-item {
+    border-radius: var(--mesob-radius-sm) !important;
+    padding: 12px 16px !important;
+    margin: 4px 0 !important;
+    font-weight: 500 !important;
+    color: var(--mesob-gray-700) !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+.o_menu_sections .dropdown-menu .dropdown-item:hover {
+    background: linear-gradient(135deg, var(--mesob-primary-subtle) 0%, #e0e7ff 100%) !important;
+    color: var(--mesob-primary-dark) !important;
+    transform: translateX(4px) !important;
+    box-shadow: var(--mesob-shadow-sm) !important;
+}
+
+.o_menu_sections .dropdown-menu .dropdown-item:active {
+    background: var(--mesob-primary) !important;
+    color: white !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PREMIUM LIST VIEW
+   ══════════════════════════════════════════════════════════════ */
+
+.o_list_view {
+    background: var(--mesob-gray-50) !important;
+    padding: 20px !important;
+    border-radius: var(--mesob-radius-lg) !important;
+}
+
+.o_list_table {
+    background: white !important;
+    border-radius: var(--mesob-radius-lg) !important;
+    overflow: hidden !important;
+    box-shadow: var(--mesob-shadow-md) !important;
+    border: 1px solid var(--mesob-gray-200) !important;
+}
+
+.o_list_table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.o_list_table thead th {
+    color: white !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    font-size: 12px !important;
+    letter-spacing: 0.5px !important;
+    padding: 16px 12px !important;
+    border: none !important;
+}
+
+.o_list_table tbody tr {
+    transition: all 0.2s ease !important;
+    border-bottom: 1px solid var(--mesob-gray-100) !important;
+}
+
+.o_list_table tbody tr:hover {
+    background: var(--mesob-primary-subtle) !important;
+    transform: scale(1.01) !important;
+    box-shadow: var(--mesob-shadow-sm) !important;
+}
+
+.o_list_table tbody td {
+    padding: 14px 12px !important;
+    color: var(--mesob-gray-700) !important;
+    font-size: 14px !important;
+}
+
+.o_list_table tbody tr:nth-child(even) {
+    background: var(--mesob-gray-50) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PREMIUM BADGES
+   ══════════════════════════════════════════════════════════════ */
+
+.badge {
+    padding: 6px 14px !important;
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    box-shadow: var(--mesob-shadow-sm) !important;
+}
+
+.badge-info {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    color: white !important;
+}
+
+.badge-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: white !important;
+}
+
+.badge-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    color: white !important;
+}
+
+.badge-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    color: white !important;
+}
+
+.badge-secondary {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important;
+    color: white !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PREMIUM BUTTONS
+   ══════════════════════════════════════════════════════════════ */
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--mesob-primary) 0%, var(--mesob-primary-dark) 100%) !important;
+    border: none !important;
+    border-radius: var(--mesob-radius-md) !important;
+    padding: 10px 24px !important;
+    font-weight: 600 !important;
+    box-shadow: var(--mesob-shadow-md) !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: var(--mesob-shadow-lg) !important;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--mesob-success) 0%, #059669 100%) !important;
+    border: none !important;
+    border-radius: var(--mesob-radius-md) !important;
+    box-shadow: var(--mesob-shadow-md) !important;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--mesob-danger) 0%, #dc2626 100%) !important;
+    border: none !important;
+    border-radius: var(--mesob-radius-md) !important;
+    box-shadow: var(--mesob-shadow-md) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PREMIUM SEARCH & FILTERS
+   ══════════════════════════════════════════════════════════════ */
+
+.o_searchview {
+    background: white !important;
+    border-radius: var(--mesob-radius-lg) !important;
+    box-shadow: var(--mesob-shadow-md) !important;
+    padding: 8px !important;
+    border: 1px solid var(--mesob-gray-200) !important;
+}
+
+.o_searchview input {
+    border: none !important;
+    border-radius: var(--mesob-radius-sm) !important;
+    padding: 10px 16px !important;
+    font-size: 14px !important;
+}
+
+.o_searchview input:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px var(--mesob-primary-subtle) !important;
+}
+
+.o_searchview .o_searchview_facet {
+    background: var(--mesob-primary-subtle) !important;
+    border: 1px solid var(--mesob-primary-light) !important;
+    border-radius: var(--mesob-radius-sm) !important;
+    color: var(--mesob-primary-dark) !important;
+    padding: 6px 12px !important;
+    font-weight: 500 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE DESIGN
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    .o_list_view {
+        padding: 10px !important;
+    }
+    
+    .o_list_table thead th {
+        padding: 12px 8px !important;
+        font-size: 11px !important;
+    }
+    
+    .o_list_table tbody td {
+        padding: 10px 8px !important;
+        font-size: 13px !important;
+    }
+    
+    .o_menu_sections .dropdown-menu {
+        min-width: 240px !important;
+    }
+    
+    .badge {
+        padding: 4px 10px !important;
+        font-size: 10px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .o_list_table {
+        font-size: 12px !important;
+    }
+    
+    .o_menu_sections button.dropdown-toggle {
+        padding: 6px 12px !important;
+        font-size: 14px !important;
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   REQUISITION LINES TABLE ENHANCEMENT
+   ══════════════════════════════════════════════════════════════ */
+
+.mesob_requisition_lines.o_list_table {
+    background: white !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15) !important;
+    border: 2px solid #e0e7ff !important;
+}
+
+.mesob_requisition_lines.o_list_table thead {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+}
+
+.mesob_requisition_lines.o_list_table thead th {
+    color: white !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    font-size: 13px !important;
+    letter-spacing: 1px !important;
+    padding: 18px 16px !important;
+    border: none !important;
+    text-align: center !important;
+}
+
+.mesob_requisition_lines.o_list_table tbody tr {
+    transition: all 0.3s ease !important;
+    border-bottom: 2px solid #f3f4f6 !important;
+    background: white !important;
+}
+
+.mesob_requisition_lines.o_list_table tbody tr:hover {
+    background: linear-gradient(135deg, #f8f9ff 0%, #eef2ff 100%) !important;
+    transform: translateX(4px) !important;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2) !important;
+}
+
+.mesob_requisition_lines.o_list_table tbody td {
+    padding: 16px !important;
+    color: #374151 !important;
+    font-size: 14px !important;
+    vertical-align: middle !important;
+    border-right: 1px solid #f3f4f6 !important;
+}
+
+.mesob_requisition_lines.o_list_table tbody td:last-child {
+    border-right: none !important;
+}
+
+/* Enhance "Add a line" button */
+.mesob_requisition_lines .o_field_x2many_list_row_add a {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+    color: white !important;
+    padding: 12px 28px !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4) !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.mesob_requisition_lines .o_field_x2many_list_row_add a:hover {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5) !important;
+}
+
+.mesob_requisition_lines .o_field_x2many_list_row_add a::before {
+    content: "➕" !important;
+    font-size: 16px !important;
+}
+
+/* Input fields in the table */
+.mesob_requisition_lines input,
+.mesob_requisition_lines select,
+.mesob_requisition_lines textarea {
+    border: 2px solid #e0e7ff !important;
+    border-radius: 8px !important;
+    padding: 10px 14px !important;
+    font-size: 14px !important;
+    transition: all 0.3s ease !important;
+    background: white !important;
+}
+
+.mesob_requisition_lines input:focus,
+.mesob_requisition_lines select:focus,
+.mesob_requisition_lines textarea:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1) !important;
+    outline: none !important;
+    background: #f8f9ff !important;
+}
+
+/* Delete button styling */
+.mesob_requisition_lines .o_list_record_remove button {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
+}
+
+.mesob_requisition_lines .o_list_record_remove button:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5) !important;
+}
+
+/* Empty state styling */
+.mesob_requisition_lines .o_list_table tbody tr.o_data_row:only-child td {
+    text-align: center !important;
+    padding: 40px !important;
+    color: #9ca3af !important;
+    font-style: italic !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   REQUISITION ITEM FORM - PREMIUM MODAL STYLING
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Form modal styling */
+.mesob_requisition_item_form .o_group {
+    margin-bottom: 0 !important;
+}
+
+.mesob_requisition_item_form .o_form_label {
+    color: #6366f1 !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    margin-bottom: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.mesob_requisition_item_form .o_form_label::before {
+    content: "●" !important;
+    color: #8b5cf6 !important;
+    font-size: 10px !important;
+}
+
+/* Form input fields */
+.mesob_requisition_item_form input,
+.mesob_requisition_item_form .o_input,
+.mesob_requisition_item_form select,
+.mesob_requisition_item_form textarea,
+.mesob_requisition_item_form .o_field_widget {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%) !important;
+    border: 2px solid #e0e7ff !important;
+    border-radius: 12px !important;
+    padding: 14px 16px !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    color: #1f2937 !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.05) !important;
+}
+
+.mesob_requisition_item_form input:focus,
+.mesob_requisition_item_form .o_input:focus,
+.mesob_requisition_item_form select:focus,
+.mesob_requisition_item_form textarea:focus {
+    border-color: #6366f1 !important;
+    background: white !important;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 4px 12px rgba(99, 102, 241, 0.2) !important;
+    outline: none !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Many2one field dropdown */
+.mesob_requisition_item_form .o_field_many2one input {
+    padding-right: 40px !important;
+}
+
+.mesob_requisition_item_form .o_field_many2one .o_external_button {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+    color: white !important;
+    border-radius: 8px !important;
+    padding: 8px !important;
+    transition: all 0.3s ease !important;
+}
+
+.mesob_requisition_item_form .o_field_many2one .o_external_button:hover {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+    transform: scale(1.1) !important;
+}
+
+/* Form group styling */
+.mesob_requisition_item_form > .o_group > .o_group {
+    background: white !important;
+    padding: 20px !important;
+    border-radius: 12px !important;
+    margin-bottom: 16px !important;
+    border-left: 4px solid #6366f1 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.3s ease !important;
+}
+
+.mesob_requisition_item_form > .o_group > .o_group:hover {
+    border-left-color: #8b5cf6 !important;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15) !important;
+    transform: translateX(4px) !important;
+}
+
+/* Placeholder styling */
+.mesob_requisition_item_form input::placeholder,
+.mesob_requisition_item_form textarea::placeholder {
+    color: #9ca3af !important;
+    font-style: italic !important;
+    font-weight: 400 !important;
+}
+
+/* Modal footer buttons */
+.modal-footer .btn-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+    border: none !important;
+    padding: 12px 28px !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+    transition: all 0.3s ease !important;
+}
+
+.modal-footer .btn-primary:hover {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4) !important;
+}
+
+.modal-footer .btn-secondary {
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%) !important;
+    color: #6b7280 !important;
+    border: 2px solid #d1d5db !important;
+    padding: 12px 28px !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+}
+
+.modal-footer .btn-secondary:hover {
+    background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%) !important;
+    color: #374151 !important;
+    border-color: #9ca3af !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   ISSUE VOUCHER LINES - PREMIUM STYLING
+   ═══════════════════════════════════════════════════════════════ */
+
+.mesob_issue_lines {
+    .o_field_x2many_list_row_add a {
+        background: linear-gradient(135deg, #a855f7 0%, #c084fc 100%) !important;
+        color: white !important;
+        padding: 10px 20px !important;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3) !important;
+        transition: all 0.3s ease !important;
+        border: none !important;
+        
+        &:before {
+            content: "📦 ";
+            margin-right: 6px;
+        }
+        
+        &:hover {
+            background: linear-gradient(135deg, #9333ea 0%, #a855f7 100%) !important;
+            box-shadow: 0 6px 16px rgba(168, 85, 247, 0.4) !important;
+            transform: translateY(-2px);
+        }
+    }
+    
+    table.o_list_table {
+        thead {
+            background: linear-gradient(135deg, #a855f7 0%, #c084fc 100%) !important;
+            
+            th {
+                color: white !important;
+                font-weight: 700 !important;
+                padding: 14px 12px !important;
+                border: none !important;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                font-size: 12px;
+            }
+        }
+        
+        tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #f3e8ff;
+            
+            &:hover {
+                background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%) !important;
+                transform: translateX(4px);
+                box-shadow: 0 2px 8px rgba(168, 85, 247, 0.1);
+            }
+            
+            td {
+                padding: 12px !important;
+                vertical-align: middle !important;
+                
+                input, select, .o_field_widget {
+                    border: 2px solid #f3e8ff !important;
+                    border-radius: 8px !important;
+                    padding: 8px 12px !important;
+                    transition: all 0.3s ease;
+                    
+                    &:focus {
+                        border-color: #a855f7 !important;
+                        box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1) !important;
+                        outline: none;
+                    }
+                }
+                
+                .o_list_record_remove button {
+                    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+                    color: white !important;
+                    border: none !important;
+                    border-radius: 6px !important;
+                    padding: 6px 10px !important;
+                    transition: all 0.3s ease;
+                    
+                    &:hover {
+                        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+                        transform: scale(1.1);
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* Issue Voucher Line Form Modal */
+.modal-dialog:has(.o_form_view[data-model="mesob.inventory.issue.voucher.line"]) {
+    .modal-content {
+        border-radius: 16px;
+        border: 2px solid #f3e8ff;
+        box-shadow: 0 20px 60px rgba(168, 85, 247, 0.2);
+    }
+    
+    .modal-header {
+        background: linear-gradient(135deg, #a855f7 0%, #c084fc 100%);
+        color: white;
+        border-radius: 14px 14px 0 0;
+        padding: 20px 24px;
+        
+        .modal-title {
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: 0.5px;
+        }
+    }
+    
+    .o_form_sheet {
+        .o_group {
+            .o_wrap_label label {
+                font-size: 14px;
+                font-weight: 600;
+                color: #6b7280;
+                margin-bottom: 8px;
+            }
+            
+            .o_field_widget {
+                background: linear-gradient(135deg, #faf5ff 0%, #ffffff 100%);
+                border: 2px solid #f3e8ff;
+                border-radius: 10px;
+                padding: 12px 16px;
+                transition: all 0.3s ease;
+                
+                &:focus {
+                    border-color: #a855f7;
+                    box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.1);
+                    background: white;
+                }
+            }
+        }
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE DESIGN - MOBILE & TABLET
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Tablet and below (max-width: 991px) */
+@media (max-width: 991px) {
+    .mesob_responsive_row {
+        .mesob_responsive_col {
+            margin-bottom: 20px !important;
+            
+            .mesob_info_card {
+                height: auto !important;
+                min-height: auto !important;
+            }
+            
+            h3 {
+                font-size: 16px !important;
+                
+                .fa {
+                    font-size: 16px !important;
+                }
+                
+                div {
+                    width: 36px !important;
+                    height: 36px !important;
+                }
+            }
+        }
+    }
+    
+    /* Workflow timeline - stack vertically on mobile */
+    div[style*="display: flex"][style*="justify-content: center"] {
+        flex-direction: column !important;
+        align-items: center !important;
+        
+        .fa-arrow-right {
+            transform: rotate(90deg);
+            margin: 10px 0 !important;
+        }
+        
+        > div {
+            margin-bottom: 15px;
+        }
+    }
+    
+    /* Copy distribution - stack vertically */
+    div[style*="display: flex"][style*="gap: 20px"] {
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+}
+
+/* Mobile (max-width: 576px) */
+@media (max-width: 576px) {
+    .mesob_info_card {
+        padding: 16px !important;
+        border-radius: 12px !important;
+        
+        h3 {
+            font-size: 14px !important;
+            padding-bottom: 12px !important;
+            margin-bottom: 16px !important;
+            
+            div {
+                width: 32px !important;
+                height: 32px !important;
+            }
+            
+            .fa {
+                font-size: 14px !important;
+            }
+        }
+        
+        /* Field containers */
+        > div > div {
+            padding: 12px !important;
+            border-radius: 10px !important;
+            
+            /* Icon containers */
+            > div > div:first-child {
+                width: 28px !important;
+                height: 28px !important;
+                
+                .fa {
+                    font-size: 12px !important;
+                }
+            }
+            
+            /* Labels */
+            > div > div > div:first-child {
+                font-size: 10px !important;
+            }
+            
+            /* Field values */
+            .o_field_widget {
+                font-size: 13px !important;
+            }
+        }
+    }
+    
+    /* Workflow badges */
+    div[style*="display: inline-flex"][style*="padding: 12px"] {
+        padding: 10px 16px !important;
+        font-size: 14px !important;
+        
+        .fa {
+            font-size: 16px !important;
+        }
+        
+        span {
+            font-size: 14px !important;
+        }
+    }
+    
+    /* Workflow circles */
+    div[style*="width: 80px"][style*="height: 80px"] {
+        width: 60px !important;
+        height: 60px !important;
+        
+        .fa-2x {
+            font-size: 1.5em !important;
+        }
+    }
+    
+    /* Notes section */
+    div[style*="min-height: 150px"],
+    div[style*="min-height: 120px"] {
+        min-height: 100px !important;
+        font-size: 13px !important;
+        padding: 12px !important;
+    }
+    
+    /* Table responsiveness */
+    .mesob_requisition_lines,
+    .mesob_issue_lines {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        
+        table.o_list_table {
+            min-width: 600px;
+            
+            thead th {
+                font-size: 11px !important;
+                padding: 10px 8px !important;
+            }
+            
+            tbody td {
+                font-size: 12px !important;
+                padding: 8px !important;
+                
+                input, select, .o_field_widget {
+                    font-size: 12px !important;
+                    padding: 6px 10px !important;
+                }
+            }
+        }
+        
+        .o_field_x2many_list_row_add a {
+            padding: 8px 16px !important;
+            font-size: 13px !important;
+        }
+    }
+}
+
+/* Extra small mobile (max-width: 375px) */
+@media (max-width: 375px) {
+    .mesob_info_card {
+        padding: 12px !important;
+        
+        h3 {
+            font-size: 13px !important;
+            gap: 8px !important;
+            
+            div {
+                width: 28px !important;
+                height: 28px !important;
+            }
+        }
+        
+        > div > div {
+            padding: 10px !important;
+            gap: 10px !important;
+        }
+    }
+    
+    /* Workflow section */
+    div[style*="margin: 20px 0"] {
+        margin: 15px 0 !important;
+        padding: 16px !important;
+    }
+    
+    /* Workflow circles - even smaller */
+    div[style*="width: 60px"][style*="height: 60px"] {
+        width: 50px !important;
+        height: 50px !important;
+    }
+}
+
+/* Landscape mobile optimization */
+@media (max-width: 991px) and (orientation: landscape) {
+    .mesob_responsive_row {
+        .mesob_responsive_col {
+            &:first-child {
+                padding-right: 10px !important;
+            }
+            
+            &:last-child {
+                padding-left: 10px !important;
+            }
+        }
+    }
+}
+
+/* Print styles */
+@media print {
+    .mesob_info_card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+        page-break-inside: avoid;
+    }
+    
+    .mesob_responsive_row {
+        page-break-inside: avoid;
+    }
+    
+    /* Hide interactive elements */
+    .o_field_x2many_list_row_add,
+    .o_list_record_remove {
+        display: none !important;
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   INVENTORY ITEMS LIST - PREMIUM STYLING
+   ═══════════════════════════════════════════════════════════════ */
+
+.mesob_items_list {
+    table.o_list_table {
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            
+            th {
+                color: white !important;
+                font-weight: 700 !important;
+                padding: 14px 12px !important;
+                border: none !important;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                font-size: 12px;
+            }
+        }
+        
+        tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #f3f4f6;
+            
+            &:hover {
+                background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%) !important;
+                transform: translateX(4px);
+                box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+            }
+            
+            &.text-success {
+                background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+                font-weight: 600;
+                
+                &:hover {
+                    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%) !important;
+                }
+            }
+            
+            &.text-warning {
+                background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+                
+                &:hover {
+                    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+                }
+            }
+            
+            &.text-muted {
+                opacity: 0.7;
+            }
+        }
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   RECEIVING LINES - PREMIUM STYLING
+   ═══════════════════════════════════════════════════════════════ */
+
+.mesob_receiving_lines {
+    .o_field_x2many_list_row_add a {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        color: white !important;
+        padding: 10px 20px !important;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+        transition: all 0.3s ease !important;
+        border: none !important;
+        
+        &:before {
+            content: "📦 ";
+            margin-right: 6px;
+        }
+        
+        &:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4) !important;
+            transform: translateY(-2px);
+        }
+    }
+    
+    table.o_list_table {
+        thead {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            
+            th {
+                color: white !important;
+                font-weight: 700 !important;
+                padding: 14px 12px !important;
+                border: none !important;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                font-size: 12px;
+            }
+        }
+        
+        tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #d1fae5;
+            
+            &:hover {
+                background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+                transform: translateX(4px);
+                box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+            }
+            
+            td {
+                padding: 12px !important;
+                vertical-align: middle !important;
+                
+                input, select, .o_field_widget {
+                    border: 2px solid #d1fae5 !important;
+                    border-radius: 8px !important;
+                    padding: 8px 12px !important;
+                    transition: all 0.3s ease;
+                    
+                    &:focus {
+                        border-color: #10b981 !important;
+                        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+                        outline: none;
+                    }
+                }
+                
+                .o_list_record_remove button {
+                    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+                    color: white !important;
+                    border: none !important;
+                    border-radius: 6px !important;
+                    padding: 6px 10px !important;
+                    transition: all 0.3s ease;
+                    
+                    &:hover {
+                        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+                        transform: scale(1.1);
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* Receiving Line Form Modal */
+.modal-dialog:has(.o_form_view[data-model="mesob.inventory.receiving.line"]) {
+    .modal-content {
+        border-radius: 16px;
+        border: 2px solid #d1fae5;
+        box-shadow: 0 20px 60px rgba(16, 185, 129, 0.2);
+    }
+    
+    .modal-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border-radius: 14px 14px 0 0;
+        padding: 20px 24px;
+        
+        .modal-title {
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: 0.5px;
+        }
+    }
+    
+    .o_form_sheet {
+        .o_group {
+            .o_wrap_label label {
+                font-size: 14px;
+                font-weight: 600;
+                color: #6b7280;
+                margin-bottom: 8px;
+            }
+            
+            .o_field_widget {
+                background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+                border: 2px solid #d1fae5;
+                border-radius: 10px;
+                padding: 12px 16px;
+                transition: all 0.3s ease;
+                
+                &:focus {
+                    border-color: #10b981;
+                    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+                    background: white;
+                }
+            }
+        }
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   Receiving Order Simplified Form Styles
+   ═══════════════════════════════════════════════════════════════ */
+
+.o_form_receiving_simplified {
+    .oe_title h1 {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .oe_title h3 {
+        margin-top: 8px;
+        font-size: 14px;
+    }
+    
+    /* Group headers with icons */
+    .o_group .o_group_title {
+        font-weight: 600;
+        color: #34495e;
+        font-size: 15px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #ecf0f1;
+        margin-bottom: 12px;
+    }
+    
+    /* Alert boxes */
+    .alert {
+        border-radius: 8px;
+        margin-bottom: 16px;
+        padding: 12px 16px;
+        border-left: 4px solid;
+        
+        &.alert-info {
+            background-color: #e8f4f8;
+            border-left-color: #3498db;
+            color: #2980b9;
+        }
+        
+        &.alert-warning {
+            background-color: #fff3cd;
+            border-left-color: #f39c12;
+            color: #856404;
+        }
+        
+        strong {
+            font-weight: 600;
+        }
+    }
+    
+    /* Line items table */
+    .o_list_table {
+        thead th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        tbody tr {
+            &:hover {
+                background-color: #f8f9fa;
+            }
+        }
+        
+        /* Highlight accepted/rejected columns */
+        .o_data_cell {
+            &.o_list_number {
+                font-weight: 500;
+            }
+        }
+    }
+    
+    /* Status badges */
+    .badge {
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-weight: 500;
+        font-size: 13px;
+    }
+    
+    /* Smart buttons */
+    .oe_button_box {
+        .oe_stat_button {
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+            
+            .o_stat_info {
+                .o_stat_text {
+                    font-size: 11px;
+                    color: #6c757d;
+                }
+                
+                .o_stat_value {
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #2c3e50;
+                }
+            }
+        }
+    }
+    
+    /* Form buttons */
+    .o_form_statusbar {
+        .btn {
+            border-radius: 6px;
+            font-weight: 500;
+            padding: 8px 16px;
+            transition: all 0.2s ease;
+            
+            &:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+        }
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   Receiving Line Items - Better Visibility
+   ═══════════════════════════════════════════════════════════════ */
+
+.o_form_receiving_simplified {
+    .o_list_table {
+        /* Make accepted column more visible */
+        .o_data_cell.o_list_number {
+            font-weight: 600 !important;
+            font-size: 14px !important;
+            
+            /* Accepted quantities - dark green on light green background */
+            &.text-success {
+                background-color: #d4edda !important;
+                color: #155724 !important;
+                border-left: 3px solid #28a745 !important;
+            }
+            
+            /* Rejected quantities - dark red on light red background */
+            &.text-danger {
+                background-color: #f8d7da !important;
+                color: #721c24 !important;
+                border-left: 3px solid #dc3545 !important;
+            }
+        }
+        
+        /* Editable cells - add focus indicator */
+        .o_data_cell.o_field_widget {
+            &:not(.o_readonly_modifier) {
+                background-color: #fff9e6 !important;
+                border: 1px dashed #ffc107 !important;
+                cursor: pointer !important;
+                
+                &:hover {
+                    background-color: #fff3cd !important;
+                    border-color: #ff9800 !important;
+                }
+                
+                &:focus-within {
+                    background-color: #ffffff !important;
+                    border: 2px solid #007bff !important;
+                    box-shadow: 0 0 0 3px rgba(0,123,255,0.1) !important;
+                }
+            }
+        }
+        
+        /* Readonly cells - subtle gray */
+        .o_readonly_modifier {
+            background-color: #f8f9fa !important;
+            color: #6c757d !important;
+        }
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   Receiving Line Items - Visible Column Headers
+   ═══════════════════════════════════════════════════════════════ */
+
+.o_form_receiving_simplified {
+    .o_list_table {
+        /* Make table headers highly visible */
+        thead th {
+            background-color: #495057 !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            font-size: 13px !important;
+            padding: 12px 8px !important;
+            border-bottom: 3px solid #343a40 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+        }
+        
+        /* Special styling for inspection columns */
+        thead th:has(.o_column_title:contains("Accepted")) {
+            background-color: #28a745 !important;
+        }
+        
+        thead th:has(.o_column_title:contains("Rejected")) {
+            background-color: #dc3545 !important;
+        }
+    }
+}

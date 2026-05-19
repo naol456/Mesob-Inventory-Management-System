@@ -9,3 +9,5 @@ from . import mesob_inventory_model19_line
 from . import mesob_inventory_dsr
 from . import mesob_inventory_dsr_line
 from . import mesob_inventory_issue_voucher
+from . import mesob_gate_pass
+from . import mesob_gate_pass_line 

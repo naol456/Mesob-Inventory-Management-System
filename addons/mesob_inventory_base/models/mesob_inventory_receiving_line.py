@@ -19,6 +19,14 @@ class MesobInventoryReceivingLine(models.Model):
         required=True,
         ondelete="cascade",
     )
+    
+    # Related field to access parent state
+    state = fields.Selection(
+        related="receiving_id.state",
+        string="Status",
+        store=False,
+        readonly=True,
+    )
 
     item_id = fields.Many2one(
         "mesob.inventory.item",
@@ -109,11 +117,8 @@ class MesobInventoryReceivingLine(models.Model):
                 raise ValidationError(
                     "Received quantity cannot be negative."
                 )
-            if (line.qty_accepted + line.qty_rejected) > line.qty_received and line.qty_received > 0:
-                raise ValidationError(
-                    "Accepted + Rejected quantities cannot exceed "
-                    "the received quantity."
-                )
+            # Allow accepted + rejected to exceed received (will auto-adjust received)
+            # This makes the workflow more flexible
 
     @api.onchange("item_id")
     def _onchange_item_id(self):
@@ -123,3 +128,27 @@ class MesobInventoryReceivingLine(models.Model):
                 self.description = self.item_id.name
             if not self.uom_id and self.item_id.uom_id:
                 self.uom_id = self.item_id.uom_id
+
+    @api.onchange("qty_received")
+    def _onchange_qty_received(self):
+        """Auto-fill qty_accepted when qty_received is entered."""
+        if self.qty_received > 0 and self.qty_accepted == 0 and self.qty_rejected == 0:
+            # Auto-accept all received items by default
+            self.qty_accepted = self.qty_received
+
+    @api.onchange("qty_expected")
+    def _onchange_qty_expected(self):
+        """Auto-fill qty_received and qty_accepted with expected quantity."""
+        if self.qty_expected > 0:
+            if self.qty_received == 0:
+                self.qty_received = self.qty_expected
+            if self.qty_accepted == 0 and self.qty_rejected == 0:
+                self.qty_accepted = self.qty_expected
+    
+    @api.onchange("qty_accepted", "qty_rejected")
+    def _onchange_accepted_rejected(self):
+        """Auto-adjust qty_received when accepted/rejected are changed."""
+        if self.qty_accepted > 0 or self.qty_rejected > 0:
+            total = self.qty_accepted + self.qty_rejected
+            if total > self.qty_received:
+                self.qty_received = total
