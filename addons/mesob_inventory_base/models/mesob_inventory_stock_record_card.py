@@ -173,12 +173,6 @@ class MesobInventoryStockRecordCard(models.Model):
         ondelete="set null",
     )
 
-    issue_voucher_id = fields.Many2one(
-        "mesob.inventory.issue.voucher",
-        string="Issue Voucher",
-        ondelete="set null",
-    )
-
     stock_move_id = fields.Many2one(
         "stock.move",
         string="Stock Move",
@@ -420,7 +414,7 @@ class MesobInventoryStockRecordCard(models.Model):
             remaining_to_consume -= qty_to_consume
 
     def action_view_source_document(self):
-        """Navigate to the source document (receiving, issue voucher, etc.)."""
+        """Navigate to the source document (receiving, stock move, etc.)."""
         self.ensure_one()
         
         if self.receiving_id:
@@ -429,15 +423,6 @@ class MesobInventoryStockRecordCard(models.Model):
                 "type": "ir.actions.act_window",
                 "res_model": "mesob.inventory.receiving",
                 "res_id": self.receiving_id.id,
-                "view_mode": "form",
-                "target": "current",
-            }
-        elif self.issue_voucher_id:
-            return {
-                "name": "Issue Voucher",
-                "type": "ir.actions.act_window",
-                "res_model": "mesob.inventory.issue.voucher",
-                "res_id": self.issue_voucher_id.id,
                 "view_mode": "form",
                 "target": "current",
             }

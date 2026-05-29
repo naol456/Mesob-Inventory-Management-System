@@ -120,12 +120,6 @@ class MesobInventoryBinCard(models.Model):
         ondelete="set null",
     )
 
-    issue_voucher_id = fields.Many2one(
-        "mesob.inventory.issue.voucher",
-        string="Issue Voucher",
-        ondelete="set null",
-    )
-
     stock_move_id = fields.Many2one(
         "stock.move",
         string="Stock Move",
@@ -176,7 +170,6 @@ class MesobInventoryBinCard(models.Model):
         reference=None,
         location_id=None,
         receiving_id=None,
-        issue_voucher_id=None,
         stock_move_id=None,
         note=None,
     ):
@@ -189,7 +182,6 @@ class MesobInventoryBinCard(models.Model):
             reference: Document reference
             location_id: Storage location ID
             receiving_id: Related receiving order ID
-            issue_voucher_id: Related issue voucher ID
             stock_move_id: Related stock move ID
             note: Additional remarks
             
@@ -239,7 +231,6 @@ class MesobInventoryBinCard(models.Model):
             "uom_id": item.uom_id.id,
             "location_id": location_id,
             "receiving_id": receiving_id,
-            "issue_voucher_id": issue_voucher_id,
             "stock_move_id": stock_move_id,
             "note": note,
         }
@@ -247,7 +238,7 @@ class MesobInventoryBinCard(models.Model):
         return self.create(vals)
 
     def action_view_source_document(self):
-        """Navigate to the source document (receiving, issue voucher, etc.)."""
+        """Navigate to the source document (receiving, stock move, etc.)."""
         self.ensure_one()
         
         if self.receiving_id:
@@ -256,15 +247,6 @@ class MesobInventoryBinCard(models.Model):
                 "type": "ir.actions.act_window",
                 "res_model": "mesob.inventory.receiving",
                 "res_id": self.receiving_id.id,
-                "view_mode": "form",
-                "target": "current",
-            }
-        elif self.issue_voucher_id:
-            return {
-                "name": "Issue Voucher",
-                "type": "ir.actions.act_window",
-                "res_model": "mesob.inventory.issue.voucher",
-                "res_id": self.issue_voucher_id.id,
                 "view_mode": "form",
                 "target": "current",
             }
