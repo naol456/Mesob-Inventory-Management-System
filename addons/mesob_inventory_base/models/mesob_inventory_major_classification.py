@@ -14,6 +14,11 @@ class MesobInventoryMajorClassification(models.Model):
     _order = "code"
     _rec_name = "name"
 
+    _sql_constraints = [
+        ('code_unique', 'UNIQUE(code)', 'Classification code must be unique.'),
+        ('code_format', "CHECK(code ~ '^[0-9]{4}$')", 'Classification code must be exactly 4 digits.'),
+    ]
+
     code = fields.Char(
         string="Classification Code",
         required=True,
@@ -34,20 +39,9 @@ class MesobInventoryMajorClassification(models.Model):
     )
     active = fields.Boolean(default=True)
 
-
     item_count = fields.Integer(
         string="Items",
         compute="_compute_item_count",
-    )
-
-    _code_unique = models.Constraint(
-        "UNIQUE(code)",
-        "Classification code must be unique.",
-    )
-
-    _code_format = models.Constraint(
-        "CHECK(code ~ '^[0-9]{4}$')",
-        "Classification code must be exactly 4 digits.",
     )
 
     @api.depends("code", "name")

@@ -89,6 +89,8 @@ class MesobInventoryRequisition(models.Model):
             ("submitted", "Submitted"),
             ("approved", "Approved"),
             ("rejected", "Rejected"),
+            ("issued", "Issued"),
+            ("received", "Received"),
             ("cancelled", "Cancelled"),
         ],
         required=True,
@@ -107,7 +109,28 @@ class MesobInventoryRequisition(models.Model):
         copy=True,
     )
 
+    # ── Issue Vouchers ──────────────────────────────────────────────────
+
+    issue_voucher_ids = fields.One2many(
+        "mesob.inventory.issue.voucher",
+        "requisition_id",
+        string="Issue Vouchers",
+        readonly=True,
+    )
+
+    issue_voucher_count = fields.Integer(
+        string="Issue Voucher Count",
+        compute="_compute_issue_voucher_count",
+    )
+
     note = fields.Text(string="Internal Notes")
+
+    # ── Computed Fields ─────────────────────────────────────────────────
+
+    @api.depends("issue_voucher_ids")
+    def _compute_issue_voucher_count(self):
+        for record in self:
+            record.issue_voucher_count = len(record.issue_voucher_ids)
 
     # ── Actions ─────────────────────────────────────────────────────────
 
@@ -157,5 +180,64 @@ class MesobInventoryRequisition(models.Model):
         for record in self:
             if record.state in ("cancelled",):
                 raise UserError("Requisition is already cancelled.")
+            if record.state in ("issued", "received"):
+                raise UserError(
+                    "Cannot cancel requisition that has been issued. "
+                    "Please cancel the issue voucher first."
+                )
             record.state = "cancelled"
         return True
+
+    def action_create_issue_voucher(self):
+        """Create Issue Voucher (Model 22) from approved requisition."""
+        self.ensure_one()
+        
+        if self.state != "approved":
+            raise UserError("Only approved requisitions can generate issue vouchers.")
+        
+        if not self.line_ids:
+            raise UserError("Cannot create issue voucher: no requisition lines found.")
+        
+        # Create issue voucher
+        voucher_vals = {
+            "requisition_id": self.id,
+            "issue_date": fields.Date.today(),
+            "issued_by_id": self.env.user.id,
+            "line_ids": [],
+        }
+        
+        # Copy requisition lines to issue voucher lines
+        for req_line in self.line_ids:
+            voucher_vals["line_ids"].append((0, 0, {
+                "item_id": req_line.item_id.id,
+                "quantity_issued": req_line.quantity,
+                "uom_id": req_line.uom_id.id,
+                "note": req_line.note,
+            }))
+        
+        voucher = self.env["mesob.inventory.issue.voucher"].create(voucher_vals)
+        
+        # Update requisition state
+        self.state = "issued"
+        
+        # Return action to open the new voucher
+        return {
+            "name": "Issue Voucher",
+            "type": "ir.actions.act_window",
+            "res_model": "mesob.inventory.issue.voucher",
+            "res_id": voucher.id,
+            "view_mode": "form",
+            "target": "current",
+        }
+
+    def action_view_issue_vouchers(self):
+        """View related issue vouchers."""
+        self.ensure_one()
+        return {
+            "name": "Issue Vouchers",
+            "type": "ir.actions.act_window",
+            "res_model": "mesob.inventory.issue.voucher",
+            "view_mode": "tree,form",
+            "domain": [("requisition_id", "=", self.id)],
+            "context": {"default_requisition_id": self.id},
+        }

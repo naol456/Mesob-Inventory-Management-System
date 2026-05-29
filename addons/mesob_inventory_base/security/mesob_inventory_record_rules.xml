@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         Record Rules for Issue of Stocks
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- PAO can approve/reject any requisition -->
+    <record id="rule_requisition_pao_all" model="ir.rule">
+        <field name="name">PAO: All Requisitions</field>
+        <field name="model_id" ref="model_mesob_inventory_requisition"/>
+        <field name="groups" eval="[(4, ref('group_mesob_pao'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Storekeeper can view approved requisitions and create issue vouchers -->
+    <record id="rule_requisition_storekeeper" model="ir.rule">
+        <field name="name">Storekeeper: Approved Requisitions</field>
+        <field name="model_id" ref="model_mesob_inventory_requisition"/>
+        <field name="groups" eval="[(4, ref('group_mesob_storekeeper'))]"/>
+        <field name="domain_force">[('state', 'in', ['approved', 'issued', 'received'])]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- Users can see their own requisitions -->
+    <record id="rule_requisition_user_own" model="ir.rule">
+        <field name="name">User: Own Requisitions</field>
+        <field name="model_id" ref="model_mesob_inventory_requisition"/>
+        <field name="groups" eval="[(4, ref('group_mesob_inventory_user'))]"/>
+        <field name="domain_force">[('requested_by_id', '=', user.id)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- Stock Clerk can view all requisitions and issue vouchers for posting -->
+    <record id="rule_requisition_stock_clerk" model="ir.rule">
+        <field name="name">Stock Clerk: All Requisitions</field>
+        <field name="model_id" ref="model_mesob_inventory_requisition"/>
+        <field name="groups" eval="[(4, ref('group_mesob_stock_clerk'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+</odoo>

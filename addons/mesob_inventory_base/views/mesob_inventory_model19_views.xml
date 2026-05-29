@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ── List View ──────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_model19_list" model="ir.ui.view">
+        <field name="name">mesob.inventory.model19.list</field>
+        <field name="model">mesob.inventory.model19</field>
+        <field name="arch" type="xml">
+            <list string="Receipts (Model 19)" default_order="date desc"
+                  decoration-info="state == 'draft'"
+                  decoration-success="state == 'confirmed'"
+                  decoration-muted="state == 'distributed'">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="supplier_id"/>
+                <field name="receiving_id" optional="show"/>
+                <field name="is_no_payment" optional="hide"/>
+                <field name="total_amount" sum="Total"/>
+                <field name="copy_accounts" optional="show"/>
+                <field name="copy_stock_clerk" optional="show"/>
+                <field name="copy_supplier" optional="hide"/>
+                <field name="copy_storekeeper" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'confirmed'"
+                       decoration-muted="state == 'distributed'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Form View ──────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_model19_form" model="ir.ui.view">
+        <field name="name">mesob.inventory.model19.form</field>
+        <field name="model">mesob.inventory.model19</field>
+        <field name="arch" type="xml">
+            <form string="Receipt for Articles/Property (Model 19)" class="o_mesob_gov_doc">
+                <header>
+                    <button name="action_confirm" type="object"
+                            string="Confirm" class="btn-primary"
+                            invisible="state != 'draft'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <button name="action_mark_distributed" type="object"
+                            string="Mark Distributed" class="btn-success"
+                            invisible="state != 'confirmed'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,distributed"/>
+                </header>
+                <sheet>
+                    <!-- Government Document Header -->
+                    <div class="mesob_gov_header">
+                        <div class="mesob_gov_logo">M</div>
+                        <h1 class="mesob_gov_title">Federal Democratic Republic of Ethiopia</h1>
+                        <h3 class="mesob_gov_subtitle">Receipt for Articles/Property</h3>
+                        <h3 class="mesob_gov_model">Model 19</h3>
+                        <div class="mesob_gov_underline"></div>
+                    </div>
+
+                    <!-- Document Content -->
+                    <group>
+                        <group string="Receipt Details">
+                            <label for="name" string="Receipt Number"/>
+                            <h2 class="mesob_doc_number">
+                                <field name="name" class="oe_inline"/>
+                            </h2>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="receiving_id" readonly="1"/>
+                        </group>
+                        <group string="Supplier Information">
+                            <field name="supplier_id" readonly="state != 'draft'"/>
+                            <field name="is_no_payment" readonly="1"/>
+                            <field name="total_amount"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Receipt Lines" name="lines">
+                            <field name="line_ids"
+                                   readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="item_id"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id"/>
+                                    <field name="unit_price"/>
+                                    <field name="total_price"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Copy Distribution (FR-REC-006)"
+                              name="copies">
+                            <group>
+                                <group string="Distribution Status">
+                                    <field name="copy_accounts"
+                                           readonly="state == 'distributed'"/>
+                                    <field name="copy_stock_clerk"
+                                           readonly="state == 'distributed'"/>
+                                    <field name="copy_supplier"
+                                           readonly="state == 'distributed'"/>
+                                    <field name="copy_storekeeper"
+                                           readonly="state == 'distributed'"/>
+                                </group>
+                                <group string="Status">
+                                    <field name="all_copies_distributed"/>
+                                </group>
+                            </group>
+                            
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note"
+                                   placeholder="Notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Search View ────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_model19_search" model="ir.ui.view">
+        <field name="name">mesob.inventory.model19.search</field>
+        <field name="model">mesob.inventory.model19</field>
+        <field name="arch" type="xml">
+            <search string="Receipts (Model 19)">
+                <field name="name"/>
+                <field name="supplier_id"/>
+                <filter string="Draft" name="filter_draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter string="Confirmed" name="filter_confirmed"
+                        domain="[('state', '=', 'confirmed')]"/>
+                <filter string="Distributed" name="filter_distributed"
+                        domain="[('state', '=', 'distributed')]"/>
+                <filter string="Dept Return (No Payment)"
+                        name="filter_no_payment"
+                        domain="[('is_no_payment', '=', True)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Action ─────────────────────────────────────────────────── -->
+    <record id="action_mesob_inventory_model19" model="ir.actions.act_window">
+        <field name="name">Receipts (Model 19)</field>
+        <field name="res_model">mesob.inventory.model19</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No receipts yet
+            </p>
+            <p>
+                Model 19 receipts are auto-generated when a receiving order
+                is accepted after inspection. Track four-copy distribution
+                to Accounts, Stock Clerk, Supplier, and Storekeeper.
+            </p>
+        </field>
+    </record>
+</odoo>

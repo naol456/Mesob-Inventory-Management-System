@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Gate Pass Record Rules -->
+    
+    <!-- PAO: Full access to all Gate Passes -->
+    <record id="gate_pass_rule_pao" model="ir.rule">
+        <field name="name">Gate Pass: PAO Full Access</field>
+        <field name="model_id" ref="model_mesob_gate_pass"/>
+        <field name="groups" eval="[(4, ref('group_mesob_pao'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    
+    <!-- Storekeeper: Full access to all Gate Passes -->
+    <record id="gate_pass_rule_storekeeper" model="ir.rule">
+        <field name="name">Gate Pass: Storekeeper Full Access</field>
+        <field name="model_id" ref="model_mesob_gate_pass"/>
+        <field name="groups" eval="[(4, ref('group_mesob_storekeeper'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    
+    <!-- Security Guard: Read and write access to authorized Gate Passes -->
+    <record id="gate_pass_rule_security" model="ir.rule">
+        <field name="name">Gate Pass: Security Guard Access</field>
+        <field name="model_id" ref="model_mesob_gate_pass"/>
+        <field name="groups" eval="[(4, ref('group_mesob_security_guard'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+</odoo>

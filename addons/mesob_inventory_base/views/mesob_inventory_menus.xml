@@ -12,10 +12,109 @@
               parent="menu_mesob_inventory_root"
               sequence="10"/>
 
+    <menuitem id="menu_mesob_inventory_receiving"
+              name="Receiving Orders"
+              parent="menu_mesob_inventory_operations"
+              action="action_mesob_inventory_receiving"
+              sequence="5"/>
+
     <menuitem id="menu_mesob_inventory_requisitions" 
               name="Requisitions (Model 20)"
               parent="menu_mesob_inventory_operations"
               action="action_mesob_inventory_requisition"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_inventory_issue_vouchers" 
+              name="Issue Vouchers (Model 22)"
+              parent="menu_mesob_inventory_operations"
+              action="action_mesob_inventory_issue_voucher"
+              sequence="20"/>
+
+    <!-- ── Dispatch ───────────────────────────────────────────────── -->
+    <menuitem id="menu_mesob_inventory_dispatch"
+              name="Dispatch"
+              parent="menu_mesob_inventory_root"
+              sequence="12"/>
+
+    <menuitem id="menu_mesob_gate_pass_all"
+              name="All Gate Passes"
+              parent="menu_mesob_inventory_dispatch"
+              action="action_mesob_gate_pass_v2"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_gate_pass_pending_authorization"
+              name="Pending Authorization"
+              parent="menu_mesob_inventory_dispatch"
+              action="action_mesob_gate_pass_pending_authorization_v2"
+              groups="mesob_inventory_base.group_mesob_pao"
+              sequence="20"/>
+
+    <menuitem id="menu_mesob_gate_pass_pending_dispatch"
+              name="Pending Dispatch"
+              parent="menu_mesob_inventory_dispatch"
+              action="action_mesob_gate_pass_pending_dispatch_v2"
+              groups="mesob_inventory_base.group_mesob_security_guard"
+              sequence="30"/>
+
+    <!-- ── Documents ──────────────────────────────────────────────── -->
+    <menuitem id="menu_mesob_inventory_documents"
+              name="Documents"
+              parent="menu_mesob_inventory_root"
+              sequence="15"/>
+
+    <menuitem id="menu_mesob_inventory_model19"
+              name="Receipts (Model 19)"
+              parent="menu_mesob_inventory_documents"
+              action="action_mesob_inventory_model19"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_inventory_dsr"
+              name="Damage/Shortage Reports (DSR)"
+              parent="menu_mesob_inventory_documents"
+              action="action_mesob_inventory_dsr"
+              sequence="20"/>
+
+    <!-- Stock Records and Valuation -->
+    <menuitem id="menu_mesob_inventory_stock_records"
+              name="Stock Records &amp; Valuation"
+              parent="menu_mesob_inventory_root"
+              sequence="16"/>
+
+    <menuitem id="menu_mesob_bin_cards"
+              name="Bin Cards"
+              parent="menu_mesob_inventory_stock_records"
+              action="action_mesob_bin_card"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_stock_record_cards"
+              name="Stock Record Cards"
+              parent="menu_mesob_inventory_stock_records"
+              action="action_mesob_stock_record_card"
+              sequence="20"/>
+
+    <menuitem id="menu_mesob_fifo_layers"
+              name="FIFO Cost Layers"
+              parent="menu_mesob_inventory_stock_records"
+              action="action_mesob_stock_fifo_layer"
+              sequence="30"/>
+
+    <menuitem id="menu_mesob_valuation_config"
+              name="Valuation Configuration"
+              parent="menu_mesob_inventory_stock_records"
+              action="action_mesob_stock_valuation_config"
+              groups="mesob_inventory_base.group_mesob_pao"
+              sequence="40"/>
+
+    <!-- ── Stock Control ──────────────────────────────────────────── -->
+    <menuitem id="menu_mesob_inventory_stock_control"
+              name="Stock Control"
+              parent="menu_mesob_inventory_root"
+              sequence="17"/>
+
+    <menuitem id="menu_mesob_stock_reorder_alerts"
+              name="Reorder Alerts"
+              parent="menu_mesob_inventory_stock_control"
+              action="action_mesob_stock_reorder_alert"
               sequence="10"/>
 
     <!-- ── Master Data ────────────────────────────────────────────── -->

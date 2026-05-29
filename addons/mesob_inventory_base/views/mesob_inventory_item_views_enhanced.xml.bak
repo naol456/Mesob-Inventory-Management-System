@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════════════
+         INVENTORY ITEMS - ENHANCED PREMIUM VIEW
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- Enhanced List View with Modern Styling -->
+    <record id="view_mesob_inventory_item_list_enhanced" model="ir.ui.view">
+        <field name="name">mesob.inventory.item.list.enhanced</field>
+        <field name="model">mesob.inventory.item</field>
+        <field name="inherit_id" ref="view_mesob_inventory_item_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="class">mesob_modern_list mesob_items_list</attribute>
+                <attribute name="decoration-bf">abc_class == 'A'</attribute>
+                <attribute name="decoration-success">abc_class == 'A'</attribute>
+                <attribute name="decoration-warning">abc_class == 'B'</attribute>
+                <attribute name="decoration-muted">abc_class == 'C'</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Enhanced Form View with Modern Card Layout -->
+    <record id="view_mesob_inventory_item_form_enhanced" model="ir.ui.view">
+        <field name="name">mesob.inventory.item.form.enhanced</field>
+        <field name="model">mesob.inventory.item</field>
+        <field name="inherit_id" ref="view_mesob_inventory_item_form"/>
+        <field name="arch" type="xml">
+            
+            <!-- Hide original title -->
+            <xpath expr="//div[@class='oe_title']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Hide original groups -->
+            <xpath expr="//group[1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Add premium header with item info -->
+            <xpath expr="//sheet" position="before">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 40px; color: white; border-radius: 0;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+                        <div style="flex: 1; min-width: 300px;">
+                            <div style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; margin-bottom: 8px;">📦 Inventory Item</div>
+                            <field name="name" placeholder="Item name (English)..." style="font-size: 28px; font-weight: 700; color: white; background: transparent; border: none; padding: 0; margin: 0; width: 100%;"/>
+                            <field name="name_am" placeholder="የእቃ ስም (አማርኛ)..." style="font-size: 18px; font-weight: 500; color: rgba(255,255,255,0.9); background: transparent; border: none; padding: 0; margin-top: 8px; width: 100%;"/>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); padding: 16px 24px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.3);">
+                                <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; margin-bottom: 6px;">Item Code</div>
+                                <field name="item_code" placeholder="####-###-###" style="font-size: 24px; font-weight: 700; color: white; background: transparent; border: none; padding: 0; text-align: right; font-family: 'Courier New', monospace;"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+
+            <!-- Replace notebook with modern card layout -->
+            <xpath expr="//notebook" position="replace">
+                <div class="row mesob_responsive_row" style="margin: 20px 0;">
+                    <!-- Item Classification Card (Left) -->
+                    <div class="col-12 col-lg-6 mesob_responsive_col" style="padding: 0 10px; margin-bottom: 20px;">
+                        <div class="mesob_info_card" style="background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%); border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(14, 165, 233, 0.15); border: 2px solid #e0f2fe; height: 100%;">
+                            <h3 style="color: #0ea5e9; font-size: 18px; font-weight: 700; margin: 0 0 20px 0; padding-bottom: 16px; border-bottom: 3px solid #0ea5e9; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <div style="background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);">
+                                    <i class="fa fa-tag" style="color: white; font-size: 18px;"/>
+                                </div>
+                                <span>🏷️ Classification</span>
+                            </h3>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 16px;">
+                                <div style="background: white; padding: 16px; border-radius: 12px; border-left: 4px solid #0ea5e9; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fa fa-sitemap" style="color: white; font-size: 14px;"/>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Major Classification</div>
+                                            <field name="classification_id" placeholder="Select classification..." style="font-size: 15px; font-weight: 600; color: #1f2937;"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row" style="margin: 0;">
+                                    <div class="col-4" style="padding: 0 4px;">
+                                        <div style="background: white; padding: 12px; border-radius: 10px; border-left: 3px solid #06b6d4; box-shadow: 0 2px 6px rgba(0,0,0,0.05); text-align: center;">
+                                            <div style="color: #6b7280; font-size: 10px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">Major</div>
+                                            <field name="major_code" readonly="1" style="font-size: 16px; font-weight: 700; color: #0ea5e9; font-family: 'Courier New', monospace;"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-4" style="padding: 0 4px;">
+                                        <div style="background: white; padding: 12px; border-radius: 10px; border-left: 3px solid #06b6d4; box-shadow: 0 2px 6px rgba(0,0,0,0.05); text-align: center;">
+                                            <div style="color: #6b7280; font-size: 10px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">Sub</div>
+                                            <field name="sub_code" readonly="1" style="font-size: 16px; font-weight: 700; color: #0ea5e9; font-family: 'Courier New', monospace;"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-4" style="padding: 0 4px;">
+                                        <div style="background: white; padding: 12px; border-radius: 10px; border-left: 3px solid #06b6d4; box-shadow: 0 2px 6px rgba(0,0,0,0.05); text-align: center;">
+                                            <div style="color: #6b7280; font-size: 10px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">Specific</div>
+                                            <field name="specific_code" readonly="1" style="font-size: 16px; font-weight: 700; color: #0ea5e9; font-family: 'Courier New', monospace;"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- General Settings Card (Right) -->
+                    <div class="col-12 col-lg-6 mesob_responsive_col" style="padding: 0 10px; margin-bottom: 20px;">
+                        <div class="mesob_info_card" style="background: linear-gradient(135deg, #ffffff 0%, #fef3ff 100%); border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(168, 85, 247, 0.15); border: 2px solid #f3e8ff; height: 100%;">
+                            <h3 style="color: #a855f7; font-size: 18px; font-weight: 700; margin: 0 0 20px 0; padding-bottom: 16px; border-bottom: 3px solid #a855f7; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <div style="background: linear-gradient(135deg, #a855f7 0%, #c084fc 100%); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);">
+                                    <i class="fa fa-cog" style="color: white; font-size: 18px;"/>
+                                </div>
+                                <span>⚙️ General Settings</span>
+                            </h3>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 16px;">
+                                <div style="background: white; padding: 16px; border-radius: 12px; border-left: 4px solid #a855f7; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="background: linear-gradient(135deg, #a855f7 0%, #c084fc 100%); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fa fa-balance-scale" style="color: white; font-size: 14px;"/>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Unit of Measure</div>
+                                            <field name="uom_id" placeholder="Select unit..." style="font-size: 15px; font-weight: 600; color: #1f2937;"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div style="background: white; padding: 16px; border-radius: 12px; border-left: 4px solid #c084fc; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="background: linear-gradient(135deg, #c084fc 0%, #d8b4fe 100%); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fa fa-star" style="color: white; font-size: 14px;"/>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">ABC Classification</div>
+                                            <field name="abc_class" style="font-size: 15px; font-weight: 600; color: #1f2937;"/>
+                                        </div>
+                                    </div>
+                                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #f3e8ff;">
+                                        <div invisible="abc_class != 'A'" style="display: flex; align-items: center; gap: 8px; color: #059669; font-size: 13px; font-weight: 600;">
+                                            <i class="fa fa-check-circle"/>
+                                            <span>⭐ High Value - Tight Control Required</span>
+                                        </div>
+                                        <div invisible="abc_class != 'B'" style="display: flex; align-items: center; gap: 8px; color: #d97706; font-size: 13px; font-weight: 600;">
+                                            <i class="fa fa-info-circle"/>
+                                            <span>📊 Medium Value - Moderate Control</span>
+                                        </div>
+                                        <div invisible="abc_class != 'C'" style="display: flex; align-items: center; gap: 8px; color: #6b7280; font-size: 13px; font-weight: 600;">
+                                            <i class="fa fa-circle"/>
+                                            <span>📦 Standard Item - Basic Control</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div style="background: white; padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <field name="is_controlled" widget="boolean_toggle"/>
+                                            <span style="font-weight: 600; color: #374151;">🔒 Controlled Material</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <field name="exclude_from_catalog" widget="boolean_toggle"/>
+                                            <span style="font-weight: 600; color: #374151;">📋 Exclude from Catalog</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <field name="active" widget="boolean_toggle"/>
+                                            <span style="font-weight: 600; color: #374151;">✅ Active</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stock Control Section (Full Width) -->
+                <div style="margin: 20px 0; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); padding: 24px; border-radius: 16px; border: 2px solid #6ee7b7; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="display: inline-flex; align-items: center; gap: 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 12px 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                            <i class="fa fa-cubes" style="color: white; font-size: 20px;"/>
+                            <span style="color: white; font-size: 16px; font-weight: 700; letter-spacing: 0.5px;">📊 STOCK CONTROL PARAMETERS</span>
+                        </div>
+                    </div>
+                    
+                    <div class="row mesob_responsive_row">
+                        <div class="col-12 col-md-6 mesob_responsive_col" style="margin-bottom: 16px;">
+                            <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                <h4 style="color: #059669; font-size: 15px; font-weight: 700; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa fa-layer-group"/>
+                                    Stock Levels
+                                </h4>
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <div>
+                                        <div style="color: #6b7280; font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Minimum Level</div>
+                                        <field name="minimum_level" placeholder="0.00" style="width: 100%;"/>
+                                    </div>
+                                    <div>
+                                        <div style="color: #6b7280; font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Reorder Level</div>
+                                        <field name="reorder_level" placeholder="0.00" style="width: 100%;"/>
+                                    </div>
+                                    <div>
+                                        <div style="color: #6b7280; font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Hastening Level</div>
+                                        <field name="hastening_level" placeholder="0.00" style="width: 100%;"/>
+                                    </div>
+                                    <div>
+                                        <div style="color: #6b7280; font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Maximum Level</div>
+                                        <field name="maximum_level" placeholder="0.00" style="width: 100%;"/>
+                                    </div>
+                                    <div>
+                                        <div style="color: #6b7280; font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Safety Stock</div>
+                                        <field name="safety_stock" placeholder="0.00" style="width: 100%;"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6 mesob_responsive_col">
+                            <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                <h4 style="color: #059669; font-size: 15px; font-weight: 700; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa fa-clock-o"/>
+                                    Lead Times
+                                </h4>
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <div>
+                                        <div style="color: #6b7280; font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Admin Lead Time (days)</div>
+                                        <field name="admin_lead_time" placeholder="0" style="width: 100%;"/>
+                                    </div>
+                                    <div>
+                                        <div style="color: #6b7280; font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Supplier Lead Time (days)</div>
+                                        <field name="supplier_lead_time" placeholder="0" style="width: 100%;"/>
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 10px; border-left: 4px solid #10b981;">
+                                    <div style="display: flex; align-items: flex-start; gap: 12px;">
+                                        <i class="fa fa-info-circle" style="color: #059669; font-size: 18px; margin-top: 2px;"/>
+                                        <div style="font-size: 12px; color: #065f46; line-height: 1.6;">
+                                            <strong>Lead Time:</strong> Time between placing an order and receiving the items. Used for automatic reorder calculations.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description Section (Full Width) -->
+                <div style="margin: 20px 0; background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%); padding: 24px; border-radius: 16px; border: 2px solid #fef3c7; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="display: inline-flex; align-items: center; gap: 12px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 12px 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+                            <i class="fa fa-file-text-o" style="color: white; font-size: 20px;"/>
+                            <span style="color: white; font-size: 16px; font-weight: 700; letter-spacing: 0.5px;">📝 DESCRIPTION</span>
+                        </div>
+                    </div>
+                    <field name="description" 
+                           placeholder="Add detailed description, specifications, or additional information about this item..."
+                           style="min-height: 120px; background: white; border: 2px solid #fef3c7; border-radius: 12px; padding: 16px; font-size: 14px; color: #374151;"/>
+                </div>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

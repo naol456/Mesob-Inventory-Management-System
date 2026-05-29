@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Receipt Confirmation Wizard View -->
+    <record id="view_mesob_inventory_issue_receipt_wizard_form" model="ir.ui.view">
+        <field name="name">mesob.inventory.issue.receipt.wizard.form</field>
+        <field name="model">mesob.inventory.issue.receipt.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Confirm Receipt">
+                <group>
+                    <field name="voucher_id" invisible="1"/>
+                    <group string="Receipt Verification (FR-ISSUE-006)">
+                        <field name="quantity_verified"/>
+                        <field name="inspection_confirmed"/>
+                        <field name="approval_verified"/>
+                    </group>
+                </group>
+                <group string="Receipt Notes">
+                    <field name="receipt_notes" nolabel="1" 
+                           placeholder="Add any remarks or observations about the received materials..."/>
+                </group>
+                <footer>
+                    <button string="Confirm Receipt" name="action_confirm_receipt" 
+                            type="object" class="oe_highlight"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

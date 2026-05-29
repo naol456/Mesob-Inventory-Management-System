@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Gate Pass Line List View (separate definition) -->
+    <record id="view_mesob_gate_pass_line_list" model="ir.ui.view">
+        <field name="name">mesob.gate.pass.line.list</field>
+        <field name="model">mesob.gate.pass.line</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="item_id" options="{'no_create': True}"/>
+                <field name="description"/>
+                <field name="quantity"/>
+                <field name="uom_id" options="{'no_create': True}"/>
+                <field name="serial_numbers"/>
+                <field name="remarks"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Gate Pass Form View -->
+    <record id="view_mesob_gate_pass_form" model="ir.ui.view">
+        <field name="name">mesob.gate.pass.form</field>
+        <field name="model">mesob.gate.pass</field>
+        <field name="arch" type="xml">
+            <form string="Gate Pass" class="o_mesob_gov_doc">
+                <header>
+                    <button name="action_authorize" string="Authorize" type="object" 
+                            class="oe_highlight" 
+                            invisible="state != 'draft'"
+                            groups="mesob_inventory_base.group_mesob_pao"/>
+                    <button name="action_dispatch" string="Dispatch" type="object" 
+                            class="oe_highlight" 
+                            invisible="state != 'authorized'"
+                            groups="mesob_inventory_base.group_mesob_security_guard"/>
+                    <button name="action_cancel" string="Cancel" type="object" 
+                            invisible="state not in ('draft', 'authorized')"/>
+                    <button name="action_set_to_draft" string="Reset to Draft" type="object" 
+                            invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,authorized,dispatched"/>
+                </header>
+                <sheet>
+                    <!-- Government Document Header -->
+                    <div class="mesob_gov_header">
+                        <div class="mesob_gov_logo">M</div>
+                        <h1 class="mesob_gov_title">Federal Democratic Republic of Ethiopia</h1>
+                        <h3 class="mesob_gov_subtitle">Gate Pass for Goods Dispatch</h3>
+                        <h2 class="mesob_doc_number" style="color: white !important; margin-top: 12px;">
+                            <field name="name" readonly="1" class="oe_inline"/>
+                        </h2>
+                        <div class="mesob_gov_underline"></div>
+                    </div>
+                    
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(action_mesob_inventory_issue_voucher)d" type="action"
+                                class="oe_stat_button" icon="fa-file-text-o"
+                                invisible="not issue_voucher_id"
+                                context="{'search_default_id': issue_voucher_id}">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Issue Voucher</span>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <group>
+                        <group string="Authorization Documents">
+                            <field name="issue_voucher_id" 
+                                   options="{'no_create': True, 'no_open': True}"/>
+                            <field name="written_authorization" 
+                                   placeholder="e.g., PAO Memo Ref: PAO/2026/045 dated 2026-03-15"/>
+                        </group>
+                        <group string="Dispatch Information">
+                            <field name="dispatch_date"/>
+                            <field name="created_by_id" readonly="1"/>
+                            <field name="authorized_by_id" readonly="1"/>
+                            <field name="authorized_on" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Receiver Details">
+                        <group>
+                            <field name="destination"/>
+                            <field name="receiver_name"/>
+                            <field name="receiver_organization"/>
+                        </group>
+                        <group>
+                            <field name="vehicle_plate"/>
+                            <field name="driver_name"/>
+                            <field name="driver_license"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Line Items" name="line_items">
+                            <field name="line_ids"/>
+                        </page>
+                        
+                        <page string="Copy Distribution" name="copy_distribution" 
+                              invisible="state != 'dispatched'">
+                            <group>
+                                <group string="Distribution Status">
+                                    <field name="original_to_receiver" readonly="1"/>
+                                    <field name="duplicate_to_storekeeper" readonly="1"/>
+                                    <field name="triplicate_to_security" readonly="1"/>
+                                </group>
+                                <group string="Security Verification">
+                                    <field name="security_verified_by_id" readonly="1"/>
+                                    <field name="security_verified_on" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Notes" name="notes">
+                            <field name="note" placeholder="Internal notes (editable even after dispatch)..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Gate Pass List View -->
+    <record id="view_mesob_gate_pass_tree" model="ir.ui.view">
+        <field name="name">mesob.gate.pass.list</field>
+        <field name="model">mesob.gate.pass</field>
+        <field name="arch" type="xml">
+            <list string="Gate Passes" 
+                  decoration-info="state == 'draft'" 
+                  decoration-warning="state == 'authorized'" 
+                  decoration-success="state == 'dispatched'"
+                  decoration-muted="state == 'cancelled'">
+                <field name="name"/>
+                <field name="dispatch_date"/>
+                <field name="destination"/>
+                <field name="receiver_organization"/>
+                <field name="authorized_by_id"/>
+                <field name="security_verified_by_id"/>
+                <field name="state" widget="badge" 
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'authorized'"
+                       decoration-success="state == 'dispatched'"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Gate Pass Action -->
+    <record id="action_mesob_gate_pass_v2" model="ir.actions.act_window">
+        <field name="name">Gate Passes</field>
+        <field name="res_model">mesob.gate.pass</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a Gate Pass
+            </p>
+            <p>
+                Gate Passes authorize material dispatch outside the compound.
+                All Gate Passes require PAO authorization before dispatch.
+            </p>
+        </field>
+    </record>
+
+    <!-- Pending Authorization Action (PAO View) -->
+    <record id="action_mesob_gate_pass_pending_authorization_v2" model="ir.actions.act_window">
+        <field name="name">Pending Authorization</field>
+        <field name="res_model">mesob.gate.pass</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'draft')]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Gate Passes pending authorization
+            </p>
+            <p>
+                Gate Passes in draft state will appear here for PAO authorization.
+            </p>
+        </field>
+    </record>
+
+    <!-- Pending Dispatch Action (Security Guard View) -->
+    <record id="action_mesob_gate_pass_pending_dispatch_v2" model="ir.actions.act_window">
+        <field name="name">Pending Dispatch</field>
+        <field name="res_model">mesob.gate.pass</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'authorized')]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Gate Passes pending dispatch
+            </p>
+            <p>
+                Authorized Gate Passes will appear here for security gate verification and dispatch.
+            </p>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Bin Card List View -->
+    <record id="view_mesob_bin_card_list" model="ir.ui.view">
+        <field name="name">mesob.bin.card.list</field>
+        <field name="model">mesob.bin.card</field>
+        <field name="arch" type="xml">
+            <list string="Bin Cards" create="true" edit="true" delete="true">
+                <field name="date"/>
+                <field name="item_id"/>
+                <field name="location"/>
+                <field name="transaction_type"/>
+                <field name="reference"/>
+                <field name="quantity_in" sum="Total In"/>
+                <field name="quantity_out" sum="Total Out"/>
+                <field name="balance" sum="Total Balance"/>
+                <field name="uom_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Bin Card Form View -->
+    <record id="view_mesob_bin_card_form" model="ir.ui.view">
+        <field name="name">mesob.bin.card.form</field>
+        <field name="model">mesob.bin.card</field>
+        <field name="arch" type="xml">
+            <form string="Bin Card" class="o_mesob_gov_doc">
+                <sheet>
+                    <!-- Government Document Header -->
+                    <div class="mesob_gov_header">
+                        <div class="mesob_gov_logo">M</div>
+                        <h1 class="mesob_gov_title">Federal Democratic Republic of Ethiopia</h1>
+                        <h3 class="mesob_gov_subtitle">Bin Card - Physical Storage Location</h3>
+                        <div class="mesob_gov_underline"></div>
+                    </div>
+                    
+                    <group>
+                        <group string="Item Information">
+                            <field name="item_id" options="{'no_create': True}"/>
+                            <field name="location"/>
+                            <field name="uom_id"/>
+                        </group>
+                        <group string="Transaction Details">
+                            <field name="date"/>
+                            <field name="transaction_type"/>
+                            <field name="reference"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group string="Quantities">
+                            <field name="quantity_in"/>
+                            <field name="quantity_out"/>
+                            <field name="balance"/>
+                        </group>
+                        <group string="Verification">
+                            <field name="received_by_id"/>
+                            <field name="verified_by_id"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Description">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Bin Card Action -->
+    <record id="action_mesob_bin_card" model="ir.actions.act_window">
+        <field name="name">Bin Cards</field>
+        <field name="res_model">mesob.bin.card</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a Bin Card
+            </p>
+            <p>
+                Bin cards track physical storage locations and movements of inventory items.
+            </p>
+        </field>
+    </record>
+
+</odoo>
