@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Stock Record Card List View -->
+    <record id="view_mesob_stock_record_card_list" model="ir.ui.view">
+        <field name="name">mesob.stock.record.card.list</field>
+        <field name="model">mesob.stock.record.card</field>
+        <field name="arch" type="xml">
+            <list string="Stock Record Cards" create="true" edit="true">
+                <field name="date"/>
+                <field name="item_id"/>
+                <field name="transaction_type"/>
+                <field name="reference"/>
+                <field name="quantity_in" sum="Total In"/>
+                <field name="quantity_out" sum="Total Out"/>
+                <field name="quantity_balance"/>
+                <field name="unit_cost"/>
+                <field name="balance_value" sum="Total Value"/>
+                <field name="average_cost"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Stock Record Card Form View -->
+    <record id="view_mesob_stock_record_card_form" model="ir.ui.view">
+        <field name="name">mesob.stock.record.card.form</field>
+        <field name="model">mesob.stock.record.card</field>
+        <field name="arch" type="xml">
+            <form string="Stock Record Card" class="o_mesob_gov_doc">
+                <header>
+                    <button name="action_create_fifo_layers" string="Create FIFO Layers" type="object" 
+                            class="oe_highlight" invisible="transaction_type != 'receipt'"/>
+                </header>
+                <sheet>
+                    <!-- Government Document Header -->
+                    <div class="mesob_gov_header">
+                        <div class="mesob_gov_logo">M</div>
+                        <h1 class="mesob_gov_title">Federal Democratic Republic of Ethiopia</h1>
+                        <h3 class="mesob_gov_subtitle">Stock Record Card (Model 19)</h3>
+                        <div class="mesob_gov_underline"></div>
+                    </div>
+                    
+                    <group>
+                        <group string="Item Information">
+                            <field name="item_id" options="{'no_create': True}"/>
+                            <field name="uom_id"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Transaction Details">
+                            <field name="date"/>
+                            <field name="transaction_type"/>
+                            <field name="reference"/>
+                            <field name="source_document"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group string="Quantities">
+                            <field name="quantity_in"/>
+                            <field name="quantity_out"/>
+                            <field name="quantity_balance"/>
+                        </group>
+                        <group string="Valuation (FIFO)">
+                            <field name="unit_cost"/>
+                            <field name="total_cost_in"/>
+                            <field name="total_cost_out"/>
+                            <field name="balance_value"/>
+                            <field name="average_cost"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="FIFO Layers" invisible="transaction_type != 'receipt'">
+                            <field name="fifo_layer_ids">
+                                <list editable="bottom">
+                                    <field name="date"/>
+                                    <field name="quantity"/>
+                                    <field name="quantity_remaining"/>
+                                    <field name="quantity_consumed"/>
+                                    <field name="unit_cost"/>
+                                    <field name="total_cost"/>
+                                    <field name="cost_out"/>
+                                    <field name="is_exhausted"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Description">
+                            <field name="description" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Stock Record Card Action -->
+    <record id="action_mesob_stock_record_card" model="ir.actions.act_window">
+        <field name="name">Stock Record Cards</field>
+        <field name="res_model">mesob.stock.record.card</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a Stock Record Card
+            </p>
+            <p>
+                Stock record cards track all inventory movements with FIFO valuation.
+            </p>
+        </field>
+    </record>
+
+    <!-- FIFO Layer List View -->
+    <record id="view_mesob_stock_fifo_layer_list" model="ir.ui.view">
+        <field name="name">mesob.stock.fifo.layer.list</field>
+        <field name="model">mesob.stock.fifo.layer</field>
+        <field name="arch" type="xml">
+            <list string="FIFO Cost Layers" create="false" edit="false">
+                <field name="date"/>
+                <field name="item_id"/>
+                <field name="quantity"/>
+                <field name="quantity_remaining"/>
+                <field name="quantity_consumed"/>
+                <field name="unit_cost"/>
+                <field name="total_cost"/>
+                <field name="cost_out"/>
+                <field name="is_exhausted"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- FIFO Layer Action -->
+    <record id="action_mesob_stock_fifo_layer" model="ir.actions.act_window">
+        <field name="name">FIFO Cost Layers</field>
+        <field name="res_model">mesob.stock.fifo.layer</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- Stock Valuation Config List View -->
+    <record id="view_mesob_stock_valuation_config_list" model="ir.ui.view">
+        <field name="name">mesob.stock.valuation.config.list</field>
+        <field name="model">mesob.stock.valuation.config</field>
+        <field name="arch" type="xml">
+            <list string="Valuation Configurations">
+                <field name="name"/>
+                <field name="item_id"/>
+                <field name="classification_id"/>
+                <field name="valuation_method"/>
+                <field name="standard_cost"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Stock Valuation Config Form View -->
+    <record id="view_mesob_stock_valuation_config_form" model="ir.ui.view">
+        <field name="name">mesob.stock.valuation.config.form</field>
+        <field name="model">mesob.stock.valuation.config</field>
+        <field name="arch" type="xml">
+            <form string="Valuation Configuration">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Configuration Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Scope">
+                            <field name="item_id"/>
+                            <field name="classification_id"/>
+                        </group>
+                        <group string="Valuation Method">
+                            <field name="valuation_method"/>
+                            <field name="standard_cost" invisible="valuation_method != 'standard'"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Settings">
+                            <field name="auto_create_layers"/>
+                            <field name="track_by_location"/>
+                            <field name="allow_negative_stock"/>
+                        </group>
+                        <group string="Status">
+                            <field name="active"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Stock Valuation Config Action -->
+    <record id="action_mesob_stock_valuation_config" model="ir.actions.act_window">
+        <field name="name">Valuation Configuration</field>
+        <field name="res_model">mesob.stock.valuation.config</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

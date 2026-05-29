@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Stock Reorder Alert List View -->
+    <record id="view_mesob_stock_reorder_alert_list" model="ir.ui.view">
+        <field name="name">mesob.stock.reorder.alert.list</field>
+        <field name="model">mesob.stock.reorder.alert</field>
+        <field name="arch" type="xml">
+            <list string="Stock Reorder Alerts" create="false" decoration-danger="alert_type=='minimum'" decoration-warning="alert_type=='reorder'">
+                <field name="name"/>
+                <field name="alert_date"/>
+                <field name="item_id"/>
+                <field name="alert_type"/>
+                <field name="current_stock"/>
+                <field name="reorder_level"/>
+                <field name="outstanding_qty"/>
+                <field name="recommended_order_qty"/>
+                <field name="state" widget="badge" decoration-info="state=='new'" decoration-success="state=='resolved'" decoration-muted="state=='dismissed'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Stock Reorder Alert Form View -->
+    <record id="view_mesob_stock_reorder_alert_form" model="ir.ui.view">
+        <field name="name">mesob.stock.reorder.alert.form</field>
+        <field name="model">mesob.stock.reorder.alert</field>
+        <field name="arch" type="xml">
+            <form string="Stock Reorder Alert">
+                <header>
+                    <button name="action_acknowledge" string="Acknowledge" type="object" 
+                            invisible="state != 'new'" class="btn-primary"/>
+                    <button name="action_create_requisition" string="Create Requisition" type="object" 
+                            invisible="state not in ['new', 'acknowledged']" class="btn-primary"/>
+                    <button name="action_resolve" string="Resolve" type="object" 
+                            invisible="state not in ['new', 'acknowledged', 'ordered']" class="btn-success"/>
+                    <button name="action_dismiss" string="Dismiss" type="object" 
+                            invisible="state not in ['new', 'acknowledged']"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,acknowledged,ordered,resolved"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(action_mesob_inventory_requisition)d" type="action" 
+                                class="oe_stat_button" icon="fa-file-text-o"
+                                invisible="not requisition_id"
+                                context="{'search_default_id': requisition_id}">
+                            <field name="requisition_id" widget="statinfo" string="Requisition"/>
+                        </button>
+                    </div>
+                    
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group string="Alert Information">
+                            <field name="alert_date"/>
+                            <field name="alert_type" widget="badge"/>
+                            <field name="item_id" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Stock Levels">
+                            <field name="current_stock"/>
+                            <field name="minimum_level"/>
+                            <field name="reorder_level"/>
+                            <field name="maximum_level"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group string="Outstanding Deliveries">
+                            <field name="outstanding_qty"/>
+                            <field name="outstanding_order_ids" widget="many2many_tags"/>
+                        </group>
+                        <group string="Recommended Action">
+                            <field name="recommended_order_qty"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Actions Taken">
+                        <field name="acknowledged_by_id"/>
+                        <field name="acknowledged_date"/>
+                        <field name="resolved_by_id"/>
+                        <field name="resolved_date"/>
+                    </group>
+                    
+                    <group string="Notes">
+                        <field name="notes" nolabel="1"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Stock Reorder Alert Action -->
+    <record id="action_mesob_stock_reorder_alert" model="ir.actions.act_window">
+        <field name="name">Stock Reorder Alerts</field>
+        <field name="res_model">mesob.stock.reorder.alert</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No reorder alerts yet
+            </p>
+            <p>
+                Reorder alerts are automatically created when stock levels fall below reorder points.
+                The system checks stock levels daily and creates alerts for items requiring replenishment.
+            </p>
+        </field>
+    </record>
+
+    <!-- Scheduled Action for Stock Level Checking -->
+    <record id="ir_cron_check_stock_levels" model="ir.cron">
+        <field name="name">Check Stock Levels and Create Reorder Alerts</field>
+        <field name="model_id" ref="model_mesob_stock_reorder_alert"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_check_stock_levels()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+
+</odoo>

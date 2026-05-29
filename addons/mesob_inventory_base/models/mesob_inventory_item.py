@@ -65,6 +65,13 @@ class MesobInventoryItem(models.Model):
         help="Chart-of-accounts classification (4401–4418).",
     )
 
+    sub_classification_id = fields.Many2one(
+        "mesob.inventory.sub.classification",
+        string="Sub Classification",
+        index=True,
+        help="Sub classification under major classification.",
+    )
+
     name = fields.Char(
         string="Name (English)",
         required=True,
@@ -148,6 +155,29 @@ class MesobInventoryItem(models.Model):
         help="ABC analysis classification by usage value to prioritize management attention.",
     )
 
+    # ── Stock Status & Monitoring ───────────────────────────────────────
+
+    current_stock = fields.Float(
+        string="Current Stock",
+        compute="_compute_current_stock",
+        help="Current stock balance from bin card"
+    )
+
+    stock_status = fields.Selection([
+        ('critical', 'Critical - Below Minimum'),
+        ('low', 'Low - Below Reorder'),
+        ('hasten', 'Hasten - Below Hastening'),
+        ('normal', 'Normal'),
+        ('high', 'High - Above Maximum'),
+    ], string="Stock Status", compute="_compute_stock_status", store=True)
+
+    total_lead_time = fields.Integer(
+        string="Total Lead Time (days)",
+        compute="_compute_total_lead_time",
+        store=True,
+        help="Total lead time = Administrative + Supplier lead time"
+    )
+
     # ── Controlled Material Flag (FR-ISSUE-004) ─────────────────────────
 
     is_controlled = fields.Boolean(
@@ -184,6 +214,28 @@ class MesobInventoryItem(models.Model):
                 raise ValidationError(
                     "Item Code must follow the format ####-###-### (digits and dashes)."
                 )
+
+    @api.constrains("classification_id", "major_code")
+    def _check_classification_consistency(self):
+        """Validate that major_code matches classification_id.code."""
+        for record in self:
+            if record.classification_id and record.major_code:
+                if record.classification_id.code != record.major_code:
+                    raise ValidationError(
+                        f"Major code {record.major_code} does not match "
+                        f"classification code {record.classification_id.code}."
+                    )
+
+    @api.constrains("sub_classification_id", "sub_code")
+    def _check_sub_classification_consistency(self):
+        """Validate that sub_code matches sub_classification_id.code."""
+        for record in self:
+            if record.sub_classification_id and record.sub_code:
+                if record.sub_classification_id.code != record.sub_code:
+                    raise ValidationError(
+                        f"Sub code {record.sub_code} does not match "
+                        f"sub classification code {record.sub_classification_id.code}."
+                    )
 
     @api.depends("item_code")
     def _compute_item_code_segments(self):
@@ -223,3 +275,61 @@ class MesobInventoryItem(models.Model):
             )
             if classification:
                 self.classification_id = classification.id
+
+    # ── Stock Control Validations & Computations ───────────────────────
+
+    @api.constrains('minimum_level', 'reorder_level', 'hastening_level', 'maximum_level', 'safety_stock')
+    def _check_control_levels(self):
+        """Validate control level relationships (FR-SC-001)"""
+        for item in self:
+            if item.minimum_level < 0 or item.maximum_level < 0 or item.reorder_level < 0:
+                raise ValidationError('Control levels cannot be negative.')
+            
+            if item.maximum_level > 0 and item.minimum_level > item.maximum_level:
+                raise ValidationError(
+                    f'Item {item.item_code}: Minimum level ({item.minimum_level}) '
+                    f'cannot exceed maximum level ({item.maximum_level}).'
+                )
+            
+            if item.reorder_level > 0:
+                if item.minimum_level > 0 and item.reorder_level < item.minimum_level:
+                    raise ValidationError(
+                        f'Item {item.item_code}: Reorder level ({item.reorder_level}) '
+                        f'should be >= minimum level ({item.minimum_level}).'
+                    )
+                if item.maximum_level > 0 and item.reorder_level > item.maximum_level:
+                    raise ValidationError(
+                        f'Item {item.item_code}: Reorder level ({item.reorder_level}) '
+                        f'should be <= maximum level ({item.maximum_level}).'
+                    )
+
+    @api.depends('admin_lead_time', 'supplier_lead_time')
+    def _compute_total_lead_time(self):
+        """Calculate total lead time (FR-SC-002)"""
+        for item in self:
+            item.total_lead_time = item.admin_lead_time + item.supplier_lead_time
+
+    def _compute_current_stock(self):
+        """Get current stock from bin card (FR-SC-001)"""
+        for item in self:
+            bin_card = self.env['mesob.bin.card'].search([
+                ('item_id', '=', item.id)
+            ], limit=1, order='date desc, id desc')
+            item.current_stock = bin_card.balance if bin_card else 0.0
+
+    @api.depends('current_stock', 'minimum_level', 'reorder_level', 'hastening_level', 'maximum_level')
+    def _compute_stock_status(self):
+        """Determine stock status based on control levels (FR-SC-001)"""
+        for item in self:
+            current = item.current_stock
+            
+            if item.minimum_level > 0 and current < item.minimum_level:
+                item.stock_status = 'critical'
+            elif item.reorder_level > 0 and current < item.reorder_level:
+                item.stock_status = 'low'
+            elif item.hastening_level > 0 and current < item.hastening_level:
+                item.stock_status = 'hasten'
+            elif item.maximum_level > 0 and current > item.maximum_level:
+                item.stock_status = 'high'
+            else:
+                item.stock_status = 'normal'

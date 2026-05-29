@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class MesobInventoryReceiving(models.Model):
     """Receiving Order for goods arriving at store.
 
-    Supports receiving from outside suppliers, donors, and returns from
+    Supports receiving from outside suppliers and returns from
     user departments, with inspection, acceptance, and rejection flows.
     (SRS: FR-REC-001 through FR-REC-009)
     """
@@ -32,7 +32,6 @@ class MesobInventoryReceiving(models.Model):
     source_type = fields.Selection(
         [
             ("supplier", "Supplier"),
-            ("donor", "Donor"),
             ("dept_return", "Department Return"),
         ],
         string="Source Type",
@@ -44,23 +43,12 @@ class MesobInventoryReceiving(models.Model):
     supplier_id = fields.Many2one(
         "res.partner",
         string="Supplier / Source",
-        help="Supplier, donor, or returning department.",
+        help="Supplier or returning department.",
     )
 
     purchase_order_ref = fields.Char(
         string="PO / Packing Slip Reference",
         help="Reference to purchase order or packing slip.",
-    )
-
-    # ── Authority (FR-REC-001) ─────────────────────────────────────
-    authority_ref = fields.Char(
-        string="Authority Reference",
-        help="Written authority reference number (FR-REC-001). "
-             "Required before completing receipt.",
-    )
-    authority_date = fields.Date(
-        string="Authority Date",
-        help="Date of the authority document.",
     )
 
     # ── Receiving Details ──────────────────────────────────────────
@@ -182,17 +170,12 @@ class MesobInventoryReceiving(models.Model):
     # ── Actions ────────────────────────────────────────────────────
 
     def action_receive(self):
-        """Mark goods as physically received at store (FR-REC-001)."""
+        """Mark goods as physically received at store."""
         for rec in self:
             if rec.state != "draft":
                 raise UserError("Only draft orders can be marked as received.")
             if not rec.line_ids:
                 raise UserError("Add at least one line before receiving.")
-            if not rec.authority_ref:
-                raise UserError(
-                    "A recorded authority reference is required before "
-                    "completing receipt (FR-REC-001)."
-                )
             rec.state = "received"
         return True
 
@@ -231,6 +214,11 @@ class MesobInventoryReceiving(models.Model):
                     "No accepted quantities found. Fill in accepted "
                     "quantities on at least one line."
                 )
+
+            # Auto-generate items for lines with auto_generate_items flag
+            for line in rec.line_ids:
+                if line.auto_generate_items and line.qty_accepted > 0:
+                    line.generate_items_for_receiving()
 
             # Generate Model 19 for accepted items
             rec._generate_model19()

@@ -37,6 +37,7 @@
                         <group string="Item Code">
                             <field name="item_code" placeholder="e.g. 4401-001-001"/>
                             <field name="classification_id"/>
+                            <field name="sub_classification_id"/>
                             <field name="major_code" readonly="True"/>
                             <field name="sub_code" readonly="True"/>
                             <field name="specific_code" readonly="True"/>

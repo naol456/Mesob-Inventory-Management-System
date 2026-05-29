@@ -1,4 +1,6 @@
 from . import mesob_inventory_major_classification
+from . import mesob_inventory_sub_classification
+from . import mesob_item_code_sequence
 from . import mesob_inventory_item
 from . import mesob_inventory_requisition
 from . import mesob_inventory_requisition_line
@@ -10,4 +12,7 @@ from . import mesob_inventory_dsr
 from . import mesob_inventory_dsr_line
 from . import mesob_inventory_issue_voucher
 from . import mesob_gate_pass
-from . import mesob_gate_pass_line 
+from . import mesob_gate_pass_line
+from . import mesob_bin_card
+from . import mesob_stock_record_card
+from . import mesob_stock_reorder_alert 

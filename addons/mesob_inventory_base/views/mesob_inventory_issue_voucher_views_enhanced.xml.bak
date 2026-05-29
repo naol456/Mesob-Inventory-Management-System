@@ -48,7 +48,7 @@
         <field name="arch" type="xml">
             
             <!-- Status Workflow at top when issued/received -->
-            <xpath expr="//div[@class='oe_title']" position="after">
+            <xpath expr="//div[@class='mesob_gov_header']" position="after">
                 <div invisible="state not in ('issued', 'received')"
                      style="margin: 20px 0; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); padding: 24px; border-radius: 16px; border: 2px solid #6ee7b7; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);">
                     <div style="text-align: center; margin-bottom: 20px;">

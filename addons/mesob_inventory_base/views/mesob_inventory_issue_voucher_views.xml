@@ -18,7 +18,7 @@
         <field name="name">mesob.inventory.issue.voucher.form</field>
         <field name="model">mesob.inventory.issue.voucher</field>
         <field name="arch" type="xml">
-            <form string="Issue Voucher">
+            <form string="Issue Voucher" class="o_mesob_gov_doc">
                 <header>
                     <button name="action_issue" string="Issue Materials" type="object" 
                             class="oe_highlight" invisible="state != 'draft'"/>
@@ -30,19 +30,35 @@
                            statusbar_visible="draft,issued,received"/>
                 </header>
                 <sheet>
-                    <div class="oe_title">
-                        <h1>
-                            <field name="name" readonly="1"/>
-                        </h1>
+                    <!-- Government Document Header -->
+                    <div class="mesob_gov_header">
+                        <div class="mesob_gov_logo">M</div>
+                        <h1 class="mesob_gov_title">Federal Democratic Republic of Ethiopia</h1>
+                        <h3 class="mesob_gov_subtitle">Federal Government Goods Issue Voucher</h3>
+                        <h3 class="mesob_gov_model">Model 22</h3>
+                        <div class="mesob_gov_underline"></div>
                     </div>
+                    
+                    <!-- Document Content -->
                     <group>
-                        <group>
-                            <field name="requisition_id" readonly="1"/>
-                            <field name="requesting_department"/>
+                        <group string="Voucher Details">
+                            <label for="name" string="Voucher Number"/>
+                            <h2 class="mesob_doc_number">
+                                <field name="name" readonly="1" class="oe_inline"/>
+                            </h2>
                         </group>
-                        <group>
+                        <group string="Issue Information">
                             <field name="issue_date" readonly="state != 'draft'"/>
                             <field name="issued_by_id" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group string="Issuing Officer">
+                            <field name="requisition_id" readonly="1"/>
+                        </group>
+                        <group string="Receiving Institution">
+                            <field name="requesting_department"/>
                         </group>
                     </group>
                     <notebook>

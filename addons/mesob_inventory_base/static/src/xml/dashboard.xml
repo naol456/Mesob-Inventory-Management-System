@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="mesob_inventory_base.Dashboard">
+        <div class="mesob_dashboard">
+            <!-- Header Section -->
+            <div class="mesob_dashboard_header">
+                <div class="mesob_header_content">
+                    <div class="mesob_logo_section">
+                        <div class="mesob_logo_circle">M</div>
+                        <div class="mesob_header_text">
+                            <h1>Mesob Inventory Management</h1>
+                            <p>Federal Democratic Republic of 

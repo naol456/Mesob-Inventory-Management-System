@@ -99,11 +99,7 @@
                                    invisible="source_type != 'dept_return'"
                                    readonly="state != 'draft'"/>
                         </group>
-                        <group string="Authority (FR-REC-001)">
-                            <field name="authority_ref"
-                                   readonly="state not in ('draft', 'received')"/>
-                            <field name="authority_date"
-                                   readonly="state not in ('draft', 'received')"/>
+                        <group string="Receiving Details">
                             <field name="received_by_id"
                                    readonly="state != 'draft'"/>
                             <field name="received_date"
@@ -128,6 +124,10 @@
                                 <list editable="bottom">
                                     <field name="item_id"/>
                                     <field name="description"/>
+                                    <field name="major_classification_id" optional="show"/>
+                                    <field name="sub_classification_id" optional="show"/>
+                                    <field name="auto_generate_items" optional="show"/>
+                                    <field name="generated_item_count" string="Generated" optional="hide"/>
                                     <field name="qty_expected"/>
                                     <field name="qty_received"/>
                                     <field name="qty_accepted"/>
@@ -180,8 +180,6 @@
                         domain="[('state', '=', 'rejected')]"/>
                 <filter string="From Supplier" name="filter_supplier"
                         domain="[('source_type', '=', 'supplier')]"/>
-                <filter string="From Donor" name="filter_donor"
-                        domain="[('source_type', '=', 'donor')]"/>
                 <filter string="Dept Return" name="filter_dept_return"
                         domain="[('source_type', '=', 'dept_return')]"/>
                 <filter string="My Receivings" name="filter_mine"
@@ -201,7 +199,7 @@
                 Create a new receiving order
             </p>
             <p>
-                Record goods arriving from suppliers, donors, or department
+                Record goods arriving from suppliers or department
                 returns. Each order goes through inspection before acceptance
                 (Model 19) or rejection (DSR).
             </p>

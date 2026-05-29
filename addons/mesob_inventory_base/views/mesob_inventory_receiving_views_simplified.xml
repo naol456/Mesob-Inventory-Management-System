@@ -95,7 +95,7 @@
                                    readonly="state != 'draft'"/>
                             <field name="supplier_id" 
                                    string="From"
-                                   placeholder="Select supplier, donor, or department..."
+                                   placeholder="Select supplier or department..."
                                    readonly="state != 'draft'"
                                    options="{'no_create': True}"/>
                             <field name="purchase_order_ref" 
@@ -105,11 +105,6 @@
                         <group string="📋 Receiving Details">
                             <field name="received_date" readonly="state != 'draft'"/>
                             <field name="received_by_id" readonly="1"/>
-                            <field name="authority_ref" 
-                                   placeholder="e.g., AUTH/2026/045"
-                                   readonly="state not in ('draft', 'received')"
-                                   required="state != 'draft'"/>
-                            <field name="authority_date" readonly="state not in ('draft', 'received')"/>
                         </group>
                     </group>
 

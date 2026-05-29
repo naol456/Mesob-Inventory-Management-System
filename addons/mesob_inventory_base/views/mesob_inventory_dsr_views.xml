@@ -30,7 +30,7 @@
         <field name="name">mesob.inventory.dsr.form</field>
         <field name="model">mesob.inventory.dsr</field>
         <field name="arch" type="xml">
-            <form string="Damage/Shortage Report (DSR)">
+            <form string="Damage/Shortage Report (DSR)" class="o_mesob_gov_doc">
                 <header>
                     <button name="action_confirm" type="object"
                             string="Confirm" class="btn-primary"
@@ -44,19 +44,24 @@
                            statusbar_visible="draft,confirmed,returned"/>
                 </header>
                 <sheet>
-                    <div class="oe_title">
-                        <label for="name"/>
-                        <h1>
-                            <field name="name"/>
-                        </h1>
+                    <!-- Government Document Header -->
+                    <div class="mesob_gov_header">
+                        <div class="mesob_gov_logo">M</div>
+                        <h1 class="mesob_gov_title">Federal Democratic Republic of Ethiopia</h1>
+                        <h3 class="mesob_gov_subtitle">Damage/Shortage Report</h3>
+                        <h2 class="mesob_doc_number" style="color: white !important; margin-top: 12px;">
+                            <field name="name" class="oe_inline"/>
+                        </h2>
+                        <div class="mesob_gov_underline"></div>
                     </div>
 
                     <group>
                         <group string="Report Details">
                             <field name="date" readonly="state != 'draft'"/>
-                            <field name="supplier_id"
-                                   readonly="state != 'draft'"/>
                             <field name="receiving_id" readonly="1"/>
+                        </group>
+                        <group string="Supplier Information">
+                            <field name="supplier_id" readonly="state != 'draft'"/>
                         </group>
                     </group>
 

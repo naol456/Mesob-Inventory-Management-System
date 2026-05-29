@@ -102,7 +102,6 @@
                                 <list editable="bottom">
                                     <field name="item_id"/>
                                     <field name="quantity"/>
-                                    <field name="uom_id"/>
                                     <field name="note"/>
                                 </list>
                             </field>

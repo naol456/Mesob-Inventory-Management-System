@@ -32,7 +32,7 @@
         <field name="name">mesob.inventory.model19.form</field>
         <field name="model">mesob.inventory.model19</field>
         <field name="arch" type="xml">
-            <form string="Receipt for Articles/Property (Model 19)">
+            <form string="Receipt for Articles/Property (Model 19)" class="o_mesob_gov_doc">
                 <header>
                     <button name="action_confirm" type="object"
                             string="Confirm" class="btn-primary"
@@ -46,22 +46,28 @@
                            statusbar_visible="draft,confirmed,distributed"/>
                 </header>
                 <sheet>
-                    <div class="oe_title">
-                        <label for="name"/>
-                        <h1>
-                            <field name="name"/>
-                        </h1>
+                    <!-- Government Document Header -->
+                    <div class="mesob_gov_header">
+                        <div class="mesob_gov_logo">M</div>
+                        <h1 class="mesob_gov_title">Federal Democratic Republic of Ethiopia</h1>
+                        <h3 class="mesob_gov_subtitle">Receipt for Articles/Property</h3>
+                        <h3 class="mesob_gov_model">Model 19</h3>
+                        <div class="mesob_gov_underline"></div>
                     </div>
 
+                    <!-- Document Content -->
                     <group>
                         <group string="Receipt Details">
+                            <label for="name" string="Receipt Number"/>
+                            <h2 class="mesob_doc_number">
+                                <field name="name" class="oe_inline"/>
+                            </h2>
                             <field name="date" readonly="state != 'draft'"/>
-                            <field name="supplier_id"
-                                   readonly="state != 'draft'"/>
                             <field name="receiving_id" readonly="1"/>
-                            <field name="is_no_payment" readonly="1"/>
                         </group>
-                        <group string="Total">
+                        <group string="Supplier Information">
+                            <field name="supplier_id" readonly="state != 'draft'"/>
+                            <field name="is_no_payment" readonly="1"/>
                             <field name="total_amount"/>
                         </group>
                     </group>
