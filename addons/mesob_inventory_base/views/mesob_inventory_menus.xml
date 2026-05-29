@@ -123,14 +123,12 @@
               groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_storekeeper"
               sequence="20"/>
 
-    <!-- Note: Handover menu will appear after server restart
     <menuitem id="menu_mesob_handover_events"
               name="Storekeeper Handovers"
               parent="menu_mesob_inventory_stock_taking"
               action="mesob_inventory_base.action_mesob_handover_event"
               groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper"
               sequence="30"/>
-    -->
 
     <!-- ── Master Data ────────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_master_data"
