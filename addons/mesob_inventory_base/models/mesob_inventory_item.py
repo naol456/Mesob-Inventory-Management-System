@@ -218,3 +218,94 @@ class MesobInventoryItem(models.Model):
             )
             if classification:
                 self.classification_id = classification.id
+
+    # ── Stock Records (FR-RECARD-001, FR-RECARD-002) ────────────────────
+
+    bin_card_count = fields.Integer(
+        string="Bin Card Entries",
+        compute="_compute_bin_card_count",
+        help="Number of bin card entries for this item.",
+    )
+
+    stock_record_card_count = fields.Integer(
+        string="Stock Record Card Entries",
+        compute="_compute_stock_record_card_count",
+        help="Number of stock record card entries for this item.",
+    )
+
+    current_stock_quantity = fields.Float(
+        string="Current Stock Quantity",
+        compute="_compute_current_stock",
+        help="Current stock quantity from latest bin card entry.",
+    )
+
+    current_stock_value = fields.Monetary(
+        string="Current Stock Value",
+        currency_field="currency_id",
+        compute="_compute_current_stock",
+        help="Current stock value from latest stock record card entry.",
+    )
+
+    currency_id = fields.Many2one(
+        "res.currency",
+        string="Currency",
+        default=lambda self: self.env.company.currency_id,
+    )
+
+    def _compute_bin_card_count(self):
+        for record in self:
+            record.bin_card_count = self.env["mesob.inventory.bin.card"].search_count(
+                [("item_id", "=", record.id)]
+            )
+
+    def _compute_stock_record_card_count(self):
+        for record in self:
+            record.stock_record_card_count = self.env[
+                "mesob.inventory.stock.record.card"
+            ].search_count([("item_id", "=", record.id)])
+
+    def _compute_current_stock(self):
+        for record in self:
+            # Get latest bin card entry for quantity
+            latest_bin_card = self.env["mesob.inventory.bin.card"].search(
+                [("item_id", "=", record.id)],
+                order="date desc, id desc",
+                limit=1,
+            )
+            record.current_stock_quantity = (
+                latest_bin_card.quantity_balance if latest_bin_card else 0.0
+            )
+
+            # Get latest stock record card entry for value
+            latest_stock_record = self.env["mesob.inventory.stock.record.card"].search(
+                [("item_id", "=", record.id)],
+                order="date desc, id desc",
+                limit=1,
+            )
+            record.current_stock_value = (
+                latest_stock_record.balance_total_value if latest_stock_record else 0.0
+            )
+
+    def action_view_bin_card(self):
+        """Open bin card entries for this item."""
+        self.ensure_one()
+        return {
+            "name": f"Bin Card - {self.item_code}",
+            "type": "ir.actions.act_window",
+            "res_model": "mesob.inventory.bin.card",
+            "view_mode": "list,form,graph",
+            "domain": [("item_id", "=", self.id)],
+            "context": {"default_item_id": self.id},
+        }
+
+    def action_view_stock_record_card(self):
+        """Open stock record card entries for this item."""
+        self.ensure_one()
+        return {
+            "name": f"Stock Record Card - {self.item_code}",
+            "type": "ir.actions.act_window",
+            "res_model": "mesob.inventory.stock.record.card",
+            "view_mode": "list,form,graph",
+            "domain": [("item_id", "=", self.id)],
+            "context": {"default_item_id": self.id},
+        }

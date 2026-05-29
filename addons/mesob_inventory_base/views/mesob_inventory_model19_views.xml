@@ -8,7 +8,8 @@
             <list string="Receipts (Model 19)" default_order="date desc"
                   decoration-info="state == 'draft'"
                   decoration-success="state == 'confirmed'"
-                  decoration-muted="state == 'distributed'">
+                  decoration-muted="state == 'distributed'"
+                  class="mesob_model19_list">
                 <field name="name"/>
                 <field name="date"/>
                 <field name="supplier_id"/>
@@ -70,7 +71,7 @@
                         <page string="Receipt Lines" name="lines">
                             <field name="line_ids"
                                    readonly="state != 'draft'">
-                                <list editable="bottom">
+                                <list editable="bottom" class="mesob_model19_lines">
                                     <field name="item_id"/>
                                     <field name="description"/>
                                     <field name="quantity"/>
@@ -105,6 +106,7 @@
                         </page>
                     </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>

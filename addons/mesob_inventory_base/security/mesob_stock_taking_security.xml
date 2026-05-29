@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════════════
+         Security Rules for Stock Taking Models (SRS 4.8)
+         Loaded AFTER views to ensure models exist
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- Stock Taking Event: PAO has full access, others read-only -->
+    <record id="stock_taking_event_pao_rule" model="ir.rule">
+        <field name="name">Stock Taking Event: PAO Full Access</field>
+        <field name="model_id" ref="model_mesob_inventory_stock_taking_event"/>
+        <field name="groups" eval="[(4, ref('group_mesob_pao'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="stock_taking_event_others_rule" model="ir.rule">
+        <field name="name">Stock Taking Event: Others Read-Only</field>
+        <field name="model_id" ref="model_mesob_inventory_stock_taking_event"/>
+        <field name="groups" eval="[(4, ref('group_mesob_storekeeper')), (4, ref('group_mesob_stock_clerk'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <!-- Stock Taking Sheet: PAO full access, team members can see assigned sheets -->
+    <record id="stock_taking_sheet_pao_rule" model="ir.rule">
+        <field name="name">Stock Taking Sheet: PAO Full Access</field>
+        <field name="model_id" ref="model_mesob_inventory_stock_taking_sheet"/>
+        <field name="groups" eval="[(4, ref('group_mesob_pao'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="stock_taking_sheet_assigned_rule" model="ir.rule">
+        <field name="name">Stock Taking Sheet: Assigned User Access</field>
+        <field name="model_id" ref="model_mesob_inventory_stock_taking_sheet"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="domain_force">['|', ('issued_to_id', '=', user.id), ('issued_to_id', '=', False)]</field>
+    </record>
+
+    <!-- Stock Taking Sheet Line: Same as sheet -->
+    <record id="stock_taking_sheet_line_pao_rule" model="ir.rule">
+        <field name="name">Stock Taking Sheet Line: PAO Full Access</field>
+        <field name="model_id" ref="model_mesob_inventory_stock_taking_sheet_line"/>
+        <field name="groups" eval="[(4, ref('group_mesob_pao'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="stock_taking_sheet_line_assigned_rule" model="ir.rule">
+        <field name="name">Stock Taking Sheet Line: Assigned User Access</field>
+        <field name="model_id" ref="model_mesob_inventory_stock_taking_sheet_line"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="domain_force">['|', ('sheet_id.issued_to_id', '=', user.id), ('sheet_id.issued_to_id', '=', False)]</field>
+    </record>
+
+    <!-- Team Member: PAO full access -->
+    <record id="stock_taking_team_member_pao_rule" model="ir.rule">
+        <field name="name">Stock Taking Team Member: PAO Full Access</field>
+        <field name="model_id" ref="model_mesob_inventory_stock_taking_team_member"/>
+        <field name="groups" eval="[(4, ref('group_mesob_pao'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+</odoo>

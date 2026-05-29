@@ -5,7 +5,8 @@
         <field name="name">mesob.inventory.item.list</field>
         <field name="model">mesob.inventory.item</field>
         <field name="arch" type="xml">
-            <list string="Inventory Items" default_order="item_code">
+            <list string="Inventory Items" default_order="item_code"
+                  class="mesob_items_list">
                 <field name="item_code"/>
                 <field name="name"/>
                 <field name="classification_id"/>
@@ -25,6 +26,36 @@
         <field name="arch" type="xml">
             <form string="Inventory Item">
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <!-- Stock Records Smart Buttons -->
+                        <button name="action_view_bin_card" type="object" 
+                                class="oe_stat_button" icon="fa-list-ol">
+                            <field name="bin_card_count" widget="statinfo" string="Bin Card"/>
+                        </button>
+                        <button name="action_view_stock_record_card" type="object" 
+                                class="oe_stat_button" icon="fa-book">
+                            <field name="stock_record_card_count" widget="statinfo" string="Stock Record"/>
+                        </button>
+                        <button name="action_view_bin_card" type="object" 
+                                class="oe_stat_button" icon="fa-cubes">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="current_stock_quantity"/>
+                                </span>
+                                <span class="o_stat_text">On Hand</span>
+                            </div>
+                        </button>
+                        <button name="action_view_stock_record_card" type="object" 
+                                class="oe_stat_button" icon="fa-money">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="current_stock_value" widget="monetary"/>
+                                </span>
+                                <span class="o_stat_text">Stock Value</span>
+                            </div>
+                        </button>
+                    </div>
+                    <field name="currency_id" invisible="1"/>
                     <div class="oe_title">
                         <label for="name"/>
                         <h1>

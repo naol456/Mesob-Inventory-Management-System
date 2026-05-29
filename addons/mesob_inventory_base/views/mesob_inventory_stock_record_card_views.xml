@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ── Tree View ──────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_stock_record_card_tree" model="ir.ui.view">
+        <field name="name">mesob.inventory.stock.record.card.tree</field>
+        <field name="model">mesob.inventory.stock.record.card</field>
+        <field name="arch" type="xml">
+            <list string="Stock Record Card" default_order="date desc, id desc" create="false" delete="false"
+                  class="mesob_stock_record_list">
+                <field name="date"/>
+                <field name="item_id"/>
+                <field name="item_code"/>
+                <field name="classification_code"/>
+                <field name="reference"/>
+                <field name="movement_type"/>
+                <!-- Receipt Columns -->
+                <field name="receipt_quantity" sum="Total Received"/>
+                <field name="receipt_unit_price" optional="hide"/>
+                <field name="receipt_total_value" sum="Total Receipt Value"/>
+                <!-- Issue Columns -->
+                <field name="issue_quantity" sum="Total Issued"/>
+                <field name="issue_unit_price" optional="hide"/>
+                <field name="issue_total_value" sum="Total Issue Value"/>
+                <!-- Balance Columns -->
+                <field name="balance_quantity"/>
+                <field name="balance_unit_price" optional="hide"/>
+                <field name="balance_total_value"/>
+                <field name="uom_id"/>
+                <field name="stock_clerk_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Form View ──────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_stock_record_card_form" model="ir.ui.view">
+        <field name="name">mesob.inventory.stock.record.card.form</field>
+        <field name="model">mesob.inventory.stock.record.card</field>
+        <field name="arch" type="xml">
+            <form string="Stock Record Card Entry" create="false" delete="false">
+                <header>
+                    <button name="action_view_source_document" type="object" 
+                            string="View Source Document" class="btn-primary"
+                            invisible="not receiving_id and not issue_voucher_id and not stock_move_id"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group name="item_info" string="Item Information">
+                            <field name="item_id" readonly="1"/>
+                            <field name="item_code" readonly="1"/>
+                            <field name="major_classification_id" readonly="1"/>
+                            <field name="classification_code" readonly="1"/>
+                        </group>
+                        <group name="movement_info" string="Movement Information">
+                            <field name="date" readonly="1"/>
+                            <field name="reference" readonly="1"/>
+                            <field name="movement_type" readonly="1"/>
+                            <field name="stock_clerk_id" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Receipt">
+                        <group>
+                            <field name="receipt_quantity" readonly="1"/>
+                            <field name="receipt_unit_price" readonly="1" widget="monetary"/>
+                            <field name="receipt_total_value" readonly="1" widget="monetary"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Issue (FIFO Costing)">
+                        <group>
+                            <field name="issue_quantity" readonly="1"/>
+                            <field name="issue_unit_price" readonly="1" widget="monetary"/>
+                            <field name="issue_total_value" readonly="1" widget="monetary"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Balance">
+                        <group>
+                            <field name="balance_quantity" readonly="1"/>
+                            <field name="balance_unit_price" readonly="1" widget="monetary"/>
+                            <field name="balance_total_value" readonly="1" widget="monetary"/>
+                            <field name="uom_id" readonly="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    
+                    <group name="source_docs" string="Source Documents">
+                        <field name="receiving_id" readonly="1"/>
+                        <field name="issue_voucher_id" readonly="1"/>
+                        <field name="stock_move_id" readonly="1"/>
+                    </group>
+                    
+                    <notebook>
+                        <page string="FIFO Layers" name="fifo_layers">
+                            <field name="fifo_layer_ids" readonly="1">
+                                <list>
+                                    <field name="date"/>
+                                    <field name="quantity"/>
+                                    <field name="remaining_quantity"/>
+                                    <field name="unit_price" widget="monetary"/>
+                                    <field name="remaining_value" widget="monetary"/>
+                                    <field name="is_fully_consumed"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Remarks" name="notes">
+                            <field name="note" nolabel="1" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Search View ────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_stock_record_card_search" model="ir.ui.view">
+        <field name="name">mesob.inventory.stock.record.card.search</field>
+        <field name="model">mesob.inventory.stock.record.card</field>
+        <field name="arch" type="xml">
+            <search string="Search Stock Record Card">
+                <field name="item_id"/>
+                <field name="item_code"/>
+                <field name="reference"/>
+                <field name="major_classification_id"/>
+                <field name="classification_code"/>
+                <field name="stock_clerk_id"/>
+                
+                <filter string="Receipts" name="filter_receipts"
+                        domain="[('movement_type', 'in', ['receipt', 'transfer_in', 'opening'])]"/>
+                <filter string="Issues" name="filter_issues"
+                        domain="[('movement_type', 'in', ['issue', 'transfer_out'])]"/>
+                <filter string="Adjustments" name="filter_adjustments"
+                        domain="[('movement_type', 'in', ['adjustment', 'stock_take'])]"/>
+                
+                <separator/>
+                <filter string="This Month" name="filter_this_month"
+                        domain="[('date', '&gt;=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d')),
+                                 ('date', '&lt;=', (context_today() + relativedelta(day=31)).strftime('%Y-%m-%d'))]"/>
+                <filter string="This Year" name="filter_this_year"
+                        domain="[('date', '&gt;=', (context_today() - relativedelta(month=1, day=1)).strftime('%Y-%m-%d'))]"/>
+                
+                <group>
+                    <filter string="Item" name="group_item" context="{'group_by': 'item_id'}"/>
+                    <filter string="Classification" name="group_classification" context="{'group_by': 'major_classification_id'}"/>
+                    <filter string="Classification Code" name="group_classification_code" context="{'group_by': 'classification_code'}"/>
+                    <filter string="Movement Type" name="group_movement_type" context="{'group_by': 'movement_type'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Pivot View ─────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_stock_record_card_pivot" model="ir.ui.view">
+        <field name="name">mesob.inventory.stock.record.card.pivot</field>
+        <field name="model">mesob.inventory.stock.record.card</field>
+        <field name="arch" type="xml">
+            <pivot string="Stock Record Card Analysis">
+                <field name="classification_code" type="row"/>
+                <field name="item_id" type="row"/>
+                <field name="movement_type" type="col"/>
+                <field name="receipt_quantity" type="measure"/>
+                <field name="receipt_total_value" type="measure"/>
+                <field name="issue_quantity" type="measure"/>
+                <field name="issue_total_value" type="measure"/>
+                <field name="balance_quantity" type="measure"/>
+                <field name="balance_total_value" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- ── Graph View ─────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_stock_record_card_graph" model="ir.ui.view">
+        <field name="name">mesob.inventory.stock.record.card.graph</field>
+        <field name="model">mesob.inventory.stock.record.card</field>
+        <field name="arch" type="xml">
+            <graph string="Stock Value Movements" type="line">
+                <field name="date"/>
+                <field name="balance_total_value" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ── Action ─────────────────────────────────────────────────── -->
+    <record id="action_mesob_inventory_stock_record_card" model="ir.actions.act_window">
+        <field name="name">Stock Record Cards</field>
+        <field name="res_model">mesob.inventory.stock.record.card</field>
+        <field name="view_mode">list,form,pivot,graph</field>
+        <field name="context">{'search_default_filter_this_year': 1, 'search_default_group_classification_code': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No stock record card entries yet
+            </p>
+            <p>
+                Stock record cards track quantity and value movements for each inventory item using FIFO costing.
+                They are automatically created when stock is received or issued.
+            </p>
+        </field>
+    </record>
+
+    <!-- ── Action: Stock Record Card by Item ──────────────────────── -->
+    <record id="action_mesob_inventory_stock_record_card_by_item" model="ir.actions.act_window">
+        <field name="name">Stock Record Card</field>
+        <field name="res_model">mesob.inventory.stock.record.card</field>
+        <field name="view_mode">list,form,graph</field>
+        <field name="domain">[('item_id', '=', active_id)]</field>
+        <field name="context">{'default_item_id': active_id, 'search_default_group_date': 1}</field>
+    </record>
+
+    <!-- ── Action: Stock Valuation by Classification ───────────────── -->
+    <record id="action_mesob_inventory_stock_valuation_by_classification" model="ir.actions.act_window">
+        <field name="name">Stock Valuation by Classification (4401-4418)</field>
+        <field name="res_model">mesob.inventory.stock.record.card</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="context">{'search_default_group_classification_code': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Stock Valuation Report
+            </p>
+            <p>
+                View ending stock values by major classification (4401-4418) for fiscal year end reporting.
+            </p>
+        </field>
+    </record>
+</odoo>

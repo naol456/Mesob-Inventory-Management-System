@@ -12,6 +12,7 @@ class MesobInventoryRequisition(models.Model):
 
     _name = "mesob.inventory.requisition"
     _description = "Stores Requisition (Model 20)"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "requested_on desc, id desc"
 
     name = fields.Char(

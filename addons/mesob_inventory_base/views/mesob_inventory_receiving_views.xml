@@ -10,7 +10,8 @@
                   decoration-warning="state == 'inspecting'"
                   decoration-success="state in ('accepted', 'done')"
                   decoration-danger="state == 'rejected'"
-                  decoration-muted="state == 'cancelled'">
+                  decoration-muted="state == 'cancelled'"
+                  class="mesob_receiving_list">
                 <field name="name"/>
                 <field name="source_type"/>
                 <field name="supplier_id" optional="show"/>
@@ -125,7 +126,7 @@
                         <page string="Receiving Lines" name="lines">
                             <field name="line_ids"
                                    readonly="state in ('done', 'cancelled')">
-                                <list editable="bottom">
+                                <list editable="bottom" class="mesob_receiving_lines">
                                     <field name="item_id"/>
                                     <field name="description"/>
                                     <field name="qty_expected"/>
@@ -155,6 +156,7 @@
                     <field name="model19_id" invisible="1"/>
                     <field name="dsr_id" invisible="1"/>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>

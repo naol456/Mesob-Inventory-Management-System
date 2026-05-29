@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════════════
+         FR-REP-002: Quarterly Movement Report
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- List View: Movement Report -->
+    <record id="view_mesob_inventory_movement_report_list" model="ir.ui.view">
+        <field name="name">mesob.inventory.movement.report.list</field>
+        <field name="model">mesob.inventory.movement.report</field>
+        <field name="arch" type="xml">
+            <list string="Stock Movement Report" create="false" edit="false" delete="false"
+                  decoration-danger="is_dormant == True"
+                  decoration-warning="is_slow_moving == True and is_dormant == False"
+                  class="mesob_movement_report_list">
+                <field name="classification_code" string="Class"/>
+                <field name="item_code" string="Item Code"/>
+                <field name="item_name" string="Item Name"/>
+                <field name="opening_quantity" string="Opening Qty" sum="Total Opening"/>
+                <field name="receipt_quantity" string="Receipts" sum="Total Receipts"/>
+                <field name="issue_quantity" string="Issues" sum="Total Issues"/>
+                <field name="closing_quantity" string="Closing Qty" sum="Total Closing"/>
+                <field name="opening_value" string="Opening Value" sum="Total Opening Value" optional="hide"/>
+                <field name="receipt_value" string="Receipt Value" sum="Total Receipt Value" optional="hide"/>
+                <field name="issue_value" string="Issue Value" sum="Total Issue Value" optional="hide"/>
+                <field name="closing_value" string="Closing Value" sum="Total Closing Value"/>
+                <field name="days_since_last_issue" string="Days Since Issue"/>
+                <field name="is_dormant" string="Dormant?" optional="show"/>
+                <field name="is_slow_moving" string="Slow Moving?" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Pivot View: Movement Analysis -->
+    <record id="view_mesob_inventory_movement_report_pivot" model="ir.ui.view">
+        <field name="name">mesob.inventory.movement.report.pivot</field>
+        <field name="model">mesob.inventory.movement.report</field>
+        <field name="arch" type="xml">
+            <pivot string="Movement Analysis">
+                <field name="classification_code" type="row"/>
+                <field name="item_code" type="row"/>
+                <field name="receipt_quantity" type="measure"/>
+                <field name="issue_quantity" type="measure"/>
+                <field name="closing_quantity" type="measure"/>
+                <field name="closing_value" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Graph View: Movement Trends -->
+    <record id="view_mesob_inventory_movement_report_graph" model="ir.ui.view">
+        <field name="name">mesob.inventory.movement.report.graph</field>
+        <field name="model">mesob.inventory.movement.report</field>
+        <field name="arch" type="xml">
+            <graph string="Movement Trends" type="bar">
+                <field name="classification_code"/>
+                <field name="receipt_quantity" type="measure"/>
+                <field name="issue_quantity" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_mesob_inventory_movement_report_search" model="ir.ui.view">
+        <field name="name">mesob.inventory.movement.report.search</field>
+        <field name="model">mesob.inventory.movement.report</field>
+        <field name="arch" type="xml">
+            <search string="Search Movement Report">
+                <field name="item_code"/>
+                <field name="item_name"/>
+                <field name="classification_code"/>
+                
+                <filter string="Dormant Items (>90 days)" name="filter_dormant"
+                        domain="[('is_dormant', '=', True)]"/>
+                <filter string="Slow Moving (>60 days)" name="filter_slow"
+                        domain="[('is_slow_moving', '=', True), ('is_dormant', '=', False)]"/>
+                <filter string="Active Items" name="filter_active"
+                        domain="[('is_slow_moving', '=', False)]"/>
+                
+                <separator/>
+                <filter string="Has Stock" name="filter_has_stock"
+                        domain="[('closing_quantity', '>', 0)]"/>
+                <filter string="No Stock" name="filter_no_stock"
+                        domain="[('closing_quantity', '=', 0)]"/>
+                
+                <group>
+                    <filter string="Classification" name="group_classification" 
+                            context="{'group_by': 'classification_code'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action: Movement Report -->
+    <record id="action_mesob_inventory_movement_report" model="ir.actions.act_window">
+        <field name="name">Stock Movement Report</field>
+        <field name="res_model">mesob.inventory.movement.report</field>
+        <field name="view_mode">list,pivot,graph</field>
+        <field name="context">{'search_default_filter_has_stock': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Stock Movement Report
+            </p>
+            <p>
+                Quarterly movement report showing receipts, issues, and closing balances.
+                Identifies dormant (>90 days) and slow-moving (>60 days) items.
+            </p>
+        </field>
+    </record>
+
+    <!-- Action: Dormant Stock Report (FR-REP-003) -->
+    <record id="action_mesob_inventory_dormant_stock_report" model="ir.actions.act_window">
+        <field name="name">Dormant and Slow-Moving Stock</field>
+        <field name="res_model">mesob.inventory.movement.report</field>
+        <field name="view_mode">list,pivot,graph</field>
+        <field name="domain">[('is_slow_moving', '=', True)]</field>
+        <field name="context">{'search_default_filter_dormant': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No dormant or slow-moving stock found
+            </p>
+            <p>
+                This report shows items with no issues in the last 60-90 days.
+                Use this to identify items for disposal or reduced ordering.
+            </p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         FR-REP-001: Fiscal Year End Report
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- Form View: Fiscal Year End Report -->
+    <record id="view_mesob_inventory_fiscal_year_end_report_form" model="ir.ui.view">
+        <field name="name">mesob.inventory.fiscal.year.end.report.form</field>
+        <field name="model">mesob.inventory.fiscal.year.end.report</field>
+        <field name="arch" type="xml">
+            <form string="Fiscal Year End Stock Valuation">
+                <header>
+                    <button name="action_generate_report" string="Generate Report" 
+                            type="object" class="btn-primary"
+                            invisible="line_ids"/>
+                    <button name="action_print_report" string="Print Report" 
+                            type="object" class="btn-secondary"
+                            invisible="not line_ids"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="fiscal_year_end"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="total_value" widget="monetary"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Stock Valuation by Classification" name="lines">
+                            <field name="line_ids" readonly="1">
+                                <list create="false" edit="false" delete="false"
+                                      class="mesob_fiscal_year_report_lines">
+                                    <field name="classification_code" string="Code"/>
+                                    <field name="classification_name" string="Classification"/>
+                                    <field name="item_count" string="# Items"/>
+                                    <field name="total_quantity" string="Total Quantity" sum="Grand Total Qty"/>
+                                    <field name="closing_value" string="Closing Value" sum="Grand Total Value"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action: Fiscal Year End Report -->
+    <record id="action_mesob_inventory_fiscal_year_end_report" model="ir.actions.act_window">
+        <field name="name">Fiscal Year End Stock Valuation</field>
+        <field name="res_model">mesob.inventory.fiscal.year.end.report</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Generate Fiscal Year End Report
+            </p>
+            <p>
+                This report provides ending stock values by major classification (4401-4418)
+                for accounts unit reconciliation and fiscal year end reporting.
+            </p>
+        </field>
+    </record>
+
+</odoo>

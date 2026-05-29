@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════════════
+         Stock Valuation by Classification (SRS 4.6 FR-VAL-004)
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- Pivot View: Stock Valuation by Classification -->
+    <record id="view_mesob_inventory_stock_valuation_pivot" model="ir.ui.view">
+        <field name="name">mesob.inventory.stock.valuation.pivot</field>
+        <field name="model">mesob.inventory.stock.valuation</field>
+        <field name="arch" type="xml">
+            <pivot string="Stock Valuation by Classification">
+                <field name="classification_code" type="row"/>
+                <field name="item_code" type="row"/>
+                <field name="total_quantity" type="measure"/>
+                <field name="total_value" type="measure"/>
+                <field name="average_unit_cost" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Graph View: Stock Value by Classification -->
+    <record id="view_mesob_inventory_stock_valuation_graph" model="ir.ui.view">
+        <field name="name">mesob.inventory.stock.valuation.graph</field>
+        <field name="model">mesob.inventory.stock.valuation</field>
+        <field name="arch" type="xml">
+            <graph string="Stock Value by Classification" type="bar">
+                <field name="classification_code"/>
+                <field name="total_value" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- List View: Stock Valuation Detail -->
+    <record id="view_mesob_inventory_stock_valuation_list" model="ir.ui.view">
+        <field name="name">mesob.inventory.stock.valuation.list</field>
+        <field name="model">mesob.inventory.stock.valuation</field>
+        <field name="arch" type="xml">
+            <list string="Stock Valuation Detail" 
+                  decoration-warning="has_estimated_cost == True"
+                  class="o_list_view_stock_valuation">
+                <field name="classification_code" string="Classification"/>
+                <field name="item_code" string="Item Code"/>
+                <field name="item_name" string="Item Name"/>
+                <field name="total_quantity" string="Quantity" sum="Total Quantity"/>
+                <field name="average_unit_cost" string="Unit Cost"/>
+                <field name="total_value" string="Total Value" sum="Total Value"/>
+                <field name="has_estimated_cost" string="Estimated?" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_mesob_inventory_stock_valuation_search" model="ir.ui.view">
+        <field name="name">mesob.inventory.stock.valuation.search</field>
+        <field name="model">mesob.inventory.stock.valuation</field>
+        <field name="arch" type="xml">
+            <search string="Search Stock Valuation">
+                <field name="classification_code"/>
+                <field name="item_code"/>
+                <field name="item_name"/>
+                
+                <filter string="Has Estimated Cost" name="filter_estimated" 
+                        domain="[('has_estimated_cost', '=', True)]"/>
+                <filter string="Actual Cost Only" name="filter_actual" 
+                        domain="[('has_estimated_cost', '=', False)]"/>
+                
+                <separator/>
+                <filter string="Classification" name="group_classification" 
+                        context="{'group_by': 'classification_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action: Stock Valuation by Classification -->
+    <record id="action_mesob_inventory_stock_valuation" model="ir.actions.act_window">
+        <field name="name">Stock Valuation by Classification</field>
+        <field name="res_model">mesob.inventory.stock.valuation</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Stock Valuation Report
+            </p>
+            <p>
+                This report shows the current stock value using FIFO costing,
+                aggregated by major classification for accounting reconciliation.
+            </p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         Stock Valuation Summary (Control Accounts)
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- List View: Valuation Summary -->
+    <record id="view_mesob_inventory_stock_valuation_summary_list" model="ir.ui.view">
+        <field name="name">mesob.inventory.stock.valuation.summary.list</field>
+        <field name="model">mesob.inventory.stock.valuation.summary</field>
+        <field name="arch" type="xml">
+            <list string="Stock Valuation Summary" create="false" edit="false" delete="false"
+                  class="o_list_view_stock_valuation">
+                <field name="classification_code" string="Code"/>
+                <field name="classification_name" string="Classification"/>
+                <field name="item_count" string="# Items"/>
+                <field name="total_quantity" string="Total Quantity" sum="Grand Total Quantity"/>
+                <field name="total_value" string="Total Value" sum="Grand Total Value"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Graph View: Summary -->
+    <record id="view_mesob_inventory_stock_valuation_summary_graph" model="ir.ui.view">
+        <field name="name">mesob.inventory.stock.valuation.summary.graph</field>
+        <field name="model">mesob.inventory.stock.valuation.summary</field>
+        <field name="arch" type="xml">
+            <graph string="Stock Value by Classification" type="pie">
+                <field name="classification_code"/>
+                <field name="total_value" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Action: Stock Valuation Summary -->
+    <record id="action_mesob_inventory_stock_valuation_summary" model="ir.actions.act_window">
+        <field name="name">Stock Valuation Summary</field>
+        <field name="res_model">mesob.inventory.stock.valuation.summary</field>
+        <field name="view_mode">list,graph</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Stock Valuation Summary by Classification
+            </p>
+            <p>
+                Control account values for each major classification.
+                The sum of all classifications equals the main stock account total.
+            </p>
+        </field>
+    </record>
+
+</odoo>

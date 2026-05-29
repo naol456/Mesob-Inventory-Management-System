@@ -8,7 +8,8 @@
             <list string="Damage/Shortage Reports" default_order="date desc"
                   decoration-info="state == 'draft'"
                   decoration-warning="state == 'confirmed'"
-                  decoration-success="state == 'returned'">
+                  decoration-success="state == 'returned'"
+                  class="mesob_dsr_list">
                 <field name="name"/>
                 <field name="date"/>
                 <field name="supplier_id"/>
@@ -64,7 +65,7 @@
                         <page string="Rejected Items" name="lines">
                             <field name="line_ids"
                                    readonly="state != 'draft'">
-                                <list editable="bottom">
+                                <list editable="bottom" class="mesob_dsr_lines">
                                     <field name="item_id"/>
                                     <field name="description"/>
                                     <field name="quantity"/>
@@ -98,6 +99,7 @@
                         </page>
                     </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>

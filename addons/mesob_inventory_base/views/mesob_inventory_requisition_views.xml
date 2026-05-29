@@ -10,7 +10,8 @@
                   decoration-warning="state == 'submitted'"
                   decoration-success="state == 'approved'"
                   decoration-danger="state == 'rejected'"
-                  decoration-muted="state == 'cancelled'">
+                  decoration-muted="state == 'cancelled'"
+                  class="mesob_requisition_list">
                 <field name="name"/>
                 <field name="issue_mode"/>
                 <field name="department" optional="show"/>
@@ -87,7 +88,7 @@
                         <page string="Requisition Lines" name="lines">
                             <field name="line_ids"
                                    readonly="state != 'draft'">
-                                <list editable="bottom">
+                                <list editable="bottom" class="mesob_requisition_lines_table">
                                     <field name="item_id"/>
                                     <field name="quantity"/>
                                     <field name="uom_id"/>
@@ -100,6 +101,7 @@
                         </page>
                     </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>

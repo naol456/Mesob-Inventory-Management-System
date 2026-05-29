@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Stock Taking Event Sequence -->
+    <record id="sequence_mesob_stock_taking_event" model="ir.sequence">
+        <field name="name">Stock Taking Event Sequence</field>
+        <field name="code">mesob.stock.taking.event</field>
+        <field name="prefix">ST/</field>
+        <field name="padding">4</field>
+        <field name="number_increment">1</field>
+        <field name="number_next">1</field>
+        <field name="implementation">standard</field>
+    </record>
+
+    <!-- Stock Taking Sheet Sequence -->
+    <record id="sequence_mesob_stock_taking_sheet" model="ir.sequence">
+        <field name="name">Stock Taking Sheet Sequence</field>
+        <field name="code">mesob.stock.taking.sheet</field>
+        <field name="prefix">STS-</field>
+        <field name="padding">4</field>
+        <field name="number_increment">1</field>
+        <field name="number_next">1</field>
+        <field name="implementation">standard</field>
+    </record>
+</odoo>

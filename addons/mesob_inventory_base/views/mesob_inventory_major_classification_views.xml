@@ -5,7 +5,8 @@
         <field name="name">mesob.inventory.major.classification.list</field>
         <field name="model">mesob.inventory.major.classification</field>
         <field name="arch" type="xml">
-            <list string="Major Classifications">
+            <list string="Major Classifications"
+                  class="mesob_classification_list">
                 <field name="code"/>
                 <field name="name"/>
                 <field name="name_am"/>

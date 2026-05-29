@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Stock Valuation Access Rules (loaded after views to ensure models exist) -->
+    
+    <record id="access_mesob_stock_valuation_user_ro" model="ir.model.access">
+        <field name="name">access_mesob_stock_valuation_user_ro</field>
+        <field name="model_id" ref="model_mesob_inventory_stock_valuation"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+    
+    <record id="access_mesob_stock_valuation_stock_clerk" model="ir.model.access">
+        <field name="name">access_mesob_stock_valuation_stock_clerk</field>
+        <field name="model_id" ref="model_mesob_inventory_stock_valuation"/>
+        <field name="group_id" ref="group_mesob_stock_clerk"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+    
+    <record id="access_mesob_stock_valuation_pao" model="ir.model.access">
+        <field name="name">access_mesob_stock_valuation_pao</field>
+        <field name="model_id" ref="model_mesob_inventory_stock_valuation"/>
+        <field name="group_id" ref="group_mesob_pao"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+    
+    <record id="access_mesob_stock_valuation_summary_user_ro" model="ir.model.access">
+        <field name="name">access_mesob_stock_valuation_summary_user_ro</field>
+        <field name="model_id" ref="model_mesob_inventory_stock_valuation_summary"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+    
+    <record id="access_mesob_stock_valuation_summary_pao" model="ir.model.access">
+        <field name="name">access_mesob_stock_valuation_summary_pao</field>
+        <field name="model_id" ref="model_mesob_inventory_stock_valuation_summary"/>
+        <field name="group_id" ref="group_mesob_pao"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+</odoo>

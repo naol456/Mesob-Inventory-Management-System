@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ── Tree View ──────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_bin_card_tree" model="ir.ui.view">
+        <field name="name">mesob.inventory.bin.card.tree</field>
+        <field name="model">mesob.inventory.bin.card</field>
+        <field name="arch" type="xml">
+            <list string="Bin Card" default_order="date desc, id desc" create="false" delete="false"
+                  class="mesob_bin_card_list">
+                <field name="date"/>
+                <field name="item_id"/>
+                <field name="item_code"/>
+                <field name="major_classification_id"/>
+                <field name="reference"/>
+                <field name="movement_type"/>
+                <field name="quantity_received" sum="Total Received"/>
+                <field name="quantity_issued" sum="Total Issued"/>
+                <field name="quantity_balance"/>
+                <field name="uom_id"/>
+                <field name="location_id" optional="hide"/>
+                <field name="storekeeper_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Form View ──────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_bin_card_form" model="ir.ui.view">
+        <field name="name">mesob.inventory.bin.card.form</field>
+        <field name="model">mesob.inventory.bin.card</field>
+        <field name="arch" type="xml">
+            <form string="Bin Card Entry" create="false" delete="false">
+                <header>
+                    <button name="action_view_source_document" type="object" 
+                            string="View Source Document" class="btn-primary"
+                            invisible="not receiving_id and not issue_voucher_id and not stock_move_id"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group name="item_info" string="Item Information">
+                            <field name="item_id" readonly="1"/>
+                            <field name="item_code" readonly="1"/>
+                            <field name="major_classification_id" readonly="1"/>
+                            <field name="location_id" readonly="1"/>
+                        </group>
+                        <group name="movement_info" string="Movement Information">
+                            <field name="date" readonly="1"/>
+                            <field name="reference" readonly="1"/>
+                            <field name="movement_type" readonly="1"/>
+                            <field name="storekeeper_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group name="quantities" string="Quantities">
+                            <field name="quantity_received" readonly="1"/>
+                            <field name="quantity_issued" readonly="1"/>
+                            <field name="quantity_balance" readonly="1"/>
+                            <field name="uom_id" readonly="1"/>
+                        </group>
+                        <group name="source_docs" string="Source Documents">
+                            <field name="receiving_id" readonly="1"/>
+                            <field name="issue_voucher_id" readonly="1"/>
+                            <field name="stock_move_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group name="notes" string="Remarks">
+                        <field name="note" nolabel="1" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Search View ────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_bin_card_search" model="ir.ui.view">
+        <field name="name">mesob.inventory.bin.card.search</field>
+        <field name="model">mesob.inventory.bin.card</field>
+        <field name="arch" type="xml">
+            <search string="Search Bin Card">
+                <field name="item_id"/>
+                <field name="item_code"/>
+                <field name="reference"/>
+                <field name="major_classification_id"/>
+                <field name="location_id"/>
+                <field name="storekeeper_id"/>
+                
+                <filter string="Receipts" name="filter_receipts"
+                        domain="[('movement_type', 'in', ['receipt', 'transfer_in', 'opening'])]"/>
+                <filter string="Issues" name="filter_issues"
+                        domain="[('movement_type', 'in', ['issue', 'transfer_out'])]"/>
+                <filter string="Adjustments" name="filter_adjustments"
+                        domain="[('movement_type', 'in', ['adjustment', 'stock_take'])]"/>
+                
+                <separator/>
+                <filter string="This Month" name="filter_this_month"
+                        domain="[('date', '&gt;=', (context_today() - relativedelta(day=1)).strftime('%Y-%m-%d')),
+                                 ('date', '&lt;=', (context_today() + relativedelta(day=31)).strftime('%Y-%m-%d'))]"/>
+                <filter string="This Year" name="filter_this_year"
+                        domain="[('date', '&gt;=', (context_today() - relativedelta(month=1, day=1)).strftime('%Y-%m-%d'))]"/>
+                
+                <group>
+                    <filter string="Item" name="group_item" context="{'group_by': 'item_id'}"/>
+                    <filter string="Classification" name="group_classification" context="{'group_by': 'major_classification_id'}"/>
+                    <filter string="Movement Type" name="group_movement_type" context="{'group_by': 'movement_type'}"/>
+                    <filter string="Location" name="group_location" context="{'group_by': 'location_id'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Pivot View ─────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_bin_card_pivot" model="ir.ui.view">
+        <field name="name">mesob.inventory.bin.card.pivot</field>
+        <field name="model">mesob.inventory.bin.card</field>
+        <field name="arch" type="xml">
+            <pivot string="Bin Card Analysis">
+                <field name="major_classification_id" type="row"/>
+                <field name="item_id" type="row"/>
+                <field name="movement_type" type="col"/>
+                <field name="quantity_received" type="measure"/>
+                <field name="quantity_issued" type="measure"/>
+                <field name="quantity_balance" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- ── Graph View ─────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_bin_card_graph" model="ir.ui.view">
+        <field name="name">mesob.inventory.bin.card.graph</field>
+        <field name="model">mesob.inventory.bin.card</field>
+        <field name="arch" type="xml">
+            <graph string="Bin Card Movements" type="line">
+                <field name="date"/>
+                <field name="quantity_balance" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ── Action ─────────────────────────────────────────────────── -->
+    <record id="action_mesob_inventory_bin_card" model="ir.actions.act_window">
+        <field name="name">Bin Cards</field>
+        <field name="res_model">mesob.inventory.bin.card</field>
+        <field name="view_mode">list,form,pivot,graph</field>
+        <field name="context">{'search_default_filter_this_year': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No bin card entries yet
+            </p>
+            <p>
+                Bin cards track quantity movements for each inventory item.
+                They are automatically created when stock is received or issued.
+            </p>
+        </field>
+    </record>
+
+    <!-- ── Action: Bin Card by Item ───────────────────────────────── -->
+    <record id="action_mesob_inventory_bin_card_by_item" model="ir.actions.act_window">
+        <field name="name">Bin Card</field>
+        <field name="res_model">mesob.inventory.bin.card</field>
+        <field name="view_mode">list,form,graph</field>
+        <field name="domain">[('item_id', '=', active_id)]</field>
+        <field name="context">{'default_item_id': active_id, 'search_default_group_date': 1}</field>
+    </record>
+</odoo>

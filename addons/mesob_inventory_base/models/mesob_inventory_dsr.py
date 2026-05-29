@@ -12,6 +12,7 @@ class MesobInventoryDSR(models.Model):
 
     _name = "mesob.inventory.dsr"
     _description = "Damage/Shortage Report (DSR)"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "date desc, id desc"
     _rec_name = "name"
 

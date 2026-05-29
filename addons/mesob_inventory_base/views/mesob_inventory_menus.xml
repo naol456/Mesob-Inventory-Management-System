@@ -42,6 +42,96 @@
               action="action_mesob_inventory_dsr"
               sequence="20"/>
 
+    <!-- ── Stock Records ──────────────────────────────────────────── -->
+    <menuitem id="menu_mesob_inventory_stock_records"
+              name="Stock Records"
+              parent="menu_mesob_inventory_root"
+              sequence="17"/>
+
+    <menuitem id="menu_mesob_inventory_bin_card"
+              name="Bin Cards (Quantity)"
+              parent="menu_mesob_inventory_stock_records"
+              action="action_mesob_inventory_bin_card"
+              groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_pao"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_inventory_stock_record_card"
+              name="Stock Record Cards (Quantity + Value)"
+              parent="menu_mesob_inventory_stock_records"
+              action="action_mesob_inventory_stock_record_card"
+              groups="mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao"
+              sequence="20"/>
+
+    <menuitem id="menu_mesob_inventory_stock_valuation"
+              name="Stock Valuation by Classification"
+              parent="menu_mesob_inventory_stock_records"
+              action="mesob_inventory_base.action_mesob_inventory_stock_valuation"
+              groups="mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao"
+              sequence="30"/>
+
+    <menuitem id="menu_mesob_inventory_stock_valuation_summary"
+              name="Stock Valuation Summary"
+              parent="menu_mesob_inventory_stock_records"
+              action="mesob_inventory_base.action_mesob_inventory_stock_valuation_summary"
+              groups="mesob_inventory_base.group_mesob_pao"
+              sequence="40"/>
+
+    <!-- ── Reports (SRS 4.7) ──────────────────────────────────────── -->
+    <menuitem id="menu_mesob_inventory_reports"
+              name="Reports"
+              parent="menu_mesob_inventory_root"
+              sequence="18"/>
+
+    <menuitem id="menu_mesob_inventory_movement_report"
+              name="Stock Movement Report"
+              parent="menu_mesob_inventory_reports"
+              action="mesob_inventory_base.action_mesob_inventory_movement_report"
+              groups="mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_inventory_dormant_stock_report"
+              name="Dormant and Slow-Moving Stock"
+              parent="menu_mesob_inventory_reports"
+              action="mesob_inventory_base.action_mesob_inventory_dormant_stock_report"
+              groups="mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao"
+              sequence="20"/>
+
+    <menuitem id="menu_mesob_inventory_fiscal_year_end_report"
+              name="Fiscal Year End Valuation"
+              parent="menu_mesob_inventory_reports"
+              action="mesob_inventory_base.action_mesob_inventory_fiscal_year_end_report"
+              groups="mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao"
+              sequence="30"/>
+
+    <!-- ── Stock Taking (SRS 4.8) ────────────────────────────────────── -->
+    <menuitem id="menu_mesob_inventory_stock_taking"
+              name="Stock Taking"
+              parent="menu_mesob_inventory_root"
+              sequence="19"/>
+
+    <menuitem id="menu_mesob_stock_taking_events"
+              name="Stock Taking Events"
+              parent="menu_mesob_inventory_stock_taking"
+              action="mesob_inventory_base.action_mesob_stock_taking_event"
+              groups="mesob_inventory_base.group_mesob_pao"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_stock_taking_sheets"
+              name="Stock Taking Sheets"
+              parent="menu_mesob_inventory_stock_taking"
+              action="mesob_inventory_base.action_mesob_stock_taking_sheet"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_storekeeper"
+              sequence="20"/>
+
+    <!-- Note: Handover menu will appear after server restart
+    <menuitem id="menu_mesob_handover_events"
+              name="Storekeeper Handovers"
+              parent="menu_mesob_inventory_stock_taking"
+              action="mesob_inventory_base.action_mesob_handover_event"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper"
+              sequence="30"/>
+    -->
+
     <!-- ── Master Data ────────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_master_data"
               name="Master Data"

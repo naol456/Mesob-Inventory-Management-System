@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Handover Event Form View -->
+    <record id="view_mesob_handover_event_form" model="ir.ui.view">
+        <field name="name">mesob.handover.event.form</field>
+        <field name="model">mesob.inventory.handover.event</field>
+        <field name="arch" type="xml">
+            <form string="Storekeeper Handover">
+                <header>
+                    <button name="action_schedule" string="Schedule" type="object" 
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_start" string="Start Handover" type="object" 
+                            class="btn-primary" invisible="state != 'scheduled'"/>
+                    <button name="action_sign_outgoing" string="Sign (Outgoing)" type="object" 
+                            class="btn-secondary" invisible="state != 'in_progress'"/>
+                    <button name="action_sign_incoming" string="Sign (Incoming)" type="object" 
+                            class="btn-secondary" invisible="state != 'in_progress'"/>
+                    <button name="action_sign_witness" string="Sign (Witness)" type="object" 
+                            class="btn-secondary" invisible="state != 'in_progress'"/>
+                    <button name="action_generate_certificate" string="Generate Certificate" type="object" 
+                            class="btn-success" invisible="state != 'in_progress' or certificate_generated"/>
+                    <button name="action_complete" string="Complete" type="object" 
+                            class="btn-primary" invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" string="Cancel" type="object" 
+                            invisible="state in ['completed', 'cancelled']"/>
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="draft,scheduled,in_progress,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_stock_taking" type="object" 
+                                class="oe_stat_button" icon="fa-clipboard"
+                                invisible="not stock_taking_event_id">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Stock Taking</span>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group string="Handover Information">
+                            <field name="trigger_reason"/>
+                            <field name="reason_details"/>
+                            <field name="handover_date"/>
+                            <field name="scheduled_start"/>
+                        </group>
+                        <group string="Responsible">
+                            <field name="responsible_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Storekeepers and Witness">
+                        <group>
+                            <field name="outgoing_storekeeper_id"/>
+                            <field name="outgoing_signature_date" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="incoming_storekeeper_id"/>
+                            <field name="incoming_signature_date" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="witness_id"/>
+                            <field name="witness_signature_date" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Locations">
+                        <field name="location_ids" widget="many2many_tags" nolabel="1"/>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Certificate Distribution" name="certificate">
+                            <group>
+                                <group>
+                                    <field name="certificate_generated" readonly="1"/>
+                                    <field name="certificate_date" readonly="1"/>
+                                </group>
+                            </group>
+                            <group string="Triplicate Distribution">
+                                <group string="Original (PAO)">
+                                    <field name="original_distributed"/>
+                                    <field name="original_distribution_date" readonly="1"/>
+                                    <button name="action_distribute_original" string="Mark as Distributed" 
+                                            type="object" class="btn-secondary"
+                                            invisible="original_distributed or not certificate_generated"/>
+                                </group>
+                                <group string="Duplicate (Incoming Storekeeper)">
+                                    <field name="duplicate_distributed"/>
+                                    <field name="duplicate_distribution_date" readonly="1"/>
+                                    <button name="action_distribute_duplicate" string="Mark as Distributed" 
+                                            type="object" class="btn-secondary"
+                                            invisible="duplicate_distributed or not certificate_generated"/>
+                                </group>
+                                <group string="Triplicate (Outgoing Storekeeper)">
+                                    <field name="triplicate_distributed"/>
+                                    <field name="triplicate_distribution_date" readonly="1"/>
+                                    <button name="action_distribute_triplicate" string="Mark as Distributed" 
+                                            type="object" class="btn-secondary"
+                                            invisible="triplicate_distributed or not certificate_generated"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Stock Taking" name="stock_taking">
+                            <group>
+                                <field name="stock_taking_event_id" readonly="1"/>
+                                <field name="actual_start" readonly="1"/>
+                                <field name="actual_completion" readonly="1"/>
+                            </group>
+                        </page>
+                        
+                        <page string="Notes" name="notes">
+                            <group>
+                                <field name="handover_notes" placeholder="Notes from outgoing storekeeper about stock status..."/>
+                                <field name="notes" placeholder="Additional notes..."/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Handover Event List View -->
+    <record id="view_mesob_handover_event_list" model="ir.ui.view">
+        <field name="name">mesob.handover.event.list</field>
+        <field name="model">mesob.inventory.handover.event</field>
+        <field name="arch" type="xml">
+            <list string="Storekeeper Handovers" class="mesob_handover_list">
+                <field name="name"/>
+                <field name="handover_date"/>
+                <field name="trigger_reason"/>
+                <field name="outgoing_storekeeper_id"/>
+                <field name="incoming_storekeeper_id"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Handover Event Action -->
+    <record id="action_mesob_handover_event" model="ir.actions.act_window">
+        <field name="name">Storekeeper Handovers</field>
+        <field name="res_model">mesob.inventory.handover.event</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a Storekeeper Handover
+            </p>
+            <p>
+                Handovers are required when storekeepers change due to leave, transfer, 
+                promotion, or other reasons.
+            </p>
+        </field>
+    </record>
+
+</odoo>

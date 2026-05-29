@@ -12,6 +12,7 @@ class MesobInventoryReceiving(models.Model):
 
     _name = "mesob.inventory.receiving"
     _description = "Receiving Order"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "received_date desc, id desc"
     _rec_name = "name"
 
@@ -323,6 +324,47 @@ class MesobInventoryReceiving(models.Model):
         }
         model19 = self.env["mesob.inventory.model19"].create(model19_vals)
         self.model19_id = model19.id
+        
+        # Create bin card and stock record card entries for accepted items
+        self._create_stock_records_for_receipt()
+
+    def _create_stock_records_for_receipt(self):
+        """Create bin card and stock record card entries for accepted items.
+        
+        FR-RECARD-001: Bin Card per item (quantity tracking by storekeeper)
+        FR-RECARD-002: Stock Record Card per item (quantity + value by stock clerk)
+        """
+        self.ensure_one()
+        
+        BinCard = self.env["mesob.inventory.bin.card"]
+        StockRecordCard = self.env["mesob.inventory.stock.record.card"]
+        
+        accepted_lines = self.line_ids.filtered(lambda l: l.qty_accepted > 0)
+        
+        for line in accepted_lines:
+            if not line.item_id:
+                continue
+                
+            # Create Bin Card entry (quantity only)
+            BinCard.create_bin_card_entry(
+                item_id=line.item_id.id,
+                movement_type="receipt",
+                quantity=line.qty_accepted,
+                reference=self.name,
+                receiving_id=self.id,
+                note=f"Receipt from {self.supplier_id.name if self.supplier_id else 'supplier'}",
+            )
+            
+            # Create Stock Record Card entry (quantity + value with FIFO)
+            StockRecordCard.create_stock_record_entry(
+                item_id=line.item_id.id,
+                movement_type="receipt",
+                quantity=line.qty_accepted,
+                unit_price=line.unit_price,
+                reference=self.name,
+                receiving_id=self.id,
+                note=f"Receipt from {self.supplier_id.name if self.supplier_id else 'supplier'}",
+            )
 
     def _generate_dsr(self):
         """Create DSR from rejected lines (FR-REC-008)."""

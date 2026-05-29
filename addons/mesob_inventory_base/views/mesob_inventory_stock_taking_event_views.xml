@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════════════
+         Stock Taking Event Views (SRS 4.8)
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- Form View: Stock Taking Event -->
+    <record id="view_mesob_stock_taking_event_form" model="ir.ui.view">
+        <field name="name">mesob.stock.taking.event.form</field>
+        <field name="model">mesob.inventory.stock.taking.event</field>
+        <field name="arch" type="xml">
+            <form string="Stock Taking Event">
+                <header>
+                    <button name="action_schedule" string="Schedule" type="object" 
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_generate_sheets" string="Generate Sheets" type="object" 
+                            class="btn-secondary" invisible="state not in ['draft', 'scheduled']"/>
+                    <button name="action_start" string="Start" type="object" 
+                            class="btn-primary" invisible="state != 'scheduled'"/>
+                    <button name="action_complete" string="Complete" type="object" 
+                            class="btn-success" invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" string="Cancel" type="object" 
+                            invisible="state in ['completed', 'cancelled']"/>
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="draft,scheduled,in_progress,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_sheets" type="object" class="oe_stat_button" icon="fa-file-text-o">
+                            <field name="sheet_count" widget="statinfo" string="Sheets"/>
+                        </button>
+                        <button name="action_view_discrepancies" type="object" class="oe_stat_button" 
+                                icon="fa-exclamation-triangle" invisible="discrepancy_count == 0">
+                            <field name="discrepancy_count" widget="statinfo" string="Discrepancies"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date_scheduled"/>
+                            <field name="responsible_id"/>
+                            <field name="company_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="date_started" readonly="1"/>
+                            <field name="date_completed" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Instructions and Training" name="instructions">
+                            <group>
+                                <field name="instructions" placeholder="Enter stock taking instructions for the team..." nolabel="1"/>
+                            </group>
+                            <group>
+                                <group>
+                                    <field name="training_completed"/>
+                                    <field name="training_date" invisible="not training_completed"/>
+                                </group>
+                                <group>
+                                    <field name="training_notes" placeholder="Training notes..." invisible="not training_completed"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Schedule" name="schedule">
+                            <group>
+                                <group string="Timing">
+                                    <field name="start_time" widget="float_time"/>
+                                    <field name="end_time" widget="float_time"/>
+                                </group>
+                                <group string="Breaks">
+                                    <field name="break_time_start" widget="float_time"/>
+                                    <field name="break_time_end" widget="float_time"/>
+                                </group>
+                            </group>
+                            <group string="Locations">
+                                <field name="location_ids" widget="many2many_tags" nolabel="1"/>
+                            </group>
+                        </page>
+                        <page string="Team Members" name="team">
+                            <field name="team_member_ids">
+                                <list editable="bottom">
+                                    <field name="user_id"/>
+                                    <field name="role"/>
+                                    <field name="is_storekeeper" column_invisible="1"/>
+                                    <field name="signature_date"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Sheets" name="sheets">
+                            <group>
+                                <group>
+                                    <field name="sheet_count"/>
+                                    <field name="sheet_issued_count"/>
+                                </group>
+                                <group>
+                                    <field name="sheet_verified_count"/>
+                                    <field name="discrepancy_count"/>
+                                </group>
+                            </group>
+                            <field name="sheet_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="location_id"/>
+                                    <field name="state" widget="badge" 
+                                           decoration-info="state == 'draft'"
+                                           decoration-warning="state == 'issued'"
+                                           decoration-primary="state == 'returned'"
+                                           decoration-success="state == 'verified'"/>
+                                    <field name="issued_to_id"/>
+                                    <field name="line_count"/>
+                                    <field name="counted_line_count"/>
+                                    <field name="discrepancy_line_count"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" placeholder="Additional notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- List View: Stock Taking Event -->
+    <record id="view_mesob_stock_taking_event_list" model="ir.ui.view">
+        <field name="name">mesob.stock.taking.event.list</field>
+        <field name="model">mesob.inventory.stock.taking.event</field>
+        <field name="arch" type="xml">
+            <list string="Stock Taking Events" class="mesob_stock_taking_event_list">
+                <field name="name"/>
+                <field name="date_scheduled"/>
+                <field name="responsible_id"/>
+                <field name="state" widget="badge" 
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'scheduled'"
+                       decoration-primary="state == 'in_progress'"
+                       decoration-success="state == 'completed'"
+                       decoration-danger="state == 'cancelled'"/>
+                <field name="sheet_count"/>
+                <field name="sheet_verified_count"/>
+                <field name="discrepancy_count"/>
+                <field name="training_completed" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search View: Stock Taking Event -->
+    <record id="view_mesob_stock_taking_event_search" model="ir.ui.view">
+        <field name="name">mesob.stock.taking.event.search</field>
+        <field name="model">mesob.inventory.stock.taking.event</field>
+        <field name="arch" type="xml">
+            <search string="Search Stock Taking Events">
+                <field name="name"/>
+                <field name="responsible_id"/>
+                <field name="location_ids"/>
+                
+                <filter string="Draft" name="filter_draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Scheduled" name="filter_scheduled" domain="[('state', '=', 'scheduled')]"/>
+                <filter string="In Progress" name="filter_in_progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter string="Completed" name="filter_completed" domain="[('state', '=', 'completed')]"/>
+                
+                <separator/>
+                <filter string="Training Completed" name="filter_training_completed" 
+                        domain="[('training_completed', '=', True)]"/>
+                <filter string="Has Discrepancies" name="filter_has_discrepancies" 
+                        domain="[('discrepancy_count', '>', 0)]"/>
+                
+                <group>
+                    <filter string="Responsible" name="group_responsible" context="{'group_by': 'responsible_id'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Scheduled Date" name="group_date" context="{'group_by': 'date_scheduled'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action: Stock Taking Event -->
+    <record id="action_mesob_stock_taking_event" model="ir.actions.act_window">
+        <field name="name">Stock Taking Events</field>
+        <field name="res_model">mesob.inventory.stock.taking.event</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_in_progress': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a Stock Taking Event
+            </p>
+            <p>
+                Stock taking events help you verify physical inventory counts against records.
+                The system generates pre-numbered sheets, tracks team members, and identifies discrepancies.
+            </p>
+        </field>
+    </record>
+
+</odoo>

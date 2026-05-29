@@ -12,6 +12,7 @@ class MesobInventoryModel19(models.Model):
 
     _name = "mesob.inventory.model19"
     _description = "Receipt for Articles/Property (Model 19)"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "date desc, id desc"
     _rec_name = "name"
 
