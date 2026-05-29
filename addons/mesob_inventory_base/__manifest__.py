@@ -23,8 +23,6 @@
         "data/mesob_receiving_sequence.xml",
         "data/mesob_stock_taking_sequence.xml",
         "data/mesob_handover_sequence.xml",
-        # Assets (Modern UI Styles)
-        "views/mesob_inventory_assets.xml",
         # Views (Base)
         "views/mesob_inventory_major_classification_views.xml",
         "views/mesob_inventory_item_views.xml",
@@ -46,27 +44,16 @@
         "views/mesob_inventory_stock_taking_sheet_views.xml",
         # Handover (SRS 4.9)
         "views/mesob_inventory_handover_views.xml",
-        # Enhanced Views
-        "views/mesob_inventory_item_views_enhanced.xml",
-        "views/mesob_inventory_requisition_views_enhanced.xml",
-        "views/mesob_inventory_receiving_views_enhanced.xml",
-        "views/mesob_inventory_dsr_views_enhanced.xml",
-        "views/mesob_inventory_model19_views_enhanced.xml",
-        # Dashboard
-        "views/mesob_inventory_dashboard.xml",
         # Menus
         "views/mesob_inventory_menus.xml",
         # Security (loaded after views to ensure models exist)
         "security/ir.model.access.csv",
-        "security/mesob_inventory_record_rules.xml",
         # Reports Security (loaded after menus to ensure actions exist)
         "security/mesob_reports_security.xml",
         # Stock Taking Security (loaded after menus to ensure actions exist)
         "security/mesob_stock_taking_security.xml",
         # Handover Security (loaded after menus to ensure actions exist)
         "security/mesob_handover_security.xml",
-        # Wizards
-        "wizard/mesob_inventory_issue_receipt_wizard_views.xml",
     ],
     "demo": [],
     "installable": True,
