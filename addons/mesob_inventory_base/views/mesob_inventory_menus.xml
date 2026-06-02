@@ -141,4 +141,10 @@
               parent="menu_mesob_inventory_root"
               groups="mesob_inventory_base.group_mesob_pao"
               sequence="90"/>
+
+    <menuitem id="menu_mesob_sub_classification"
+              name="Sub Classifications"
+              parent="menu_mesob_inventory_config"
+              action="action_mesob_sub_classification"
+              sequence="11"/>
 </odoo>

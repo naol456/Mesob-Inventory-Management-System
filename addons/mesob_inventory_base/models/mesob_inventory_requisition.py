@@ -12,6 +12,7 @@ class MesobInventoryRequisition(models.Model):
 
     _name = "mesob.inventory.requisition"
     _description = "Stores Requisition (Model 20)"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "requested_on desc, id desc"
 
     name = fields.Char(
@@ -198,7 +199,7 @@ class MesobInventoryRequisition(models.Model):
         if not self.line_ids:
             raise UserError("Cannot create issue voucher: no requisition lines found.")
         
-        # Create issue voucher
+        # Create issue voucher with lines
         voucher_vals = {
             "requisition_id": self.id,
             "issue_date": fields.Date.today(),
@@ -208,21 +209,34 @@ class MesobInventoryRequisition(models.Model):
         
         # Copy requisition lines to issue voucher lines
         for req_line in self.line_ids:
+            # Validate that item exists
+            if not req_line.item_id:
+                raise UserError(
+                    f"Requisition line {req_line.id} is missing an item. "
+                    "Please ensure all requisition lines have items selected."
+                )
+            
             voucher_vals["line_ids"].append((0, 0, {
                 "item_id": req_line.item_id.id,
                 "quantity_issued": req_line.quantity,
-                "uom_id": req_line.uom_id.id,
-                "note": req_line.note,
+                "uom_id": req_line.uom_id.id if req_line.uom_id else req_line.item_id.uom_id.id,
+                "note": req_line.note or "",
             }))
         
+        # Create the voucher
         voucher = self.env["mesob.inventory.issue.voucher"].create(voucher_vals)
         
         # Update requisition state
         self.state = "issued"
         
+        # Post message
+        self.message_post(
+            body=f"✅ Issue Voucher {voucher.name} created with {len(voucher.line_ids)} line(s)."
+        )
+        
         # Return action to open the new voucher
         return {
-            "name": "Issue Voucher",
+            "name": "Issue Voucher (Model 22)",
             "type": "ir.actions.act_window",
             "res_model": "mesob.inventory.issue.voucher",
             "res_id": voucher.id,
@@ -237,7 +251,7 @@ class MesobInventoryRequisition(models.Model):
             "name": "Issue Vouchers",
             "type": "ir.actions.act_window",
             "res_model": "mesob.inventory.issue.voucher",
-            "view_mode": "tree,form",
+            "view_mode": "list,form",
             "domain": [("requisition_id", "=", self.id)],
             "context": {"default_requisition_id": self.id},
         }

@@ -76,25 +76,35 @@ class MesobStockRecordCard(models.Model):
     @api.depends('quantity_in', 'quantity_out', 'total_cost_in', 'total_cost_out')
     def _compute_balance(self):
         """Compute running balance using FIFO"""
+        # Group by item
+        items = {}
         for record in self:
-            # Get previous balance
-            previous = self.search([
-                ('item_id', '=', record.item_id.id),
-                ('date', '<', record.date),
-            ], order='date desc, id desc', limit=1)
+            if record.item_id.id not in items:
+                items[record.item_id.id] = []
+            items[record.item_id.id].append(record)
+        
+        # Calculate balance for each item
+        for item_id, records in items.items():
+            # Get all records for this item ordered by date
+            all_records = self.search([
+                ('item_id', '=', item_id),
+            ], order='date asc, id asc')
             
-            prev_qty = previous.quantity_balance if previous else 0.0
-            prev_value = previous.balance_value if previous else 0.0
+            running_qty = 0.0
+            running_value = 0.0
             
-            # Calculate new balance
-            record.quantity_balance = prev_qty + record.quantity_in - record.quantity_out
-            record.balance_value = prev_value + record.total_cost_in - record.total_cost_out
-            
-            # Calculate average cost
-            if record.quantity_balance > 0:
-                record.average_cost = record.balance_value / record.quantity_balance
-            else:
-                record.average_cost = 0.0
+            for rec in all_records:
+                running_qty = running_qty + rec.quantity_in - rec.quantity_out
+                running_value = running_value + rec.total_cost_in - rec.total_cost_out
+                
+                rec.quantity_balance = running_qty
+                rec.balance_value = running_value
+                
+                # Calculate average cost
+                if running_qty > 0:
+                    rec.average_cost = running_value / running_qty
+                else:
+                    rec.average_cost = 0.0
     
     @api.constrains('quantity_in', 'quantity_out')
     def _check_quantities(self):

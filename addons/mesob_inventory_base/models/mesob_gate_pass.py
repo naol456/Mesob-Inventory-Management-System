@@ -341,6 +341,9 @@ class MesobGatePass(models.Model):
                 "triplicate_to_security": True,
             })
             
+            # Post to bin cards when materials leave the facility
+            record._post_to_bin_cards()
+            
             # Update linked Issue Voucher if applicable
             if record.issue_voucher_id:
                 # Note: Issue Voucher doesn't have dispatch tracking fields yet
@@ -448,3 +451,29 @@ class MesobGatePass(models.Model):
                         "Contact PAO for controlled correction workflow."
                     )
         return super().write(vals)
+
+    # ── Bin Card Integration ───────────────────────────────────────
+
+    def _post_to_bin_cards(self):
+        """Post gate pass dispatch to bin cards (quantity tracking).
+        
+        Note: Gate pass typically happens AFTER issue voucher, so this is
+        an optional additional tracking point for materials leaving the compound.
+        """
+        self.ensure_one()
+        
+        BinCard = self.env['mesob.bin.card']
+        
+        for line in self.line_ids.filtered(lambda l: l.item_id):
+            BinCard.create({
+                'item_id': line.item_id.id,
+                'location': 'Gate/Exit',  # Special location for gate passes
+                'date': self.dispatch_date,
+                'transaction_type': 'issue',
+                'reference': f"{self.name} - Gate Pass",
+                'description': f"Dispatched to {self.receiver_organization} - {self.destination}",
+                'quantity_in': 0.0,
+                'quantity_out': line.quantity,
+                'uom_id': line.uom_id.id if line.uom_id else line.item_id.uom_id.id,
+                'received_by_id': self.security_verified_by_id.id if self.security_verified_by_id else False,
+            })

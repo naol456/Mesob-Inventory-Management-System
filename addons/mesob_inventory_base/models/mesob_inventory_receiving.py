@@ -226,6 +226,9 @@ class MesobInventoryReceiving(models.Model):
             # If there are also rejected items, generate DSR too
             if rec.has_rejected_lines:
                 rec._generate_dsr()
+            
+            # Post to bin cards
+            rec._post_to_bin_cards()
 
             rec.state = "accepted"
         return True
@@ -382,3 +385,27 @@ class MesobInventoryReceiving(models.Model):
             "view_mode": "form",
             "res_id": self.dsr_id.id,
         }
+
+    # ── Bin Card Integration ───────────────────────────────────────
+
+    def _post_to_bin_cards(self):
+        """Post receiving transaction to bin cards (quantity tracking)."""
+        self.ensure_one()
+        
+        BinCard = self.env['mesob.bin.card']
+        
+        # Post accepted quantities to bin cards
+        for line in self.line_ids.filtered(lambda l: l.qty_accepted > 0 and l.item_id):
+            BinCard.create({
+                'item_id': line.item_id.id,
+                'location': 'Main Store',  # TODO: Get from actual location configuration
+                'date': self.received_date,
+                'transaction_type': 'receipt',
+                'reference': f"{self.name} / {self.purchase_order_ref or ''}",
+                'description': f"Receipt from {self.supplier_id.name if self.supplier_id else 'Supplier'}",
+                'quantity_in': line.qty_accepted,
+                'quantity_out': 0.0,
+                'uom_id': line.uom_id.id if line.uom_id else line.item_id.uom_id.id,
+                'received_by_id': self.received_by_id.id,
+                'verified_by_id': self.inspector_id.id if self.inspector_id else False,
+            })

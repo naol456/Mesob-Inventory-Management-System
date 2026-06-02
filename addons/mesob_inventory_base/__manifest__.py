@@ -38,11 +38,11 @@
         "views/mesob_bin_card_views.xml",
         "views/mesob_stock_record_card_views.xml",
         "views/mesob_stock_reorder_alert_views.xml",
-        # Menus
-        "views/mesob_inventory_menus.xml",
         # Wizards
         "wizard/mesob_inventory_issue_receipt_wizard_views.xml",
         "wizard/mesob_abc_classification_wizard_views.xml",
+        # Menus (load AFTER all views/actions are defined)
+        "views/mesob_inventory_menus.xml",
         # Reports
         "reports/mesob_gate_pass_report.xml",
     ],

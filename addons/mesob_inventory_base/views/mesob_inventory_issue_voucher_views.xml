@@ -14,6 +14,22 @@
         </field>
     </record>
 
+    <!-- Issue Voucher Line List View (separate to avoid validation issues) -->
+    <record id="view_mesob_inventory_issue_voucher_line_list" model="ir.ui.view">
+        <field name="name">mesob.inventory.issue.voucher.line.list</field>
+        <field name="model">mesob.inventory.issue.voucher.line</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="item_id" 
+                       options="{'no_create': True}"
+                       domain="[('active', '=', True)]"/>
+                <field name="quantity_issued" string="Quantity"/>
+                <field name="uom_id" options="{'no_create': True}"/>
+                <field name="note" optional="show"/>
+            </list>
+        </field>
+    </record>
+
     <record id="view_mesob_inventory_issue_voucher_form" model="ir.ui.view">
         <field name="name">mesob.inventory.issue.voucher.form</field>
         <field name="model">mesob.inventory.issue.voucher</field>
@@ -21,11 +37,15 @@
             <form string="Issue Voucher" class="o_mesob_gov_doc">
                 <header>
                     <button name="action_issue" string="Issue Materials" type="object" 
-                            class="oe_highlight" invisible="state != 'draft'"/>
+                            class="oe_highlight" invisible="state != 'draft'"
+                            confirm="Are you sure you want to issue these materials? This will create stock movements and post to bin cards and stock record cards."/>
                     <button name="action_confirm_receipt" string="Confirm Receipt" type="object" 
                             class="oe_highlight" invisible="state != 'issued'"/>
                     <button name="action_cancel" string="Cancel" type="object" 
-                            invisible="state in ('received', 'cancelled')"/>
+                            invisible="state in ('received', 'cancelled')"
+                            confirm="Are you sure you want to cancel this issue voucher?"/>
+                    <button name="action_set_to_draft" string="Set to Draft" type="object"
+                            invisible="state != 'cancelled'"/>
                     <field name="state" widget="statusbar" 
                            statusbar_visible="draft,issued,received"/>
                 </header>
@@ -37,6 +57,22 @@
                         <h3 class="mesob_gov_subtitle">Federal Government Goods Issue Voucher</h3>
                         <h3 class="mesob_gov_model">Model 22</h3>
                         <div class="mesob_gov_underline"></div>
+                    </div>
+                    
+                    <!-- Alert Box for Draft State -->
+                    <div class="alert alert-info" role="alert" invisible="state != 'draft'">
+                        <strong>📝 Instructions:</strong>
+                        <ul>
+                            <li>This Issue Voucher is normally created from an approved Requisition (Model 20)</li>
+                            <li>Fill in the Issue Lines below by clicking "Add a line"</li>
+                            <li>Select the item, enter quantity, and unit of measure</li>
+                            <li>Click "Issue Materials" when ready to issue</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Alert Box for Issued State -->
+                    <div class="alert alert-success" role="alert" invisible="state != 'issued'">
+                        <strong>✅ Materials Issued!</strong> Three copies distributed. Waiting for department receipt confirmation.
                     </div>
                     
                     <!-- Document Content -->
@@ -54,46 +90,58 @@
                     </group>
                     
                     <group>
-                        <group string="Issuing Officer">
-                            <field name="requisition_id" readonly="1"/>
+                        <group string="Based On Requisition">
+                            <field name="requisition_id" readonly="state != 'draft'"
+                                   options="{'no_create': True, 'no_create_edit': True}"
+                                   domain="[('state', '=', 'approved')]"
+                                   context="{'default_state': 'approved'}"/>
+                            <field name="requisition_name" readonly="1"/>
                         </group>
-                        <group string="Receiving Institution">
-                            <field name="requesting_department"/>
+                        <group string="Receiving Department">
+                            <field name="requesting_department" readonly="1"/>
                         </group>
                     </group>
+                    
                     <notebook>
-                        <page string="Issue Lines">
-                            <field name="line_ids" readonly="state != 'draft'">
-                                <list editable="bottom">
-                                    <field name="item_id"/>
-                                    <field name="quantity_issued"/>
-                                    <field name="uom_id"/>
-                                    <field name="note"/>
-                                </list>
-                            </field>
+                        <page string="📦 Issue Lines" name="issue_lines">
+                            <field name="line_ids" readonly="state != 'draft'" 
+                                   context="{'tree_view_ref': 'mesob_inventory_base.view_mesob_inventory_issue_voucher_line_list'}"/>
                         </page>
-                        <page string="Distribution" invisible="state == 'draft'">
+                        <page string="📄 Copy Distribution" invisible="state == 'draft'" name="distribution">
                             <group>
-                                <field name="original_to_stock_clerk" readonly="1"/>
-                                <field name="duplicate_to_department" readonly="1"/>
-                                <field name="triplicate_retained" readonly="1"/>
+                                <group string="Three-Copy Distribution (FR-ISSUE-005)">
+                                    <field name="original_to_stock_clerk" readonly="1" widget="boolean_toggle"/>
+                                    <field name="duplicate_to_department" readonly="1" widget="boolean_toggle"/>
+                                    <field name="triplicate_retained" readonly="1" widget="boolean_toggle"/>
+                                </group>
+                                <group string="Stock Records Posted">
+                                    <field name="bin_card_posted" readonly="1" widget="boolean_toggle"/>
+                                    <field name="stock_record_posted" readonly="1" widget="boolean_toggle"/>
+                                </group>
                             </group>
                         </page>
-                        <page string="Receipt" invisible="state not in ('issued', 'received')">
+                        <page string="✅ Receipt Confirmation" invisible="state not in ('issued', 'received')" name="receipt">
+                            <div class="alert alert-info" role="alert" invisible="state != 'issued'">
+                                <strong>⏳ Waiting for Department Confirmation</strong><br/>
+                                The requesting department must confirm receipt by clicking "Confirm Receipt" button above.
+                            </div>
                             <group>
-                                <group>
+                                <group string="Received By">
                                     <field name="received_by_id" readonly="1"/>
                                     <field name="received_on" readonly="1"/>
                                 </group>
-                                <group>
-                                    <field name="quantity_verified" readonly="1"/>
-                                    <field name="inspection_confirmed" readonly="1"/>
-                                    <field name="approval_verified" readonly="1"/>
+                                <group string="Verification (FR-ISSUE-006)">
+                                    <field name="quantity_verified" readonly="1" widget="boolean_toggle"/>
+                                    <field name="inspection_confirmed" readonly="1" widget="boolean_toggle"/>
+                                    <field name="approval_verified" readonly="1" widget="boolean_toggle"/>
                                 </group>
                             </group>
                             <group>
                                 <field name="receipt_notes" readonly="1"/>
                             </group>
+                        </page>
+                        <page string="📋 Internal Notes" name="notes">
+                            <field name="note" placeholder="Add any internal notes here..."/>
                         </page>
                     </notebook>
                 </sheet>

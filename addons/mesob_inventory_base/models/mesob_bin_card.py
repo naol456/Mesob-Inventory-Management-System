@@ -54,16 +54,26 @@ class MesobBinCard(models.Model):
     @api.depends('quantity_in', 'quantity_out')
     def _compute_balance(self):
         """Compute running balance for each bin location"""
+        # Group by item and location
+        items_locations = {}
         for record in self:
-            # Get previous balance
-            previous_records = self.search([
-                ('item_id', '=', record.item_id.id),
-                ('location', '=', record.location),
-                ('date', '<', record.date),
-            ], order='date desc, id desc', limit=1)
+            key = (record.item_id.id, record.location)
+            if key not in items_locations:
+                items_locations[key] = []
+            items_locations[key].append(record)
+        
+        # Calculate balance for each group
+        for (item_id, location), records in items_locations.items():
+            # Get all records for this item/location ordered by date
+            all_records = self.search([
+                ('item_id', '=', item_id),
+                ('location', '=', location),
+            ], order='date asc, id asc')
             
-            previous_balance = previous_records[0].balance if previous_records else 0.0
-            record.balance = previous_balance + record.quantity_in - record.quantity_out
+            running_balance = 0.0
+            for rec in all_records:
+                running_balance = running_balance + rec.quantity_in - rec.quantity_out
+                rec.balance = running_balance
     
     @api.constrains('quantity_in', 'quantity_out')
     def _check_quantities(self):

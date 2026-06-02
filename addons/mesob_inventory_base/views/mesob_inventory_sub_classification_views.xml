@@ -34,11 +34,4 @@
         <field name="res_model">mesob.inventory.sub.classification</field>
         <field name="view_mode">list,form</field>
     </record>
-
-    <menuitem
-        id="menu_mesob_sub_classification"
-        name="Sub Classifications"
-        parent="menu_mesob_inventory_config"
-        action="action_mesob_sub_classification"
-        sequence="11"/>
 </odoo>
