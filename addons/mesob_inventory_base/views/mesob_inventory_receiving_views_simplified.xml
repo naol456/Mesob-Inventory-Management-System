@@ -133,7 +133,7 @@
                                 <br/>• Rejected items will generate a <strong>DSR Report</strong>
                             </div>
                             
-                            <field name="line_ids" context="{'default_qty_expected': 1.0}">
+                            <field name="line_ids" context="{}">
                                 <list editable="bottom" 
                                       create="state == 'draft'" 
                                       delete="state == 'draft'"
@@ -141,17 +141,18 @@
                                       decoration-danger="qty_rejected > 0">
                                     <!-- Hidden state field for readonly conditions -->
                                     <field name="state" column_invisible="1"/>
+                                    <field name="auto_generate_items" column_invisible="1"/>
                                     
-                                    <!-- Item and Description - always readonly after draft -->
-                                    <field name="item_id" 
-                                           required="1" 
-                                           options="{'no_create': True}"
+                                    <!-- Classification fields for auto-generation -->
+                                    <field name="major_classification_id"
+                                           readonly="state != 'draft'"/>
+                                    <field name="sub_classification_id"
                                            readonly="state != 'draft'"
-                                           force_save="1"/>
-                                    <field name="description" 
-                                           optional="show"
-                                           readonly="state != 'draft'"
-                                           force_save="1"/>
+                                           domain="[('major_classification_id', '=', major_classification_id), ('active', '=', True)]"
+                                           context="{'default_major_classification_id': major_classification_id}"/>
+                                    <field name="generated_item_count" 
+                                           string="Generated"
+                                           optional="hide"/>
                                     
                                     <!-- Expected Qty - only editable in draft -->
                                     <field name="qty_expected" 
@@ -160,23 +161,23 @@
                                            readonly="state != 'draft'"
                                            force_save="1"/>
                                     
-                                    <!-- Received Qty - readonly after received -->
+                                    <!-- Received Qty - editable in draft and received -->
                                     <field name="qty_received" 
                                            string="Received" 
                                            readonly="state not in ('draft', 'received')"
                                            optional="show"
                                            force_save="1"/>
                                     
-                                    <!-- INSPECTION FIELDS - ALWAYS VISIBLE, editable during received/inspecting -->
+                                    <!-- INSPECTION FIELDS - Only editable during inspecting -->
                                     <field name="qty_accepted" 
                                            string="✓ Accepted"
-                                           readonly="state not in ('received', 'inspecting')"
+                                           readonly="state != 'inspecting'"
                                            decoration-success="qty_accepted > 0"
                                            class="fw-bold"/>
                                     
                                     <field name="qty_rejected" 
                                            string="✗ Rejected" 
-                                           readonly="state not in ('received', 'inspecting')"
+                                           readonly="state != 'inspecting'"
                                            decoration-danger="qty_rejected > 0"
                                            optional="show"/>
                                     
@@ -184,11 +185,7 @@
                                            optional="hide"
                                            readonly="state not in ('received', 'inspecting')"/>
                                     
-                                    <!-- UOM and Price - optional -->
-                                    <field name="uom_id" 
-                                           optional="hide"
-                                           readonly="state != 'draft'"
-                                           force_save="1"/>
+                                    <!-- Price -->
                                     <field name="unit_price" 
                                            optional="hide"
                                            readonly="state != 'draft'"/>

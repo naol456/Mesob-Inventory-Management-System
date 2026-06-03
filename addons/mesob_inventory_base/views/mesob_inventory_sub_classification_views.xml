@@ -5,9 +5,10 @@
         <field name="model">mesob.inventory.sub.classification</field>
         <field name="arch" type="xml">
             <list string="Sub Classifications">
+                <field name="major_classification_id"/>
                 <field name="code"/>
                 <field name="name"/>
-                <field name="major_classification_id"/>
+                <field name="active" column_invisible="True"/>
             </list>
         </field>
     </record>
@@ -19,13 +20,30 @@
             <form string="Sub Classification">
                 <sheet>
                     <group>
-                        <field name="major_classification_id"/>
-                        <field name="code"/>
-                        <field name="name"/>
-                        <field name="active"/>
+                        <group string="Classification">
+                            <field name="major_classification_id"/>
+                            <field name="code"/>
+                            <field name="name"/>
+                        </group>
+                        <group string="Status">
+                            <field name="active"/>
+                        </group>
                     </group>
                 </sheet>
             </form>
+        </field>
+    </record>
+
+    <record id="view_mesob_sub_classification_search" model="ir.ui.view">
+        <field name="name">mesob.inventory.sub.classification.search</field>
+        <field name="model">mesob.inventory.sub.classification</field>
+        <field name="arch" type="xml">
+            <search string="Sub Classifications">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="major_classification_id"/>
+                <filter string="Archived" name="filter_archived" domain="[('active', '=', False)]"/>
+            </search>
         </field>
     </record>
 
@@ -33,6 +51,14 @@
         <field name="name">Sub Classifications</field>
         <field name="res_model">mesob.inventory.sub.classification</field>
         <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Define a sub classification
+            </p>
+            <p>
+                Sub classifications provide finer categorization under major classifications.
+            </p>
+        </field>
     </record>
 
     <menuitem

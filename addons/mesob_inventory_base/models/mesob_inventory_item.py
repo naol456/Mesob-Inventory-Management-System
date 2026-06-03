@@ -310,10 +310,15 @@ class MesobInventoryItem(models.Model):
             item.total_lead_time = item.admin_lead_time + item.supplier_lead_time
 
     def _compute_current_stock(self):
-        """Get current stock from bin card (FR-SC-001)"""
+        """Get current stock from bin card aggregated by sub-classification (FR-SC-001)"""
         for item in self:
+            if not item.sub_classification_id:
+                item.current_stock = 0.0
+                continue
+            
+            # Get the latest bin card balance for this sub-classification
             bin_card = self.env['mesob.bin.card'].search([
-                ('item_id', '=', item.id)
+                ('sub_classification_id', '=', item.sub_classification_id.id)
             ], limit=1, order='date desc, id desc')
             item.current_stock = bin_card.balance if bin_card else 0.0
 

@@ -208,12 +208,54 @@ class MesobInventoryRequisition(models.Model):
         
         # Copy requisition lines to issue voucher lines
         for req_line in self.line_ids:
-            voucher_vals["line_ids"].append((0, 0, {
-                "item_id": req_line.item_id.id,
-                "quantity_issued": req_line.quantity,
-                "uom_id": req_line.uom_id.id,
-                "note": req_line.note,
-            }))
+            # If line has specific item, use it
+            if req_line.item_id:
+                voucher_vals["line_ids"].append((0, 0, {
+                    "item_id": req_line.item_id.id,
+                    "quantity_issued": req_line.quantity,
+                    "uom_id": req_line.uom_id.id if req_line.uom_id else req_line.item_id.uom_id.id,
+                    "note": req_line.note,
+                }))
+            # If line has classifications, find available items
+            elif req_line.major_classification_id:
+                # Build domain for finding items
+                domain = [
+                    ('classification_id', '=', req_line.major_classification_id.id),
+                    ('active', '=', True)
+                ]
+                if req_line.sub_classification_id:
+                    domain.append(('sub_classification_id', '=', req_line.sub_classification_id.id))
+                
+                # Find available items matching the classification
+                available_items = self.env['mesob.inventory.item'].search(domain, limit=int(req_line.quantity))
+                
+                if not available_items:
+                    raise UserError(
+                        f"No available items found for Major Classification "
+                        f"'{req_line.major_classification_id.name}'"
+                        f"{(' / Sub ' + req_line.sub_classification_id.name) if req_line.sub_classification_id else ''}. "
+                        f"Please ensure items exist in inventory before creating issue voucher."
+                    )
+                
+                if len(available_items) < req_line.quantity:
+                    raise UserError(
+                        f"Not enough items available for classification "
+                        f"'{req_line.major_classification_id.name}'. "
+                        f"Requested: {int(req_line.quantity)}, Available: {len(available_items)}."
+                    )
+                
+                # Create issue line for each available item
+                for item in available_items:
+                    voucher_vals["line_ids"].append((0, 0, {
+                        "item_id": item.id,
+                        "quantity_issued": 1.0,  # One unit per item
+                        "uom_id": item.uom_id.id if item.uom_id else req_line.uom_id.id,
+                        "note": req_line.note,
+                    }))
+            else:
+                raise UserError(
+                    "Invalid requisition line: must have either a specific item or classifications."
+                )
         
         voucher = self.env["mesob.inventory.issue.voucher"].create(voucher_vals)
         

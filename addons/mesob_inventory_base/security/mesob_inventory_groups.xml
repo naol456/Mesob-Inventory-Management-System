@@ -4,6 +4,7 @@
     <record id="module_category_mesob_inventory" model="ir.module.category">
         <field name="name">Mesob Inventory</field>
         <field name="sequence">30</field>
+        
     </record>
 
     <!-- Privilege for Mesob Inventory groups -->
