@@ -226,22 +226,42 @@ class MesobInventoryRequisition(models.Model):
                 if req_line.sub_classification_id:
                     domain.append(('sub_classification_id', '=', req_line.sub_classification_id.id))
                 
-                # Find available items matching the classification
-                available_items = self.env['mesob.inventory.item'].search(domain, limit=int(req_line.quantity))
+                # Find all items matching the classification
+                all_items = self.env['mesob.inventory.item'].search(domain)
+                
+                if not all_items:
+                    raise UserError(
+                        f"No items found for Major Classification "
+                        f"'{req_line.major_classification_id.name}'"
+                        f"{(' / Sub ' + req_line.sub_classification_id.name) if req_line.sub_classification_id else ''}. "
+                        f"Please receive items first before creating issue voucher."
+                    )
+                
+                # Filter out already issued items
+                # Get items that have NOT been issued yet
+                issued_item_ids = self.env['mesob.inventory.issue.voucher.line'].search([
+                    ('voucher_id.state', 'in', ['issued', 'received'])
+                ]).mapped('item_id').ids
+                
+                available_items = all_items.filtered(lambda i: i.id not in issued_item_ids)
                 
                 if not available_items:
                     raise UserError(
-                        f"No available items found for Major Classification "
+                        f"No available items found for classification "
                         f"'{req_line.major_classification_id.name}'"
                         f"{(' / Sub ' + req_line.sub_classification_id.name) if req_line.sub_classification_id else ''}. "
-                        f"Please ensure items exist in inventory before creating issue voucher."
+                        f"All items ({len(all_items)}) have already been issued."
                     )
+                
+                # Limit to requested quantity
+                available_items = available_items[:int(req_line.quantity)]
                 
                 if len(available_items) < req_line.quantity:
                     raise UserError(
-                        f"Not enough items available for classification "
+                        f"Not enough available items for classification "
                         f"'{req_line.major_classification_id.name}'. "
-                        f"Requested: {int(req_line.quantity)}, Available: {len(available_items)}."
+                        f"Requested: {int(req_line.quantity)}, Available: {len(available_items)}, "
+                        f"Total: {len(all_items)}."
                     )
                 
                 # Create issue line for each available item

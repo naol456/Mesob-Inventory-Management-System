@@ -4,12 +4,23 @@
         <field name="name">mesob.inventory.issue.voucher.list</field>
         <field name="model">mesob.inventory.issue.voucher</field>
         <field name="arch" type="xml">
-            <list string="Issue Vouchers">
+            <list string="Issue Vouchers (Model 22)" 
+                  default_order="issue_date desc, name desc"
+                  decoration-info="state == 'draft'"
+                  decoration-warning="state == 'issued'"
+                  decoration-success="state == 'received'"
+                  decoration-muted="state == 'cancelled'">
                 <field name="name"/>
-                <field name="requisition_id"/>
                 <field name="issue_date"/>
+                <field name="requisition_id" optional="show"/>
+                <field name="requesting_department" optional="show"/>
                 <field name="issued_by_id"/>
-                <field name="state"/>
+                <field name="received_by_id" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'issued'"
+                       decoration-success="state == 'received'"
+                       decoration-danger="state == 'cancelled'"/>
             </list>
         </field>
     </record>
@@ -18,14 +29,21 @@
         <field name="name">mesob.inventory.issue.voucher.form</field>
         <field name="model">mesob.inventory.issue.voucher</field>
         <field name="arch" type="xml">
-            <form string="Issue Voucher" class="o_mesob_gov_doc">
+            <form string="Issue Voucher - Model 22" class="o_mesob_gov_doc">
                 <header>
-                    <button name="action_issue" string="Issue Materials" type="object" 
-                            class="oe_highlight" invisible="state != 'draft'"/>
-                    <button name="action_confirm_receipt" string="Confirm Receipt" type="object" 
-                            class="oe_highlight" invisible="state != 'issued'"/>
+                    <button name="action_issue" string="✓ Issue Materials" type="object" 
+                            class="btn-primary" 
+                            invisible="state != 'draft'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <button name="action_confirm_receipt" string="✓ Confirm Receipt" type="object" 
+                            class="btn-success" 
+                            invisible="state != 'issued'"/>
                     <button name="action_cancel" string="Cancel" type="object" 
+                            confirm="Are you sure you want to cancel this issue voucher?"
                             invisible="state in ('received', 'cancelled')"/>
+                    <button name="action_set_to_draft" string="Reset to Draft" type="object"
+                            invisible="state != 'cancelled'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
                     <field name="state" widget="statusbar" 
                            statusbar_visible="draft,issued,received"/>
                 </header>
@@ -34,78 +52,139 @@
                     <div class="mesob_gov_header">
                         <div class="mesob_gov_logo">M</div>
                         <h1 class="mesob_gov_title">Federal Democratic Republic of Ethiopia</h1>
-                        <h3 class="mesob_gov_subtitle">Federal Government Goods Issue Voucher</h3>
-                        <h3 class="mesob_gov_model">Model 22</h3>
+                        <h3 class="mesob_gov_subtitle">Goods Issue Voucher (Model 22)</h3>
                         <div class="mesob_gov_underline"></div>
                     </div>
                     
-                    <!-- Document Content -->
+                    <!-- Voucher Number -->
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1" class="text-break"/>
+                        </h1>
+                    </div>
+                    
+                    <!-- Main Information -->
                     <group>
-                        <group string="Voucher Details">
-                            <label for="name" string="Voucher Number"/>
-                            <h2 class="mesob_doc_number">
-                                <field name="name" readonly="1" class="oe_inline"/>
-                            </h2>
+                        <group string="📋 Issue Details">
+                            <field name="issue_date" 
+                                   readonly="state != 'draft'"
+                                   required="1"/>
+                            <field name="issued_by_id" 
+                                   readonly="1"/>
+                            <field name="requisition_id" 
+                                   readonly="1"
+                                   options="{'no_create': True}"/>
                         </group>
-                        <group string="Issue Information">
-                            <field name="issue_date" readonly="state != 'draft'"/>
-                            <field name="issued_by_id" readonly="state != 'draft'"/>
+                        <group string="🏢 Receiving Department">
+                            <field name="requesting_department" 
+                                   placeholder="Enter department name..."
+                                   readonly="state != 'draft'"/>
                         </group>
                     </group>
                     
-                    <group>
-                        <group string="Issuing Officer">
-                            <field name="requisition_id" readonly="1"/>
-                        </group>
-                        <group string="Receiving Institution">
-                            <field name="requesting_department"/>
-                        </group>
-                    </group>
+                    <!-- Items Section -->
                     <notebook>
-                        <page string="Issue Lines">
-                            <field name="line_ids" readonly="state != 'draft'">
-                                <list editable="bottom">
-                                    <field name="item_id"/>
-                                    <field name="quantity_issued"/>
-                                    <field name="uom_id"/>
-                                    <field name="note"/>
+                        <page string="📦 Issued Items" name="items">
+                            <div class="alert alert-info" role="alert" invisible="state != 'draft'">
+                                <strong>Draft:</strong> Review the items below. Click <strong>Issue Materials</strong> when ready to distribute.
+                            </div>
+                            <div class="alert alert-warning" role="alert" invisible="state != 'issued'">
+                                <strong>Issued:</strong> Materials have been issued. Waiting for department to confirm receipt.
+                            </div>
+                            <div class="alert alert-success" role="alert" invisible="state != 'received'">
+                                <strong>Completed:</strong> Department has confirmed receipt of all materials.
+                            </div>
+                            
+                            <field name="line_ids" 
+                                   readonly="state != 'draft'"
+                                   context="{'default_quantity_issued': 1.0}">
+                                <list editable="bottom" create="state == 'draft'" delete="state == 'draft'">
+                                    <field name="item_id" 
+                                           required="1"
+                                           options="{'no_create': True}"/>
+                                    <field name="quantity_issued" 
+                                           string="Qty Issued"
+                                           sum="Total Issued"/>
+                                    <field name="uom_id" optional="hide"/>
+                                    <field name="note" 
+                                           placeholder="Remarks..."
+                                           optional="show"/>
                                 </list>
                             </field>
                         </page>
-                        <page string="Distribution" invisible="state == 'draft'">
+                        
+                        <page string="📄 Copy Distribution" name="distribution" invisible="state == 'draft'">
                             <group>
-                                <field name="original_to_stock_clerk" readonly="1"/>
-                                <field name="duplicate_to_department" readonly="1"/>
-                                <field name="triplicate_retained" readonly="1"/>
+                                <group string="Document Copies">
+                                    <div class="alert alert-info" role="alert">
+                                        <p><strong>Copy Distribution (as per Federal Regulations):</strong></p>
+                                        <ul>
+                                            <li><strong>Original:</strong> Goes to Stock Clerk for records</li>
+                                            <li><strong>Duplicate:</strong> Given to Requesting Department</li>
+                                            <li><strong>Triplicate:</strong> Retained by Storekeeper</li>
+                                        </ul>
+                                    </div>
+                                </group>
+                                <group string="Distribution Status">
+                                    <field name="original_to_stock_clerk" 
+                                           readonly="1"
+                                           widget="boolean_toggle"/>
+                                    <field name="duplicate_to_department" 
+                                           readonly="1"
+                                           widget="boolean_toggle"/>
+                                    <field name="triplicate_retained" 
+                                           readonly="1"
+                                           widget="boolean_toggle"/>
+                                </group>
                             </group>
                         </page>
-                        <page string="Receipt" invisible="state not in ('issued', 'received')">
+                        
+                        <page string="✓ Receipt Confirmation" name="receipt" invisible="state not in ('issued', 'received')">
                             <group>
-                                <group>
+                                <group string="Received By">
                                     <field name="received_by_id" readonly="1"/>
                                     <field name="received_on" readonly="1"/>
                                 </group>
-                                <group>
-                                    <field name="quantity_verified" readonly="1"/>
-                                    <field name="inspection_confirmed" readonly="1"/>
-                                    <field name="approval_verified" readonly="1"/>
+                                <group string="Verification Checklist">
+                                    <field name="quantity_verified" 
+                                           readonly="1"
+                                           widget="boolean_toggle"
+                                           string="✓ Quantities Verified"/>
+                                    <field name="inspection_confirmed" 
+                                           readonly="1"
+                                           widget="boolean_toggle"
+                                           string="✓ Condition Inspected"/>
+                                    <field name="approval_verified" 
+                                           readonly="1"
+                                           widget="boolean_toggle"
+                                           string="✓ Authorization Verified"/>
                                 </group>
                             </group>
-                            <group>
-                                <field name="receipt_notes" readonly="1"/>
+                            <group string="Receipt Notes">
+                                <field name="receipt_notes" 
+                                       readonly="1"
+                                       nolabel="1"
+                                       placeholder="Department's notes upon receiving materials..."/>
                             </group>
                         </page>
+                        
+                        <page string="📝 Notes" name="notes">
+                            <field name="note" 
+                                   placeholder="Additional notes, special instructions, or remarks..."
+                                   nolabel="1"/>
+                        </page>
                     </notebook>
+                    
+                    <!-- Hidden technical field -->
+                    <field name="picking_id" invisible="1"/>
                 </sheet>
-                <div class="oe_chatter">
-                    <field name="message_follower_ids"/>
-                    <field name="activity_ids"/>
-                    <field name="message_ids"/>
-                </div>
             </form>
         </field>
     </record>
 
+    <!-- Search View - Minimal Version -->
+    <delete model="ir.ui.view" search="[('name', '=', 'mesob.inventory.issue.voucher.search')]"/>
+    
     <record id="view_mesob_inventory_issue_voucher_search" model="ir.ui.view">
         <field name="name">mesob.inventory.issue.voucher.search</field>
         <field name="model">mesob.inventory.issue.voucher</field>

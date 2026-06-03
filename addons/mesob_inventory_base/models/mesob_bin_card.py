@@ -126,6 +126,41 @@ class MesobBinCard(models.Model):
             previous_balance = previous_records[0].balance if previous_records else 0.0
             record.balance = previous_balance + record.quantity_received - record.quantity_distributed
     
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Override create to recompute balances after inserting new records"""
+        records = super().create(vals_list)
+        
+        # Recompute balances for all affected sub-classifications
+        for record in records:
+            if record.sub_classification_id:
+                self._recompute_balances_for_subclass(
+                    record.sub_classification_id.id,
+                    record.location
+                )
+        
+        return records
+    
+    def _recompute_balances_for_subclass(self, sub_classification_id, location):
+        """Recompute all balances for a sub-classification at a location in chronological order"""
+        # Get all bin card entries for this sub-classification at this location
+        all_entries = self.search([
+            ('sub_classification_id', '=', sub_classification_id),
+            ('location', '=', location)
+        ], order='date asc, id asc')
+        
+        running_balance = 0.0
+        for entry in all_entries:
+            running_balance = running_balance + entry.quantity_received - entry.quantity_distributed
+            # Direct SQL update to avoid recursion
+            self.env.cr.execute(
+                "UPDATE mesob_bin_card SET balance = %s WHERE id = %s",
+                (running_balance, entry.id)
+            )
+        
+        # Invalidate cache to force refresh
+        all_entries.invalidate_recordset(['balance'])
+    
     @api.constrains('quantity_received', 'quantity_distributed')
     def _check_quantities(self):
         for record in self:
