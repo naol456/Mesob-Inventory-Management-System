@@ -171,6 +171,11 @@ class MesobInventoryItem(models.Model):
         ('high', 'High - Above Maximum'),
     ], string="Stock Status", compute="_compute_stock_status", store=True)
 
+    issue_status = fields.Selection([
+        ('issued', 'Issued'),
+        ('not_issued', 'Not Issued'),
+    ], string="Issue Status", compute="_compute_issue_status")
+
     total_lead_time = fields.Integer(
         string="Total Lead Time (days)",
         compute="_compute_total_lead_time",
@@ -338,3 +343,11 @@ class MesobInventoryItem(models.Model):
                 item.stock_status = 'high'
             else:
                 item.stock_status = 'normal'
+
+    def _compute_issue_status(self):
+        for rec in self:
+            issued_lines = self.env['mesob.inventory.issue.voucher.line'].search_count([
+                ('item_id', '=', rec.id),
+                ('voucher_id.state', 'in', ['issued', 'received']),
+            ])
+            rec.issue_status = 'issued' if issued_lines > 0 else 'not_issued'

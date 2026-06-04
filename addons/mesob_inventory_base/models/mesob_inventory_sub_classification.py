@@ -58,6 +58,16 @@ class MesobInventorySubClassification(models.Model):
         compute="_compute_item_count",
         help="Number of items using this sub classification.",
     )
+    item_ids = fields.One2many(
+        comodel_name="mesob.inventory.item",
+        inverse_name="sub_classification_id",
+        string="Items",
+    )
+    bin_card_ids = fields.One2many(
+        comodel_name="mesob.bin.card",
+        inverse_name="sub_classification_id",
+        string="Bin Card Transactions",
+    )
 
     @api.depends("code", "name", "major_classification_id")
     def _compute_display_name(self):
@@ -95,4 +105,16 @@ class MesobInventorySubClassification(models.Model):
             "view_mode": "list,form",
             "domain": [("sub_classification_id", "=", self.id)],
             "context": {"default_sub_classification_id": self.id},
+        }
+
+    def action_view_bin_card_details(self):
+        """Open the detailed form/ledger view of this sub-classification."""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": f"Ledger — {self.name}",
+            "res_model": "mesob.inventory.sub.classification",
+            "view_mode": "form",
+            "res_id": self.id,
+            "target": "current",
         }

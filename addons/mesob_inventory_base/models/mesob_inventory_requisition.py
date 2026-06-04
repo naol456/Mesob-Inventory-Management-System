@@ -299,7 +299,7 @@ class MesobInventoryRequisition(models.Model):
             "name": "Issue Vouchers",
             "type": "ir.actions.act_window",
             "res_model": "mesob.inventory.issue.voucher",
-            "view_mode": "tree,form",
+            "view_mode": "list,form",
             "domain": [("requisition_id", "=", self.id)],
             "context": {"default_requisition_id": self.id},
         }

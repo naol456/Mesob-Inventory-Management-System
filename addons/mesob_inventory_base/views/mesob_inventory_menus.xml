@@ -86,6 +86,12 @@
               action="action_mesob_bin_card"
               sequence="10"/>
 
+    <menuitem id="menu_mesob_bin_cards_raw"
+              name="All Bin Card Ledger Lines"
+              parent="menu_mesob_inventory_stock_records"
+              action="action_mesob_bin_card_raw"
+              sequence="12"/>
+
     <menuitem id="menu_mesob_stock_record_cards"
               name="Stock Record Cards"
               parent="menu_mesob_inventory_stock_records"

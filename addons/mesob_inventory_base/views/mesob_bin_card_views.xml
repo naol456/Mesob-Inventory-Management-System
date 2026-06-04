@@ -83,17 +83,32 @@
         </field>
     </record>
 
-    <!-- Bin Card Action -->
+    <!-- Bin Card Hierarchical Navigation Action -->
     <record id="action_mesob_bin_card" model="ir.actions.act_window">
-        <field name="name">Bin Cards</field>
+        <field name="name">Bin Cards (Physical Storage Location)</field>
+        <field name="res_model">mesob.inventory.major.classification</field>
+        <field name="view_mode">kanban,list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Bin Cards Navigation
+            </p>
+            <p>
+                Select a Major Classification card to browse physical store bins, item balances, and transaction history.
+            </p>
+        </field>
+    </record>
+
+    <!-- Fallback/Raw Transaction Entries Action -->
+    <record id="action_mesob_bin_card_raw" model="ir.actions.act_window">
+        <field name="name">Raw Bin Card Ledger Entries</field>
         <field name="res_model">mesob.bin.card</field>
         <field name="view_mode">list,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Create a Bin Card
+                Manage Raw Bin Cards
             </p>
             <p>
-                Bin cards track physical storage locations and movements of inventory items.
+                A raw audit log of all transaction lines posted to individual bins.
             </p>
         </field>
     </record>
