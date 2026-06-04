@@ -69,3 +69,17 @@ class MesobInventoryMajorClassification(models.Model):
             "domain": [("classification_id", "=", self.id)],
             "context": {"default_classification_id": self.id},
         }
+
+    def action_view_sub_classifications_bin_card(self):
+        """Open the sub-classifications navigation for this major classification."""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": f"Sub Classifications under {self.name}",
+            "res_model": "mesob.inventory.sub.classification",
+            "view_mode": "kanban,list,form",
+            "domain": [("major_classification_id", "=", self.id)],
+            "context": {
+                "default_major_classification_id": self.id,
+            },
+        }

@@ -207,6 +207,9 @@ class MesobInventoryIssueVoucher(models.Model):
 
             # Create stock picking for inventory movement
             record._create_stock_picking()
+            
+            # Update bin cards for issued items
+            record._update_bin_cards_on_issue()
 
             # Mark copy distribution
             record.write({
@@ -223,6 +226,49 @@ class MesobInventoryIssueVoucher(models.Model):
             )
 
         return True
+    
+    def _update_bin_cards_on_issue(self):
+        """Create bin card entries for issued items (distributed quantity)."""
+        self.ensure_one()
+        
+        # Group items by sub-classification
+        items_by_subclass = {}
+        for line in self.line_ids:
+            if not line.item_id or not line.item_id.sub_classification_id:
+                continue
+            
+            sub_id = line.item_id.sub_classification_id.id
+            major_id = line.item_id.classification_id.id
+            
+            if sub_id not in items_by_subclass:
+                items_by_subclass[sub_id] = {
+                    'major_id': major_id,
+                    'sub_id': sub_id,
+                    'quantity': 0.0
+                }
+            
+            items_by_subclass[sub_id]['quantity'] += line.quantity_issued
+        
+        # Create bin card entry for each sub-classification
+        BinCard = self.env['mesob.bin.card']
+        uom_unit = self.env.ref('uom.product_uom_unit', raise_if_not_found=False)
+        if not uom_unit:
+            uom_unit = self.env['uom.uom'].search([], limit=1)
+        
+        for subclass_data in items_by_subclass.values():
+            BinCard.create({
+                'major_classification_id': subclass_data['major_id'],
+                'sub_classification_id': subclass_data['sub_id'],
+                'location': 'Main Store',
+                'transaction_type': 'issue',
+                'date': self.issue_date or fields.Date.today(),
+                'quantity_received': 0.0,
+                'quantity_distributed': subclass_data['quantity'],
+                'reference': self.name,
+                'description': f"Issue Voucher: {self.name}",
+                'uom_id': uom_unit.id if uom_unit else False,
+                'received_by_id': self.issued_by_id.id,
+            })
 
     def action_confirm_receipt(self):
         """Department confirms receipt of materials (FR-ISSUE-006)."""
@@ -271,26 +317,44 @@ class MesobInventoryIssueVoucher(models.Model):
     # ── Stock Integration Methods ───────────────────────────────────────
 
     def _validate_stock_availability(self):
-        """Validate that sufficient stock is available for issue."""
+        """Validate that sufficient stock is available for issue based on bin card balances."""
         self.ensure_one()
-        StockQuant = self.env["stock.quant"]
         
+        # Group items by sub-classification to check bin card balances
+        items_by_subclass = {}
         for line in self.line_ids:
-            # Auto-create product if not linked
-            if not line.item_id.product_id:
-                product = self._create_product_for_item(line.item_id)
-                line.item_id.product_id = product
+            if not line.item_id or not line.item_id.sub_classification_id:
+                continue
             
-            # Get available quantity in stock location
-            available_qty = StockQuant._get_available_quantity(
-                line.item_id.product_id,
-                self.env.ref("stock.stock_location_stock"),
-            )
+            sub_id = line.item_id.sub_classification_id.id
+            if sub_id not in items_by_subclass:
+                items_by_subclass[sub_id] = {
+                    'sub_classification': line.item_id.sub_classification_id,
+                    'quantity': 0.0,
+                    'items': []
+                }
             
-            if available_qty < line.quantity_issued:
+            items_by_subclass[sub_id]['quantity'] += line.quantity_issued
+            items_by_subclass[sub_id]['items'].append(line.item_id.item_code)
+        
+        # Check bin card balance for each sub-classification
+        BinCard = self.env['mesob.bin.card']
+        for subclass_data in items_by_subclass.values():
+            # Get latest bin card balance
+            latest_bin_card = BinCard.search([
+                ('sub_classification_id', '=', subclass_data['sub_classification'].id),
+                ('location', '=', 'Main Store')
+            ], order='date desc, id desc', limit=1)
+            
+            available_qty = latest_bin_card.balance if latest_bin_card else 0.0
+            requested_qty = subclass_data['quantity']
+            
+            if available_qty < requested_qty:
                 raise ValidationError(
-                    f"Insufficient stock for item {line.item_id.item_code} ({line.item_id.name}). "
-                    f"Available: {available_qty}, Requested: {line.quantity_issued}"
+                    f"Insufficient stock for {subclass_data['sub_classification'].name}. "
+                    f"Available: {available_qty}, Requested: {requested_qty}\n"
+                    f"Items: {', '.join(subclass_data['items'][:5])}"
+                    f"{'...' if len(subclass_data['items']) > 5 else ''}"
                 )
     
     def _create_product_for_item(self, item):
@@ -314,57 +378,12 @@ class MesobInventoryIssueVoucher(models.Model):
         return product
 
     def _create_stock_picking(self):
-        """Create stock picking for inventory movement."""
+        """Create stock picking for inventory movement (optional - we use bin cards)."""
         self.ensure_one()
         
-        if not self.line_ids:
-            return
-        
-        # Get or create picking type for internal transfers
-        picking_type = self.env["stock.picking.type"].search([
-            ("code", "=", "internal"),
-            ("warehouse_id.company_id", "=", self.env.company.id),
-        ], limit=1)
-        
-        if not picking_type:
-            raise UserError(
-                "No internal picking type found. Please configure warehouse settings."
-            )
-        
-        # Create picking
-        picking_vals = {
-            "picking_type_id": picking_type.id,
-            "location_id": self.env.ref("stock.stock_location_stock").id,
-            "location_dest_id": self.env.ref("stock.stock_location_customers").id,  # Issued to department
-            "origin": f"{self.requisition_id.name} / {self.name}",
-            "move_ids_without_package": [],
-        }
-        
-        # Create stock moves for each line
-        for line in self.line_ids:
-            if not line.item_id.product_id:
-                continue
-                
-            move_vals = {
-                "name": line.item_id.name,
-                "product_id": line.item_id.product_id.id,
-                "product_uom_qty": line.quantity_issued,
-                "product_uom": line.uom_id.id or line.item_id.product_id.uom_id.id,
-                "location_id": self.env.ref("stock.stock_location_stock").id,
-                "location_dest_id": self.env.ref("stock.stock_location_customers").id,
-            }
-            picking_vals["move_ids_without_package"].append((0, 0, move_vals))
-        
-        picking = self.env["stock.picking"].create(picking_vals)
-        picking.action_confirm()
-        picking.action_assign()
-        
-        # Auto-validate the picking
-        for move in picking.move_ids_without_package:
-            move.quantity = move.product_uom_qty
-        picking.button_validate()
-        
-        self.picking_id = picking.id
+        # Skip stock picking creation - we use bin cards for inventory tracking
+        # This method is kept for compatibility but does nothing
+        return True
 
     # ── Constraints ─────────────────────────────────────────────────────
 

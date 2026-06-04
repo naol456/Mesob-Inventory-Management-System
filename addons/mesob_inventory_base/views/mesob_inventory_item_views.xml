@@ -9,8 +9,7 @@
                 <field name="item_code"/>
                 <field name="name"/>
                 <field name="classification_id"/>
-                <field name="uom_id"/>
-                <field name="abc_class" optional="show"/>
+                <field name="sub_classification_id"/>
                 <field name="is_controlled" optional="hide"/>
                 <field name="reorder_level" optional="hide"/>
                 <field name="active" column_invisible="True"/>
@@ -43,8 +42,6 @@
                             <field name="specific_code" readonly="True"/>
                         </group>
                         <group string="General">
-                            <field name="uom_id"/>
-                            <field name="abc_class"/>
                             <field name="is_controlled"/>
                             <field name="exclude_from_catalog"/>
                             <field name="active"/>
@@ -85,14 +82,9 @@
                 <field name="item_code"/>
                 <field name="name"/>
                 <field name="classification_id"/>
+                <field name="sub_classification_id"/>
                 <filter string="Controlled" name="filter_controlled"
                         domain="[('is_controlled', '=', True)]"/>
-                <filter string="Class A" name="filter_abc_a"
-                        domain="[('abc_class', '=', 'A')]"/>
-                <filter string="Class B" name="filter_abc_b"
-                        domain="[('abc_class', '=', 'B')]"/>
-                <filter string="Class C" name="filter_abc_c"
-                        domain="[('abc_class', '=', 'C')]"/>
             </search>
         </field>
     </record>

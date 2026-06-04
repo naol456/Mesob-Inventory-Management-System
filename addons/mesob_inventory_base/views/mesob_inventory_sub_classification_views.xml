@@ -5,10 +5,51 @@
         <field name="model">mesob.inventory.sub.classification</field>
         <field name="arch" type="xml">
             <list string="Sub Classifications">
+                <field name="major_classification_id"/>
                 <field name="code"/>
                 <field name="name"/>
-                <field name="major_classification_id"/>
+                <field name="item_count" string="Items"/>
+                <field name="active" column_invisible="True"/>
             </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_sub_classification_kanban_bin_card" model="ir.ui.view">
+        <field name="name">mesob.inventory.sub.classification.kanban.bin.card</field>
+        <field name="model">mesob.inventory.sub.classification</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" create="false">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="major_classification_id"/>
+                <field name="item_count"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click" type="object" name="action_view_bin_card_details" style="padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="font-size: 32px; min-width: 45px; text-align: center;">🧴</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 700; font-size: 15px; color: #0f172a;">
+                                        <field name="name"/>
+                                    </div>
+                                    <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
+                                        Sub Code: <span style="font-weight: 600;"><field name="code"/></span>
+                                    </div>
+                                </div>
+                                <div style="background: #ecfdf5; padding: 4px 10px; border-radius: 15px; font-size: 11px; font-weight: 600; color: #059669; border: 1px solid #a7f3d0;">
+                                    <field name="item_count"/> items
+                                </div>
+                            </div>
+                            <div style="margin-top: 14px; border-top: 1px dashed #e2e8f0; padding-top: 10px; display: flex; justify-content: flex-end;">
+                                <button class="btn btn-secondary btn-sm" type="object" name="action_view_bin_card_details" style="font-weight: 600; padding: 4px 12px; font-size: 11px; border-radius: 6px;">
+                                    View Ledger &amp; Items
+                                </button>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
         </field>
     </record>
 
@@ -16,16 +57,77 @@
         <field name="name">mesob.inventory.sub.classification.form</field>
         <field name="model">mesob.inventory.sub.classification</field>
         <field name="arch" type="xml">
-            <form string="Sub Classification">
+            <form string="Sub Classification &amp; Bin Card Details" class="o_mesob_gov_doc">
                 <sheet>
+                    <div class="mesob_gov_header">
+                        <div class="mesob_gov_logo">M</div>
+                        <h1 class="mesob_gov_title">Federal Democratic Republic of Ethiopia</h1>
+                        <h3 class="mesob_gov_subtitle">Sub Classification &amp; Bin Card Ledger</h3>
+                        <div class="mesob_gov_underline"></div>
+                    </div>
+
                     <group>
-                        <field name="major_classification_id"/>
-                        <field name="code"/>
-                        <field name="name"/>
-                        <field name="active"/>
+                        <group string="Classification Info">
+                            <field name="major_classification_id" options="{'no_create': True}" readonly="1"/>
+                            <field name="code" readonly="1"/>
+                            <field name="name" readonly="1"/>
+                        </group>
+                        <group string="Status &amp; Statistics">
+                            <field name="item_count" string="Total Items Linked" readonly="1"/>
+                            <field name="active" readonly="1"/>
+                        </group>
                     </group>
+
+                    <notebook>
+                        <page string="📋 Individual Items" name="items_list">
+                            <field name="item_ids" readonly="1">
+                                <list string="Items">
+                                    <field name="name" string="Item Name"/>
+                                    <field name="item_code" string="Item Code"/>
+                                    <field name="stock_status" widget="badge" 
+                                           decoration-danger="stock_status == 'critical'"
+                                           decoration-warning="stock_status == 'low'"
+                                           decoration-info="stock_status == 'hasten'"
+                                           decoration-success="stock_status == 'normal'"/>
+                                    <field name="issue_status" widget="badge"
+                                           decoration-success="issue_status == 'issued'"
+                                           decoration-warning="issue_status == 'not_issued'"/>
+                                    <field name="current_holder" string="Current Holder"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="📈 Bin Card Transaction Ledger" name="transaction_ledger">
+                            <field name="bin_card_ids" readonly="1">
+                                <list string="Transactions" default_order="date asc, id asc">
+                                    <field name="date" string="Date"/>
+                                    <field name="reference" string="Reference"/>
+                                    <field name="transaction_type" widget="badge"
+                                           decoration-info="transaction_type == 'receipt'"
+                                           decoration-warning="transaction_type == 'issue'"
+                                           decoration-success="transaction_type == 'adjustment'"/>
+                                    <field name="quantity_received" string="Received"/>
+                                    <field name="quantity_distributed" string="Issued"/>
+                                    <field name="balance" string="Running Balance" decoration-bf="1"/>
+                                    <field name="received_by_id" string="Processed By"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
+        </field>
+    </record>
+
+    <record id="view_mesob_sub_classification_search" model="ir.ui.view">
+        <field name="name">mesob.inventory.sub.classification.search</field>
+        <field name="model">mesob.inventory.sub.classification</field>
+        <field name="arch" type="xml">
+            <search string="Sub Classifications">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="major_classification_id"/>
+                <filter string="Archived" name="filter_archived" domain="[('active', '=', False)]"/>
+            </search>
         </field>
     </record>
 
@@ -33,12 +135,14 @@
         <field name="name">Sub Classifications</field>
         <field name="res_model">mesob.inventory.sub.classification</field>
         <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Define a sub classification
+            </p>
+            <p>
+                Sub classifications provide finer categorization under major classifications.
+            </p>
+        </field>
     </record>
 
-    <menuitem
-        id="menu_mesob_sub_classification"
-        name="Sub Classifications"
-        parent="menu_mesob_inventory_config"
-        action="action_mesob_sub_classification"
-        sequence="11"/>
 </odoo>

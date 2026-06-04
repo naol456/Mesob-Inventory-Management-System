@@ -100,7 +100,9 @@
                             <field name="line_ids"
                                    readonly="state != 'draft'">
                                 <list editable="bottom">
-                                    <field name="item_id"/>
+                                    <field name="major_classification_id"/>
+                                    <field name="sub_classification_id"
+                                           domain="[('major_classification_id', '=', major_classification_id), ('active', '=', True)]"/>
                                     <field name="quantity"/>
                                     <field name="note"/>
                                 </list>

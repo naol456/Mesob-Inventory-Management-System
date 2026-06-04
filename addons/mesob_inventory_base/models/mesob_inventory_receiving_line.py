@@ -160,12 +160,10 @@ class MesobInventoryReceivingLine(models.Model):
 
     @api.onchange("item_id")
     def _onchange_item_id(self):
-        """Auto-fill description and UoM from item master."""
+        """Auto-fill description from item master."""
         if self.item_id:
             if not self.description:
                 self.description = self.item_id.name
-            if not self.uom_id and self.item_id.uom_id:
-                self.uom_id = self.item_id.uom_id
 
     @api.onchange("major_classification_id")
     def _onchange_major_classification(self):
@@ -174,6 +172,12 @@ class MesobInventoryReceivingLine(models.Model):
         if self.sub_classification_id and self.major_classification_id:
             if self.sub_classification_id.major_classification_id != self.major_classification_id:
                 self.sub_classification_id = False
+        
+        # Auto-enable generation if major is selected
+        if self.major_classification_id:
+            self.auto_generate_items = True
+        else:
+            self.auto_generate_items = False
         
         # Return domain to filter sub classifications
         if self.major_classification_id:
@@ -193,42 +197,36 @@ class MesobInventoryReceivingLine(models.Model):
                 }
             }
 
+    @api.onchange("sub_classification_id")
+    def _onchange_sub_classification(self):
+        """Auto-enable generation when sub is selected."""
+        if self.sub_classification_id:
+            self.auto_generate_items = True
+
     @api.onchange("qty_received")
     def _onchange_qty_received(self):
         """Auto-fill qty_accepted when qty_received is entered."""
-        if self.qty_received > 0 and self.qty_accepted == 0 and self.qty_rejected == 0:
-            # Auto-accept all received items by default
-            self.qty_accepted = self.qty_received
+        # Removed auto-fill - let user enter manually
+        pass
 
     @api.onchange("qty_expected")
     def _onchange_qty_expected(self):
         """Auto-fill qty_received and qty_accepted with expected quantity."""
-        if self.qty_expected > 0:
-            if self.qty_received == 0:
-                self.qty_received = self.qty_expected
-            if self.qty_accepted == 0 and self.qty_rejected == 0:
-                self.qty_accepted = self.qty_expected
+        # Removed auto-fill - let user enter manually
+        pass
     
     @api.onchange("qty_accepted")
     def _onchange_qty_accepted(self):
         """Auto-calculate rejected quantity when accepted quantity is entered."""
-        if self.qty_accepted > 0 and self.qty_received > 0:
+        if self.qty_received > 0 and self.qty_accepted >= 0:
             # Calculate rejected as: received - accepted
-            calculated_rejected = self.qty_received - self.qty_accepted
-            if calculated_rejected >= 0:
-                self.qty_rejected = calculated_rejected
-            else:
-                # If accepted > received, adjust received to match
-                self.qty_received = self.qty_accepted
-                self.qty_rejected = 0.0
+            self.qty_rejected = self.qty_received - self.qty_accepted
     
     @api.onchange("qty_accepted", "qty_rejected")
     def _onchange_accepted_rejected(self):
         """Auto-adjust qty_received when accepted/rejected are changed."""
-        if self.qty_accepted > 0 or self.qty_rejected > 0:
-            total = self.qty_accepted + self.qty_rejected
-            if total > self.qty_received:
-                self.qty_received = total
+        # Removed auto-adjustment - let inspector enter manually
+        pass
 
     # ── Item Code Generation ───────────────────────────────────────
 
@@ -292,9 +290,6 @@ class MesobInventoryReceivingLine(models.Model):
         if self.unit_price < 0:
             raise ValidationError("Unit price cannot be negative.")
 
-        if not self.uom_id:
-            raise ValidationError("Unit of Measure is required for auto-generation.")
-
         # Extract codes
         major_code = self.major_classification_id.code
         sub_code = self.sub_classification_id.code
@@ -307,6 +302,15 @@ class MesobInventoryReceivingLine(models.Model):
         created_item_ids = []
 
         try:
+            # Create aggregated bin card entry ONCE for the entire quantity
+            self.create_bin_card_for_receiving(
+                self.major_classification_id.id,
+                self.sub_classification_id.id,
+                quantity,
+                reference,
+                date
+            )
+
             # Generate items in a loop
             for i in range(quantity):
                 # Generate unique item code
@@ -317,17 +321,14 @@ class MesobInventoryReceivingLine(models.Model):
                     'item_code': item_code,
                     'classification_id': self.major_classification_id.id,
                     'sub_classification_id': self.sub_classification_id.id,
-                    'uom_id': self.uom_id.id,
+                    'uom_id': self.uom_id.id if self.uom_id else False,
                     'name': self.description or f"Item {item_code}",
                     'active': True,
                 })
 
                 created_item_ids.append(item.id)
 
-                # Create bin card entry
-                self.create_bin_card_for_item(item.id, reference, date)
-
-                # Create stock record entry
+                # Create stock record entry (still per item for valuation)
                 self.create_stock_record_for_item(item.id, reference, date)
 
             # Link generated items to receiving line
@@ -341,31 +342,40 @@ class MesobInventoryReceivingLine(models.Model):
                 f"Failed to generate items: {str(e)}"
             )
 
-    def create_bin_card_for_item(self, item_id, reference, date):
-        """Create bin card entry for received item.
+    def create_bin_card_for_receiving(self, major_classification_id, sub_classification_id, quantity, reference, date):
+        """Create or update aggregated bin card entry at sub-classification level.
+
+        Instead of creating individual bin cards per item, this creates one entry
+        per sub-classification showing total received quantity.
 
         Args:
-            item_id (int): ID of the inventory item
+            major_classification_id (int): ID of major classification
+            sub_classification_id (int): ID of sub classification
+            quantity (float): Quantity received
             reference (str): Receiving document reference
             date (date): Received date
         """
-        # Get previous balance
-        previous_entries = self.env['mesob.bin.card'].search(
-            [('item_id', '=', item_id)],
-            order='transaction_date desc, id desc',
-            limit=1
-        )
-        previous_balance = previous_entries[0].balance if previous_entries else 0.0
-
-        # Create bin card entry
+        # Get default UoM (unit)
+        uom_unit = self.env.ref('uom.product_uom_unit', raise_if_not_found=False)
+        if not uom_unit:
+            # Fallback: get any UoM
+            uom_unit = self.env['uom.uom'].search([], limit=1)
+        
+        # Get default location
+        default_location = 'Main Store'
+        
+        # Create bin card entry (aggregated by sub-classification)
         self.env['mesob.bin.card'].create({
-            'item_id': item_id,
+            'major_classification_id': major_classification_id,
+            'sub_classification_id': sub_classification_id,
+            'location': default_location,
             'transaction_type': 'receipt',
-            'transaction_date': date,
-            'quantity_in': 1.0,
-            'quantity_out': 0.0,
-            'balance': previous_balance + 1.0,
+            'date': date,
+            'quantity_received': quantity,
+            'quantity_distributed': 0.0,
             'reference': reference,
+            'uom_id': uom_unit.id if uom_unit else False,
+            'received_by_id': self.env.user.id,
         })
 
     def create_stock_record_for_item(self, item_id, reference, date):
@@ -376,10 +386,16 @@ class MesobInventoryReceivingLine(models.Model):
             reference (str): Receiving document reference
             date (date): Received date
         """
+        # Get default UoM (unit)
+        uom_unit = self.env.ref('uom.product_uom_unit', raise_if_not_found=False)
+        if not uom_unit:
+            # Fallback: get any UoM
+            uom_unit = self.env['uom.uom'].search([], limit=1)
+        
         # Get previous balance value
         previous_entries = self.env['mesob.stock.record.card'].search(
             [('item_id', '=', item_id)],
-            order='transaction_date desc, id desc',
+            order='date desc, id desc',
             limit=1
         )
         previous_balance_value = previous_entries[0].balance_value if previous_entries else 0.0
@@ -390,14 +406,12 @@ class MesobInventoryReceivingLine(models.Model):
         stock_record = self.env['mesob.stock.record.card'].create({
             'item_id': item_id,
             'transaction_type': 'receipt',
-            'transaction_date': date,
+            'date': date,
             'quantity_in': 1.0,
             'quantity_out': 0.0,
             'unit_cost': self.unit_price,
-            'total_cost_in': total_cost_in,
-            'total_cost_out': 0.0,
-            'balance_value': previous_balance_value + total_cost_in,
             'reference': reference,
+            'uom_id': uom_unit.id if uom_unit else False,
         })
 
         # Create FIFO layer
@@ -415,10 +429,10 @@ class MesobInventoryReceivingLine(models.Model):
         self.env['mesob.stock.fifo.layer'].create({
             'stock_record_id': stock_record_id,
             'item_id': item_id,
+            'date': self.receiving_id.received_date or fields.Date.today(),
             'quantity': quantity,
             'quantity_remaining': quantity,
             'unit_cost': unit_cost,
-            'total_cost': quantity * unit_cost,
         })
 
     def action_view_generated_items(self):

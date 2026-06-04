@@ -86,6 +86,12 @@
               action="action_mesob_bin_card"
               sequence="10"/>
 
+    <menuitem id="menu_mesob_bin_cards_raw"
+              name="All Bin Card Ledger Lines"
+              parent="menu_mesob_inventory_stock_records"
+              action="action_mesob_bin_card_raw"
+              sequence="12"/>
+
     <menuitem id="menu_mesob_stock_record_cards"
               name="Stock Record Cards"
               parent="menu_mesob_inventory_stock_records"
@@ -123,22 +129,15 @@
               parent="menu_mesob_inventory_root"
               sequence="20"/>
 
-    <menuitem id="menu_mesob_inventory_items"
-              name="Inventory Items" 
-              parent="menu_mesob_inventory_master_data"
-              action="action_mesob_inventory_item"
-              sequence="10"/>
-
     <menuitem id="menu_mesob_inventory_classifications"
               name="Major Classifications"
               parent="menu_mesob_inventory_master_data"
               action="action_mesob_major_classification"
               sequence="20"/>
 
-    <!-- ── Configuration ──────────────────────────────────────────── -->
-    <menuitem id="menu_mesob_inventory_config"
-              name="Configuration"
-              parent="menu_mesob_inventory_root"
-              groups="mesob_inventory_base.group_mesob_pao"
-              sequence="90"/>
+    <menuitem id="menu_mesob_sub_classification"
+              name="Sub Classifications"
+              parent="menu_mesob_inventory_master_data"
+              action="action_mesob_sub_classification"
+              sequence="30"/>
 </odoo>

@@ -5,16 +5,22 @@
         <field name="name">mesob.bin.card.list</field>
         <field name="model">mesob.bin.card</field>
         <field name="arch" type="xml">
-            <list string="Bin Cards" create="true" edit="true" delete="true">
+            <list string="Bin Cards" create="true" edit="true" delete="true" 
+                  default_order="date desc, sub_classification_id">
                 <field name="date"/>
-                <field name="item_id"/>
+                <field name="major_classification_id"/>
+                <field name="sub_classification_id"/>
                 <field name="location"/>
                 <field name="transaction_type"/>
                 <field name="reference"/>
-                <field name="quantity_in" sum="Total In"/>
-                <field name="quantity_out" sum="Total Out"/>
+                <field name="quantity_received" string="Received" sum="Total Received"/>
+                <field name="quantity_distributed" string="Distributed" sum="Total Distributed"/>
                 <field name="balance" sum="Total Balance"/>
-                <field name="uom_id"/>
+                <field name="item_count" string="Items" optional="show"/>
+                <button name="action_view_items" type="object" 
+                        string="View Items" 
+                        icon="fa-list"
+                        title="View detailed items with codes"/>
             </list>
         </field>
     </record>
@@ -26,6 +32,14 @@
         <field name="arch" type="xml">
             <form string="Bin Card" class="o_mesob_gov_doc">
                 <sheet>
+                    <!-- Smart Button -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_items" type="object"
+                                class="oe_stat_button" icon="fa-cubes">
+                            <field name="item_count" widget="statinfo" string="Items"/>
+                        </button>
+                    </div>
+
                     <!-- Government Document Header -->
                     <div class="mesob_gov_header">
                         <div class="mesob_gov_logo">M</div>
@@ -35,10 +49,12 @@
                     </div>
                     
                     <group>
-                        <group string="Item Information">
-                            <field name="item_id" options="{'no_create': True}"/>
+                        <group string="Classification">
+                            <field name="major_classification_id" options="{'no_create': True}"/>
+                            <field name="sub_classification_id" 
+                                   domain="[('major_classification_id', '=', major_classification_id)]"
+                                   options="{'no_create': True}"/>
                             <field name="location"/>
-                            <field name="uom_id"/>
                         </group>
                         <group string="Transaction Details">
                             <field name="date"/>
@@ -49,8 +65,8 @@
                     
                     <group>
                         <group string="Quantities">
-                            <field name="quantity_in"/>
-                            <field name="quantity_out"/>
+                            <field name="quantity_received"/>
+                            <field name="quantity_distributed"/>
                             <field name="balance"/>
                         </group>
                         <group string="Verification">
@@ -67,17 +83,32 @@
         </field>
     </record>
 
-    <!-- Bin Card Action -->
+    <!-- Bin Card Hierarchical Navigation Action -->
     <record id="action_mesob_bin_card" model="ir.actions.act_window">
-        <field name="name">Bin Cards</field>
+        <field name="name">Bin Cards (Physical Storage Location)</field>
+        <field name="res_model">mesob.inventory.major.classification</field>
+        <field name="view_mode">kanban,list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Bin Cards Navigation
+            </p>
+            <p>
+                Select a Major Classification card to browse physical store bins, item balances, and transaction history.
+            </p>
+        </field>
+    </record>
+
+    <!-- Fallback/Raw Transaction Entries Action -->
+    <record id="action_mesob_bin_card_raw" model="ir.actions.act_window">
+        <field name="name">Raw Bin Card Ledger Entries</field>
         <field name="res_model">mesob.bin.card</field>
         <field name="view_mode">list,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Create a Bin Card
+                Manage Raw Bin Cards
             </p>
             <p>
-                Bin cards track physical storage locations and movements of inventory items.
+                A raw audit log of all transaction lines posted to individual bins.
             </p>
         </field>
     </record>
