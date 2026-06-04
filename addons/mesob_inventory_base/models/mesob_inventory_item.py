@@ -176,6 +176,12 @@ class MesobInventoryItem(models.Model):
         ('not_issued', 'Not Issued'),
     ], string="Issue Status", compute="_compute_issue_status")
 
+    current_holder = fields.Char(
+        string="Current Holder",
+        compute="_compute_current_holder",
+        help="The actual employee, department, or requester currently holding the item. Shows department or initials + name."
+    )
+
     total_lead_time = fields.Integer(
         string="Total Lead Time (days)",
         compute="_compute_total_lead_time",
@@ -351,3 +357,30 @@ class MesobInventoryItem(models.Model):
                 ('voucher_id.state', 'in', ['issued', 'received']),
             ])
             rec.issue_status = 'issued' if issued_lines > 0 else 'not_issued'
+
+    def _compute_current_holder(self):
+        for rec in self:
+            # Find the latest issue voucher line for this item
+            line = self.env['mesob.inventory.issue.voucher.line'].search([
+                ('item_id', '=', rec.id),
+                ('voucher_id.state', 'in', ['issued', 'received'])
+            ], order='id desc', limit=1)
+            
+            if line:
+                voucher = line.voucher_id
+                requisition = voucher.requisition_id
+                if requisition:
+                    if requisition.department:
+                        rec.current_holder = f"🏢 {requisition.department}"
+                    elif requisition.requested_by_id:
+                        user = requisition.requested_by_id
+                        name = user.name or ""
+                        parts = name.split()
+                        initials = "".join([p[0].upper() for p in parts if p])[:2]
+                        rec.current_holder = f"👤 {initials} {name}"
+                    else:
+                        rec.current_holder = ""
+                else:
+                    rec.current_holder = ""
+            else:
+                rec.current_holder = ""

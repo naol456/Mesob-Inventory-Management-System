@@ -92,6 +92,7 @@
                                     <field name="issue_status" widget="badge"
                                            decoration-success="issue_status == 'issued'"
                                            decoration-warning="issue_status == 'not_issued'"/>
+                                    <field name="current_holder" string="Current Holder"/>
                                 </list>
                             </field>
                         </page>
