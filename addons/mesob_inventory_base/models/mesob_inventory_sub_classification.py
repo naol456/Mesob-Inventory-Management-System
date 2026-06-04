@@ -110,11 +110,13 @@ class MesobInventorySubClassification(models.Model):
     def action_view_bin_card_details(self):
         """Open the detailed form/ledger view of this sub-classification."""
         self.ensure_one()
+        view_id = self.env.ref("mesob_inventory_base.view_mesob_sub_classification_form_ledger").id
         return {
             "type": "ir.actions.act_window",
             "name": f"Ledger — {self.name}",
             "res_model": "mesob.inventory.sub.classification",
             "view_mode": "form",
             "res_id": self.id,
+            "view_id": view_id,
             "target": "current",
         }
