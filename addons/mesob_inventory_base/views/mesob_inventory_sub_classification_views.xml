@@ -97,7 +97,7 @@
                         </page>
                         <page string="📈 Bin Card Transaction Ledger" name="transaction_ledger">
                             <field name="bin_card_ids" readonly="1">
-                                <list string="Transactions" default_order="date desc, id desc">
+                                <list string="Transactions" default_order="date asc, id asc">
                                     <field name="date" string="Date"/>
                                     <field name="reference" string="Reference"/>
                                     <field name="transaction_type" widget="badge"
@@ -144,10 +144,4 @@
         </field>
     </record>
 
-    <menuitem
-        id="menu_mesob_sub_classification"
-        name="Sub Classifications"
-        parent="menu_mesob_inventory_config"
-        action="action_mesob_sub_classification"
-        sequence="11"/>
 </odoo>
