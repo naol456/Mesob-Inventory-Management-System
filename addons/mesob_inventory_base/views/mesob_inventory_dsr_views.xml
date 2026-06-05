@@ -46,7 +46,7 @@
                 <sheet>
                     <!-- Government Document Header -->
                     <div class="mesob_gov_header">
-                        <div class="mesob_gov_logo">M</div>
+                        <div class="mesob_gov_logo"></div>
                         <h1 class="mesob_gov_title">Federal Democratic Republic of Ethiopia</h1>
                         <h2 class="mesob_gov_org">FDRE Mesob Center</h2>
                         <h3 class="mesob_gov_subtitle">Damage/Shortage Report</h3>
