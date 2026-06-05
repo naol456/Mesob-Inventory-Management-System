@@ -97,7 +97,6 @@
         <field name="name">Stock Record Cards (Model 19 Ledger)</field>
         <field name="res_model">mesob.inventory.major.classification</field>
         <field name="view_mode">kanban,list</field>
-        <field name="view_id" ref="view_mesob_major_classification_kanban_stock_card"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Stock Record Cards Navigation
