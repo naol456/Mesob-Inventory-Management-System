@@ -92,16 +92,54 @@ $mesob-gray-900: #111827;
 }
 
 // Government Document Headers
+.mesob_gov_header {
+    background: linear-gradient(135deg, $mesob-primary 0%, $mesob-primary-hover 100%);
+    color: white;
+    padding: 32px 24px 24px;
+    border-radius: 8px 8px 0 0;
+    text-align: center;
+    margin-bottom: 24px;
+    position: relative;
+}
+
+.mesob_gov_logo {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 16px;
+    background-image: url('/mesob_inventory_base/static/src/img/mesob_logo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: brightness(0) invert(1);
+}
+
 .mesob_gov_title {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+.mesob_gov_org {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .mesob_gov_subtitle {
-    font-size: 16px;
-    font-weight: 500;
-    margin-bottom: 4px;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.mesob_gov_underline {
+    width: 200px;
+    height: 3px;
+    background: white;
+    margin: 16px auto 0;
+    opacity: 0.3;
 }
 
 .mesob_doc_number {

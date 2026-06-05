@@ -1,12 +1,34 @@
 {
-    "name": "Mesob Inventory Base",
-    "version": "19.0.1.4.0",
-    "category": "Inventory",
-    "summary": "Foundation module for Mesob One-Stop Service inventory management — "
-               "item master, classifications (4401–4418), requisitions (Model 20), "
-               "receiving & inspection, Model 19, DSR, Gate Pass & Dispatch Control, "
-               "and FDRE-compliant stock control parameters.",
-    "author": "Mesob Center",
+    "name": "Mesob Inventory Management System",
+    "version": "19.0.1.5.0",
+    "category": "Inventory/Inventory",
+    "summary": "FDRE Mesob Center - Complete inventory management system with "
+               "classifications (4401–4418), requisitions, receiving, inspection, "
+               "Model 19, DSR, Gate Pass & Dispatch Control.",
+    "description": """
+        Mesob Inventory Management System
+        ==================================
+        
+        Complete inventory management solution for FDRE Mesob Center
+        
+        Features:
+        ---------
+        * Item Master with Major/Sub Classifications (4401-4418)
+        * Store Requisition (Model 20)
+        * Receiving & Inspection Voucher
+        * Issue Voucher (Model 19)
+        * Daily Stock Register (DSR)
+        * Gate Pass & Dispatch Control
+        * Bin Card & Stock Record Card
+        * Reorder Alert System
+        * FDRE-compliant stock control
+        * Four-copy document distribution
+        
+        Developed for FDRE Mesob Center
+        Federal Democratic Republic of Ethiopia
+    """,
+    "author": "FDRE Mesob Center",
+    "website": "https://id.gov.et",
     "license": "LGPL-3",
     "depends": ["stock", "mail"],
     "data": [
