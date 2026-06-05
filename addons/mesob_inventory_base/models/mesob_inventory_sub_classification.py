@@ -68,6 +68,11 @@ class MesobInventorySubClassification(models.Model):
         inverse_name="sub_classification_id",
         string="Bin Card Transactions",
     )
+    stock_record_ids = fields.One2many(
+        comodel_name="mesob.stock.record.card",
+        inverse_name="sub_classification_id",
+        string="Stock Record Ledger",
+    )
 
     @api.depends("code", "name", "major_classification_id")
     def _compute_display_name(self):
@@ -114,6 +119,35 @@ class MesobInventorySubClassification(models.Model):
         return {
             "type": "ir.actions.act_window",
             "name": f"Ledger — {self.name}",
+            "res_model": "mesob.inventory.sub.classification",
+            "view_mode": "form",
+            "res_id": self.id,
+            "view_id": view_id,
+            "target": "current",
+        }
+
+    def action_view_items_stock_card(self):
+        """Open the items list under this sub-classification in the stock card flow."""
+        self.ensure_one()
+        view_id = self.env.ref("mesob_inventory_base.view_mesob_inventory_item_kanban_stock_card").id
+        return {
+            "type": "ir.actions.act_window",
+            "name": f"Items under {self.name}",
+            "res_model": "mesob.inventory.item",
+            "views": [(view_id, "kanban"), (False, "list")],
+            "domain": [("sub_classification_id", "=", self.id)],
+            "context": {
+                "default_sub_classification_id": self.id,
+            },
+        }
+
+    def action_view_stock_card_details(self):
+        """Open the detailed Stock Card (Model 19) ledger form view for this sub-classification."""
+        self.ensure_one()
+        view_id = self.env.ref("mesob_inventory_base.view_mesob_sub_classification_form_stock_ledger").id
+        return {
+            "type": "ir.actions.act_window",
+            "name": f"Stock Card — {self.name}",
             "res_model": "mesob.inventory.sub.classification",
             "view_mode": "form",
             "res_id": self.id,

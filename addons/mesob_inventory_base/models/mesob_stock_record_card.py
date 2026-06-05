@@ -15,6 +15,13 @@ class MesobStockRecordCard(models.Model):
 
     # Header
     item_id = fields.Many2one('mesob.inventory.item', string='Item', required=True, ondelete='restrict', index=True)
+    sub_classification_id = fields.Many2one(
+        comodel_name='mesob.inventory.sub.classification',
+        string='Sub Classification',
+        related='item_id.sub_classification_id',
+        store=True,
+        index=True
+    )
     date = fields.Date(string='Date', required=True, default=fields.Date.context_today, index=True)
     
     # Transaction Details
