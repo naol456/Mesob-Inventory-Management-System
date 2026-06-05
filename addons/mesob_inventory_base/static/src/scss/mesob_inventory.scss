@@ -172,3 +172,94 @@ $mesob-gray-900: #111827;
         min-width: 35px;
     }
 }
+
+// Dashboard Styles
+.mesob_dashboard_container {
+    padding: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: $mesob-gray-50;
+    min-height: calc(100vh - 100px);
+}
+
+.mesob_dashboard_header {
+    text-align: center;
+    margin-bottom: 48px;
+    
+    .mesob_dashboard_logo {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 24px;
+        background-image: url('/mesob_inventory_base/static/src/img/mesob_logo.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+    
+    h1 {
+        font-size: 36px;
+        font-weight: 700;
+        color: $mesob-gray-900;
+        margin-bottom: 12px;
+    }
+    
+    .mesob_dashboard_subtitle {
+        font-size: 18px;
+        color: $mesob-gray-600;
+        font-weight: 500;
+    }
+}
+
+.mesob_dashboard_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+}
+
+.mesob_dashboard_card {
+    background: white;
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        border-color: $mesob-primary;
+    }
+    
+    .card_icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+    
+    h3 {
+        font-size: 20px;
+        font-weight: 700;
+        color: $mesob-gray-900;
+        margin-bottom: 8px;
+    }
+    
+    p {
+        font-size: 14px;
+        color: $mesob-gray-600;
+        margin: 0;
+    }
+}
+
+.mesob_dashboard_footer {
+    text-align: center;
+    padding-top: 32px;
+    border-top: 2px solid $mesob-gray-200;
+    
+    p {
+        color: $mesob-gray-500;
+        font-size: 14px;
+        margin: 0;
+    }
+}

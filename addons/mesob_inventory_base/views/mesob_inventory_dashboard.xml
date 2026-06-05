@@ -1,9 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- ══════════════════════════════════════════════════════════════
-         INVENTORY DASHBOARD - Disabled for now
-         ══════════════════════════════════════════════════════════════ -->
-    
-    <!-- Dashboard temporarily disabled due to kanban template compatibility -->
-    
+    <!-- Dashboard/Welcome Action -->
+    <record id="action_mesob_inventory_dashboard" model="ir.actions.client">
+        <field name="name">Dashboard</field>
+        <field name="tag">mesob_inventory_dashboard</field>
+    </record>
+
+    <!-- Add Dashboard as first menu item -->
+    <menuitem id="menu_mesob_inventory_dashboard"
+              name="Dashboard"
+              parent="menu_mesob_inventory_root"
+              action="action_mesob_inventory_dashboard"
+              sequence="1"/>
+
+    <!-- Quick Access Menu -->
+    <menuitem id="menu_mesob_inventory_items"
+              name="Items"
+              parent="menu_mesob_inventory_master_data"
+              action="stock.product_template_action"
+              sequence="10"/>
 </odoo>
