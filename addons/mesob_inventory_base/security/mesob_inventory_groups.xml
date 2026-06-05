@@ -3,8 +3,7 @@
     <!-- Module category to group Mesob Inventory roles in Settings -->
     <record id="module_category_mesob_inventory" model="ir.module.category">
         <field name="name">Mesob Inventory</field>
-        <field name="sequenc-e">30</field>
-        
+        <field name="sequence">30</field>
     </record>
 
     <!-- Privilege for Mesob Inventory groups -->
