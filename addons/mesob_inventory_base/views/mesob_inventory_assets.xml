@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Professional UI Styles Bundle -->
+    <record id="mesob_inventory_styles" model="ir.asset">
+        <field name="name">Mesob Inventory Professional Styles</field>
+        <field name="bundle">web.assets_backend</field>
+        <field name="path">mesob_inventory_base/static/src/scss/mesob_inventory.scss</field>
+    </record>
+</odoo>

@@ -1,0 +1,285 @@
+/* ═══════════════════════════════════════════════════════════════
+   MESOB INVENTORY - PROFESSIONAL UI DESIGN SYSTEM
+   Complements Odoo 19 default theme without conflicts
+   Designer: Professional UI/UX Standards
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ───────────────────────────────────────────────────────────────
+   COLOR PALETTE - Harmonized with Odoo's default purple theme
+   ─────────────────────────────────────────────────────────────── */
+:root {
+    /* Primary - Matches Odoo's purple accent */
+    --mesob-primary: #714B67;
+    --mesob-primary-hover: #5a3b52;
+    --mesob-primary-light: #f3f0f5;
+    
+    /* Success - Clean green */
+    --mesob-success: #10b981;
+    --mesob-success-light: #d1fae5;
+    --mesob-success-border: #a7f3d0;
+    
+    /* Warning - Soft amber */
+    --mesob-warning: #f59e0b;
+    --mesob-warning-light: #fef3c7;
+    
+    /* Danger - Subtle red */
+    --mesob-danger: #ef4444;
+    --mesob-danger-light: #fee2e2;
+    
+    /* Info - Light blue */
+    --mesob-info: #3b82f6;
+    --mesob-info-light: #dbeafe;
+    
+    /* Neutrals - Professional grays */
+    --mesob-gray-50: #f9fafb;
+    --mesob-gray-100: #f3f4f6;
+    --mesob-gray-200: #e5e7eb;
+    --mesob-gray-300: #d1d5db;
+    --mesob-gray-400: #9ca3af;
+    --mesob-gray-500: #6b7280;
+    --mesob-gray-600: #4b5563;
+    --mesob-gray-700: #374151;
+    --mesob-gray-800: #1f2937;
+    --mesob-gray-900: #111827;
+    
+    /* Shadows */
+    --mesob-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --mesob-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --mesob-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   KANBAN CARDS - Modern, clean design
+   ─────────────────────────────────────────────────────────────── */
+
+/* Classification Cards (Major & Sub) */
+.mesob_classification_card {
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--mesob-gray-200);
+    background: white;
+    box-shadow: var(--mesob-shadow-sm);
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+}
+
+.mesob_classification_card:hover {
+    box-shadow: var(--mesob-shadow-md);
+    transform: translateY(-2px);
+    border-color: var(--mesob-primary);
+}
+
+.mesob_card_header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.mesob_card_icon {
+    font-size: 32px;
+    min-width: 45px;
+    text-align: center;
+}
+
+.mesob_card_content {
+    flex: 1;
+}
+
+.mesob_card_title {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--mesob-gray-900);
+    margin-bottom: 4px;
+}
+
+.mesob_card_subtitle {
+    font-size: 12px;
+    color: var(--mesob-gray-600);
+}
+
+.mesob_card_subtitle strong {
+    font-weight: 600;
+    color: var(--mesob-gray-700);
+}
+
+.mesob_card_badge {
+    background: var(--mesob-success-light);
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--mesob-success);
+    border: 1px solid var(--mesob-success-border);
+    white-space: nowrap;
+}
+
+.mesob_card_footer {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--mesob-gray-200);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.mesob_card_footer .btn {
+    font-weight: 600;
+    padding: 4px 12px;
+    font-size: 11px;
+    border-radius: 6px;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   GOVERNMENT DOCUMENT HEADERS - Professional styling
+   ─────────────────────────────────────────────────────────────── */
+
+.mesob_gov_header {
+    background: linear-gradient(135deg, var(--mesob-primary) 0%, var(--mesob-primary-hover) 100%);
+    color: white;
+    padding: 24px;
+    border-radius: 8px 8px 0 0;
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.mesob_gov_title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: 0.3px;
+}
+
+.mesob_gov_subtitle {
+    font-size: 16px;
+    font-weight: 500;
+    opacity: 0.95;
+    margin-bottom: 4px;
+}
+
+.mesob_doc_number {
+    color: white !important;
+    margin-top: 12px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   BUTTONS - Consistent with Odoo theme
+   ─────────────────────────────────────────────────────────────── */
+
+.btn-primary {
+    background-color: var(--mesob-primary) !important;
+    border-color: var(--mesob-primary) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--mesob-primary-hover) !important;
+    border-color: var(--mesob-primary-hover) !important;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   BADGES - Clean status indicators
+   ─────────────────────────────────────────────────────────────── */
+
+.badge.badge-success {
+    background: var(--mesob-success) !important;
+    color: white !important;
+}
+
+.badge.badge-info {
+    background: var(--mesob-info) !important;
+    color: white !important;
+}
+
+.badge.badge-warning {
+    background: var(--mesob-warning) !important;
+    color: var(--mesob-gray-800) !important;
+}
+
+.badge.badge-danger {
+    background: var(--mesob-danger) !important;
+    color: white !important;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   UTILITY CLASSES
+   ─────────────────────────────────────────────────────────────── */
+
+.mesob_flex {
+    display: flex;
+}
+
+.mesob_flex_center {
+    display: flex;
+    align-items: center;
+}
+
+.mesob_flex_between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mesob_gap_sm {
+    gap: 8px;
+}
+
+.mesob_gap_md {
+    gap: 12px;
+}
+
+.mesob_text_muted {
+    color: var(--mesob-gray-600);
+}
+
+.mesob_text_strong {
+    font-weight: 600;
+    color: var(--mesob-gray-900);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   RESPONSIVE DESIGN
+   ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .mesob_classification_card {
+        padding: 12px;
+    }
+    
+    .mesob_card_icon {
+        font-size: 24px;
+        min-width: 35px;
+    }
+    
+    .mesob_card_title {
+        font-size: 14px;
+    }
+    
+    .mesob_gov_header {
+        padding: 16px;
+    }
+    
+    .mesob_gov_title {
+        font-size: 18px;
+    }
+}
+
+/* ───────────────────────────────────────────────────────────────
+   PRINT STYLES
+   ─────────────────────────────────────────────────────────────── */
+
+@media print {
+    .mesob_classification_card {
+        box-shadow: none;
+        border: 1px solid var(--mesob-gray-300);
+        page-break-inside: avoid;
+    }
+    
+    .mesob_card_footer .btn {
+        display: none;
+    }
+}
