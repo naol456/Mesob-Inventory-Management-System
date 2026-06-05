@@ -184,27 +184,14 @@ $mesob-gray-900: #111827;
 
 // Navbar Branding
 .o_main_navbar {
+    // App name text styling
     .o_menu_brand {
-        display: flex !important;
-        align-items: center !important;
-        gap: 12px !important;
         font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
         font-weight: 700 !important;
         font-size: 18px !important;
         letter-spacing: 0.5px !important;
         color: white !important;
         padding: 8px 16px !important;
-        
-        &::before {
-            content: '';
-            width: 32px;
-            height: 32px;
-            background-image: url('/mesob_inventory_base/static/src/img/mesob_logo.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            filter: brightness(0) invert(1);
-        }
     }
     
     // Hamburger menu button
@@ -218,6 +205,21 @@ $mesob-gray-900: #111827;
             }
         }
     }
+}
+
+// Navbar logo - add to hamburger menu icon area
+.o_navbar_apps_menu::before {
+    content: '';
+    width: 28px;
+    height: 28px;
+    background-image: url('/mesob_inventory_base/static/src/img/mesob_logo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: brightness(0) invert(1);
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 8px;
 }
 
 // Responsive
@@ -237,13 +239,17 @@ $mesob-gray-900: #111827;
     padding: 40px;
     max-width: 1200px;
     margin: 0 auto;
-    background: $mesob-gray-50;
+    background: transparent;
     min-height: calc(100vh - 100px);
 }
 
 .mesob_dashboard_header {
     text-align: center;
     margin-bottom: 48px;
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     
     .mesob_dashboard_logo {
         width: 120px;
@@ -256,39 +262,39 @@ $mesob-gray-900: #111827;
     }
     
     h1 {
-        font-size: 36px;
+        font-size: 32px;
         font-weight: 700;
-        color: $mesob-gray-900;
+        color: $mesob-primary;
         margin-bottom: 12px;
     }
     
     .mesob_dashboard_subtitle {
-        font-size: 18px;
-        color: $mesob-gray-600;
+        font-size: 16px;
+        color: $mesob-gray-700;
         font-weight: 500;
     }
 }
 
 .mesob_dashboard_grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
     margin-bottom: 48px;
 }
 
 .mesob_dashboard_card {
     background: white;
-    padding: 32px;
+    padding: 32px 24px;
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     text-align: center;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     border: 2px solid transparent;
     
     &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         border-color: $mesob-primary;
     }
     
@@ -298,27 +304,31 @@ $mesob-gray-900: #111827;
     }
     
     h3 {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 700;
         color: $mesob-gray-900;
         margin-bottom: 8px;
     }
     
     p {
-        font-size: 14px;
+        font-size: 13px;
         color: $mesob-gray-600;
         margin: 0;
+        line-height: 1.4;
     }
 }
 
 .mesob_dashboard_footer {
     text-align: center;
-    padding-top: 32px;
-    border-top: 2px solid $mesob-gray-200;
+    padding: 24px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     
     p {
-        color: $mesob-gray-500;
-        font-size: 14px;
+        color: $mesob-gray-600;
+        font-size: 13px;
         margin: 0;
+        line-height: 1.5;
     }
 }
