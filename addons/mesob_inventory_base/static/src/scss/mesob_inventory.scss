@@ -239,14 +239,14 @@ $mesob-gray-900: #111827;
     padding: 40px;
     max-width: 1200px;
     margin: 0 auto;
-    background: transparent;
+    background: transparent !important;
     min-height: calc(100vh - 100px);
 }
 
 .mesob_dashboard_header {
     text-align: center;
     margin-bottom: 48px;
-    background: white;
+    background: white !important;
     padding: 40px;
     border-radius: 16px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -262,16 +262,21 @@ $mesob-gray-900: #111827;
     }
     
     h1 {
-        font-size: 32px;
-        font-weight: 700;
-        color: $mesob-primary;
-        margin-bottom: 12px;
+        font-size: 32px !important;
+        font-weight: 700 !important;
+        color: $mesob-primary !important;
+        margin-bottom: 12px !important;
+        display: block !important;
+        visibility: visible !important;
     }
     
-    .mesob_dashboard_subtitle {
-        font-size: 16px;
-        color: $mesob-gray-700;
-        font-weight: 500;
+    p {
+        font-size: 16px !important;
+        color: $mesob-gray-700 !important;
+        font-weight: 500 !important;
+        display: block !important;
+        visibility: visible !important;
+        margin: 0 !important;
     }
 }
 
@@ -283,7 +288,7 @@ $mesob-gray-900: #111827;
 }
 
 .mesob_dashboard_card {
-    background: white;
+    background: white !important;
     padding: 32px 24px;
     border-radius: 12px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
@@ -299,36 +304,43 @@ $mesob-gray-900: #111827;
     }
     
     .card_icon {
-        font-size: 48px;
-        margin-bottom: 16px;
+        font-size: 48px !important;
+        margin-bottom: 16px !important;
+        display: block !important;
     }
     
     h3 {
-        font-size: 18px;
-        font-weight: 700;
-        color: $mesob-gray-900;
-        margin-bottom: 8px;
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        color: $mesob-gray-900 !important;
+        margin-bottom: 8px !important;
+        display: block !important;
+        visibility: visible !important;
     }
     
     p {
-        font-size: 13px;
-        color: $mesob-gray-600;
-        margin: 0;
-        line-height: 1.4;
+        font-size: 13px !important;
+        color: $mesob-gray-600 !important;
+        margin: 0 !important;
+        line-height: 1.4 !important;
+        display: block !important;
+        visibility: visible !important;
     }
 }
 
 .mesob_dashboard_footer {
     text-align: center;
     padding: 24px;
-    background: white;
+    background: white !important;
     border-radius: 12px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     
     p {
-        color: $mesob-gray-600;
-        font-size: 13px;
-        margin: 0;
-        line-height: 1.5;
+        color: $mesob-gray-600 !important;
+        font-size: 13px !important;
+        margin: 0 !important;
+        line-height: 1.5 !important;
+        display: block !important;
+        visibility: visible !important;
     }
 }
