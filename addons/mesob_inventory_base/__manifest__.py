@@ -24,6 +24,8 @@
         "data/mesob_reorder_alert_sequence.xml",
         # Assets (Modern UI Styles)
         "views/mesob_inventory_assets.xml",
+        # Login Page Customization
+        "views/mesob_login_template.xml",
         # Views (Base)
         "views/mesob_inventory_major_classification_views.xml",
         "views/mesob_inventory_sub_classification_views.xml",
