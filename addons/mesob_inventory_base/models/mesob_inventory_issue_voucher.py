@@ -49,7 +49,7 @@ class MesobInventoryIssueVoucher(models.Model):
         readonly=True,
     )
 
-    requesting_department = fields.Char(
+    requesting_department = fields.Selection(
         related="requisition_id.department",
         string="Requesting Department",
         store=True,
