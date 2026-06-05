@@ -6,7 +6,9 @@ $mesob-primary-hover: #5a3b52;
 $mesob-success: #10b981;
 $mesob-success-light: #d1fae5;
 $mesob-success-border: #a7f3d0;
+$mesob-gray-50: #f9fafb;
 $mesob-gray-200: #e5e7eb;
+$mesob-gray-500: #6b7280;
 $mesob-gray-600: #6b7280;
 $mesob-gray-700: #374151;
 $mesob-gray-900: #111827;
@@ -132,6 +134,13 @@ $mesob-gray-900: #111827;
     font-size: 18px;
     font-weight: 600;
     margin-bottom: 12px;
+}
+
+.mesob_gov_model {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    opacity: 0.9;
 }
 
 .mesob_gov_underline {
