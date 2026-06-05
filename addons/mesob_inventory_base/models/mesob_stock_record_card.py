@@ -38,6 +38,7 @@ class MesobStockRecordCard(models.Model):
     
     # Valuation (FIFO)
     unit_cost = fields.Monetary(string='Unit Cost', currency_field='currency_id')
+    unit_cost_out = fields.Monetary(string='Issued Unit Price', currency_field='currency_id', compute='_compute_unit_cost_out')
     total_cost_in = fields.Monetary(string='Total Cost In', currency_field='currency_id', compute='_compute_costs', store=True)
     total_cost_out = fields.Monetary(string='Total Cost Out', currency_field='currency_id', compute='_compute_costs', store=True)
     balance_value = fields.Monetary(string='Balance Value', currency_field='currency_id', compute='_compute_balance', store=True)
@@ -72,6 +73,14 @@ class MesobStockRecordCard(models.Model):
             record.total_cost_in = record.quantity_in * record.unit_cost
             # Cost out is calculated from FIFO layers
             record.total_cost_out = sum(record.fifo_layer_ids.mapped('cost_out'))
+
+    @api.depends('quantity_out', 'total_cost_out')
+    def _compute_unit_cost_out(self):
+        for record in self:
+            if record.quantity_out > 0:
+                record.unit_cost_out = record.total_cost_out / record.quantity_out
+            else:
+                record.unit_cost_out = 0.0
     
     @api.depends('quantity_in', 'quantity_out', 'total_cost_in', 'total_cost_out')
     def _compute_balance(self):
