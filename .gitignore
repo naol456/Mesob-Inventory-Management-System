@@ -12,6 +12,7 @@ Thumbs.db
 
 # Logs/build artifacts
 *.log
+logs/
 
 # User requirement: do not track docs folder
 docs/
@@ -19,3 +20,6 @@ docs/
 # Optional: local environment files
 .env
 docs12
+
+# Third-party themes (not part of Mesob project)
+addons/theme_*/
