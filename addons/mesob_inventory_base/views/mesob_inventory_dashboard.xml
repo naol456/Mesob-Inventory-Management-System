@@ -12,11 +12,4 @@
               parent="menu_mesob_inventory_root"
               action="action_mesob_inventory_dashboard"
               sequence="1"/>
-
-    <!-- Quick Access Menu -->
-    <menuitem id="menu_mesob_inventory_items"
-              name="Items"
-              parent="menu_mesob_inventory_master_data"
-              action="stock.product_template_action"
-              sequence="10"/>
 </odoo>
