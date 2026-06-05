@@ -108,3 +108,18 @@ class MesobInventoryMajorClassification(models.Model):
                 "default_major_classification_id": self.id,
             },
         }
+
+    def action_view_sub_classifications_stock_card(self):
+        """Open the sub-classifications navigation for this major classification in the stock card flow."""
+        self.ensure_one()
+        view_id = self.env.ref("mesob_inventory_base.view_mesob_sub_classification_kanban_stock_card").id
+        return {
+            "type": "ir.actions.act_window",
+            "name": f"Sub Classifications under {self.name}",
+            "res_model": "mesob.inventory.sub.classification",
+            "views": [(view_id, "kanban"), (False, "list")],
+            "domain": [("major_classification_id", "=", self.id)],
+            "context": {
+                "default_major_classification_id": self.id,
+            },
+        }
