@@ -43,6 +43,15 @@ class MesobInventoryMajorClassification(models.Model):
         string="Items",
         compute="_compute_item_count",
     )
+    sub_classification_ids = fields.One2many(
+        comodel_name="mesob.inventory.sub.classification",
+        inverse_name="major_classification_id",
+        string="Sub Classifications",
+    )
+    sub_classification_count = fields.Integer(
+        string="Sub Classifications Count",
+        compute="_compute_sub_classification_count",
+    )
 
     @api.depends("code", "name")
     def _compute_display_name(self):
@@ -57,6 +66,22 @@ class MesobInventoryMajorClassification(models.Model):
             rec.item_count = self.env["mesob.inventory.item"].search_count(
                 [("classification_id", "=", rec.id)]
             )
+
+    def _compute_sub_classification_count(self):
+        for rec in self:
+            rec.sub_classification_count = len(rec.sub_classification_ids)
+
+    def action_view_sub_classifications(self):
+        """Open list of sub classifications belonging to this major classification."""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": f"Sub Classifications — {self.display_name}",
+            "res_model": "mesob.inventory.sub.classification",
+            "view_mode": "list,form",
+            "domain": [("major_classification_id", "=", self.id)],
+            "context": {"default_major_classification_id": self.id},
+        }
 
     def action_view_items(self):
         """Open list of items belonging to this classification."""
@@ -78,6 +103,21 @@ class MesobInventoryMajorClassification(models.Model):
             "name": f"Sub Classifications under {self.name}",
             "res_model": "mesob.inventory.sub.classification",
             "view_mode": "kanban,list,form",
+            "domain": [("major_classification_id", "=", self.id)],
+            "context": {
+                "default_major_classification_id": self.id,
+            },
+        }
+
+    def action_view_sub_classifications_stock_card(self):
+        """Open the sub-classifications navigation for this major classification in the stock card flow."""
+        self.ensure_one()
+        view_id = self.env.ref("mesob_inventory_base.view_mesob_sub_classification_kanban_stock_card").id
+        return {
+            "type": "ir.actions.act_window",
+            "name": f"Sub Classifications under {self.name}",
+            "res_model": "mesob.inventory.sub.classification",
+            "views": [(view_id, "kanban"), (False, "list")],
             "domain": [("major_classification_id", "=", self.id)],
             "context": {
                 "default_major_classification_id": self.id,

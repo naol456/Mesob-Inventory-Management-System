@@ -99,6 +99,12 @@
               action="action_mesob_stock_record_card"
               sequence="20"/>
 
+    <menuitem id="menu_mesob_stock_record_cards_raw"
+              name="All Stock Record Ledger Lines"
+              parent="menu_mesob_inventory_stock_records"
+              action="action_mesob_stock_record_card_raw"
+              sequence="22"/>
+
     <menuitem id="menu_mesob_fifo_layers"
               name="FIFO Cost Layers"
               parent="menu_mesob_inventory_stock_records"

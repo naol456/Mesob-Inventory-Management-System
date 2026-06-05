@@ -93,17 +93,33 @@
         </field>
     </record>
 
-    <!-- Stock Record Card Action -->
+    <!-- Stock Record Card Action (Hierarchical Navigation Flow) -->
     <record id="action_mesob_stock_record_card" model="ir.actions.act_window">
-        <field name="name">Stock Record Cards</field>
+        <field name="name">Stock Record Cards (Model 19 Ledger)</field>
+        <field name="res_model">mesob.inventory.major.classification</field>
+        <field name="view_mode">kanban,list</field>
+        <field name="view_id" ref="view_mesob_major_classification_kanban_stock_card"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Stock Record Cards Navigation
+            </p>
+            <p>
+                Select a Major Classification to navigate and view item stock record cards with financial valuation.
+            </p>
+        </field>
+    </record>
+
+    <!-- Fallback/Raw Stock Record Entries Action -->
+    <record id="action_mesob_stock_record_card_raw" model="ir.actions.act_window">
+        <field name="name">Raw Stock Record Ledger Entries</field>
         <field name="res_model">mesob.stock.record.card</field>
         <field name="view_mode">list,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Create a Stock Record Card
+                Manage Raw Stock Records
             </p>
             <p>
-                Stock record cards track all inventory movements with FIFO valuation.
+                A flat audit log of all costed valuation entries posted to individual items.
             </p>
         </field>
     </record>
