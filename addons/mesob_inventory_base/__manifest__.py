@@ -44,6 +44,8 @@
         "data/mesob_issue_voucher_sequence.xml",
         "data/mesob_gate_pass_sequence.xml",
         "data/mesob_reorder_alert_sequence.xml",
+        # Company data
+        "data/mesob_company_data.xml",
         # Assets (Professional UI Styles)
         "views/mesob_inventory_assets.xml",
         # Dashboard
