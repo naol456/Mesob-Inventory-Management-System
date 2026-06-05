@@ -22,7 +22,7 @@
         "data/mesob_issue_voucher_sequence.xml",
         "data/mesob_gate_pass_sequence.xml",
         "data/mesob_reorder_alert_sequence.xml",
-        # Assets (Modern UI Styles)
+        # Assets (Professional UI Styles)
         "views/mesob_inventory_assets.xml",
         # Views (Base)
         "views/mesob_inventory_major_classification_views.xml",

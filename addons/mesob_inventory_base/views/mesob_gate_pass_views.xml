@@ -43,7 +43,7 @@
                         <div class="mesob_gov_logo">M</div>
                         <h1 class="mesob_gov_title">Federal Democratic Republic of Ethiopia</h1>
                         <h3 class="mesob_gov_subtitle">Gate Pass for Goods Dispatch</h3>
-                        <h2 class="mesob_doc_number" style="color: white !important; margin-top: 12px;">
+                        <h2 class="mesob_doc_number">
                             <field name="name" readonly="1" class="oe_inline"/>
                         </h2>
                         <div class="mesob_gov_underline"></div>

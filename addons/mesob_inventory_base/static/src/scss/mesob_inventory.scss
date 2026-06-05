@@ -1,0 +1,136 @@
+/* MESOB INVENTORY - PROFESSIONAL UI DESIGN SYSTEM */
+
+// Color Variables
+$mesob-primary: #714B67;
+$mesob-primary-hover: #5a3b52;
+$mesob-success: #10b981;
+$mesob-success-light: #d1fae5;
+$mesob-success-border: #a7f3d0;
+$mesob-gray-200: #e5e7eb;
+$mesob-gray-600: #6b7280;
+$mesob-gray-700: #374151;
+$mesob-gray-900: #111827;
+
+// Kanban Classification Cards
+.mesob_classification_card {
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid $mesob-gray-200;
+    background: white;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+
+    &:hover {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+        border-color: $mesob-primary;
+    }
+}
+
+.mesob_card_header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.mesob_card_icon {
+    font-size: 32px;
+    min-width: 45px;
+    text-align: center;
+}
+
+.mesob_card_content {
+    flex: 1;
+}
+
+.mesob_card_title {
+    font-weight: 700;
+    font-size: 15px;
+    color: $mesob-gray-900;
+    margin-bottom: 4px;
+}
+
+.mesob_card_subtitle {
+    font-size: 12px;
+    color: $mesob-gray-600;
+
+    strong {
+        font-weight: 600;
+        color: $mesob-gray-700;
+    }
+}
+
+.mesob_card_badge {
+    background: $mesob-success-light;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: 600;
+    color: $mesob-success;
+    border: 1px solid $mesob-success-border;
+    white-space: nowrap;
+}
+
+.mesob_card_footer {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed $mesob-gray-200;
+    display: flex;
+    justify-content: flex-end;
+
+    .btn {
+        font-weight: 600;
+        padding: 4px 12px;
+        font-size: 11px;
+        border-radius: 6px;
+    }
+}
+
+// Government Document Headers
+.mesob_gov_title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.mesob_gov_subtitle {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.mesob_doc_number {
+    color: white !important;
+    margin-top: 12px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+// Button Overrides
+.btn-primary {
+    background-color: $mesob-primary !important;
+    border-color: $mesob-primary !important;
+
+    &:hover,
+    &:focus {
+        background-color: $mesob-primary-hover !important;
+        border-color: $mesob-primary-hover !important;
+    }
+}
+
+// Responsive
+@media (max-width: 768px) {
+    .mesob_classification_card {
+        padding: 12px;
+    }
+    
+    .mesob_card_icon {
+        font-size: 24px;
+        min-width: 35px;
+    }
+}

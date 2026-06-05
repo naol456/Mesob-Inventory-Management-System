@@ -1,15 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Modern UI Assets Bundle -->
-    <record id="mesob_inventory_assets" model="ir.asset">
-        <field name="name">Mesob Inventory Modern Styles</field>
+    <!-- Professional UI Styles Bundle -->
+    <record id="mesob_inventory_styles" model="ir.asset">
+        <field name="name">Mesob Inventory Professional Styles</field>
         <field name="bundle">web.assets_backend</field>
-        <field name="path">mesob_inventory_base/static/src/scss/mesob_inventory_modern.scss</field>
-    </record>
-    
-    <record id="mesob_inventory_components_assets" model="ir.asset">
-        <field name="name">Mesob Inventory Components</field>
-        <field name="bundle">web.assets_backend</field>
-        <field name="path">mesob_inventory_base/static/src/scss/mesob_inventory_components.scss</field>
+        <field name="path">mesob_inventory_base/static/src/scss/mesob_inventory.scss</field>
     </record>
 </odoo>
