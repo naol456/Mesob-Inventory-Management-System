@@ -276,6 +276,22 @@ class MesobInventoryReceivingLine(models.Model):
 
         # Validation
         if not self.auto_generate_items:
+            if self.item_id and self.qty_accepted > 0:
+                reference = self.receiving_id.name or "Receiving"
+                date = self.receiving_id.received_date or fields.Date.today()
+                quantity = self.qty_accepted
+                
+                # Create aggregated bin card entry ONCE for the entire quantity
+                self.create_bin_card_for_receiving(
+                    self.item_id.classification_id.id,
+                    self.item_id.sub_classification_id.id,
+                    quantity,
+                    reference,
+                    date
+                )
+                
+                # Create stock record entry once for the entire quantity
+                self.create_stock_record_for_item(self.item_id.id, reference, date, quantity)
             return []
 
         if not self.major_classification_id:
@@ -311,28 +327,56 @@ class MesobInventoryReceivingLine(models.Model):
                 date
             )
 
-            # Generate items in a loop
-            for i in range(quantity):
-                # Generate unique item code
-                item_code = self.generate_item_code(major_code, sub_code)
+            # Check if this sub-classification is a Fixed Asset
+            if self.sub_classification_id.is_fixed_asset:
+                # FIXED ASSET: Generate individual items
+                for i in range(quantity):
+                    # Generate unique item code
+                    item_code = self.generate_item_code(major_code, sub_code)
 
-                # Create item record
-                item = self.env['mesob.inventory.item'].create({
-                    'item_code': item_code,
-                    'classification_id': self.major_classification_id.id,
-                    'sub_classification_id': self.sub_classification_id.id,
-                    'uom_id': self.uom_id.id if self.uom_id else False,
-                    'name': self.description or f"Item {item_code}",
-                    'active': True,
-                })
+                    # Create item record
+                    item = self.env['mesob.inventory.item'].create({
+                        'item_code': item_code,
+                        'classification_id': self.major_classification_id.id,
+                        'sub_classification_id': self.sub_classification_id.id,
+                        'uom_id': self.uom_id.id if self.uom_id else False,
+                        'name': self.description or f"Item {item_code}",
+                        'active': True,
+                    })
 
-                created_item_ids.append(item.id)
+                    created_item_ids.append(item.id)
 
-                # Create stock record entry (still per item for valuation)
-                self.create_stock_record_for_item(item.id, reference, date)
+                    # Create stock record entry per item for individual tracking
+                    self.create_stock_record_for_item(item.id, reference, date, 1.0)
 
-            # Link generated items to receiving line
-            self.generated_item_ids = [(6, 0, created_item_ids)]
+                # Link generated items to receiving line
+                self.generated_item_ids = [(6, 0, created_item_ids)]
+            else:
+                # NON-FIXED ASSET (CONSUMABLE): Do NOT create individual item records.
+                # Instead, find if there is an existing item record for this Sub-Classification,
+                # or create ONE master item record for this Sub-Classification if none exists yet.
+                master_item = self.env['mesob.inventory.item'].search([
+                    ('sub_classification_id', '=', self.sub_classification_id.id),
+                    ('active', '=', True)
+                ], limit=1)
+                
+                if not master_item:
+                    # Create ONE master item record for this Sub-Classification (code suffix "-001")
+                    item_code = f"{major_code}-{sub_code}-001"
+                    master_item = self.env['mesob.inventory.item'].create({
+                        'item_code': item_code,
+                        'classification_id': self.major_classification_id.id,
+                        'sub_classification_id': self.sub_classification_id.id,
+                        'uom_id': self.uom_id.id if self.uom_id else False,
+                        'name': self.description or self.sub_classification_id.name,
+                        'active': True,
+                    })
+                
+                # Create ONE stock record entry for the entire quantity under the master item
+                self.create_stock_record_for_item(master_item.id, reference, date, quantity)
+                
+                created_item_ids.append(master_item.id)
+                self.generated_item_ids = [(6, 0, created_item_ids)]
 
             return created_item_ids
 
@@ -378,13 +422,14 @@ class MesobInventoryReceivingLine(models.Model):
             'received_by_id': self.env.user.id,
         })
 
-    def create_stock_record_for_item(self, item_id, reference, date):
+    def create_stock_record_for_item(self, item_id, reference, date, quantity=1.0):
         """Create stock record card entry for received item.
 
         Args:
             item_id (int): ID of the inventory item
             reference (str): Receiving document reference
             date (date): Received date
+            quantity (float): Quantity received
         """
         # Get default UoM (unit)
         uom_unit = self.env.ref('uom.product_uom_unit', raise_if_not_found=False)
@@ -400,14 +445,14 @@ class MesobInventoryReceivingLine(models.Model):
         )
         previous_balance_value = previous_entries[0].balance_value if previous_entries else 0.0
 
-        total_cost_in = 1.0 * self.unit_price
+        total_cost_in = quantity * self.unit_price
 
         # Create stock record entry
         stock_record = self.env['mesob.stock.record.card'].create({
             'item_id': item_id,
             'transaction_type': 'receipt',
             'date': date,
-            'quantity_in': 1.0,
+            'quantity_in': quantity,
             'quantity_out': 0.0,
             'unit_cost': self.unit_price,
             'reference': reference,
@@ -415,7 +460,7 @@ class MesobInventoryReceivingLine(models.Model):
         })
 
         # Create FIFO layer
-        self.create_fifo_layer_for_receipt(stock_record.id, item_id, 1.0, self.unit_price)
+        self.create_fifo_layer_for_receipt(stock_record.id, item_id, quantity, self.unit_price)
 
     def create_fifo_layer_for_receipt(self, stock_record_id, item_id, quantity, unit_cost):
         """Create FIFO layer for receipt transaction.

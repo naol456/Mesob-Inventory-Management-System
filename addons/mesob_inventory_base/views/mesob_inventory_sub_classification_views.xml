@@ -111,12 +111,13 @@
                         </group>
                         <group string="Status &amp; Statistics">
                             <field name="item_count" string="Total Items Linked" readonly="1"/>
+                            <field name="is_fixed_asset" readonly="1"/>
                             <field name="active" readonly="1"/>
                         </group>
                     </group>
 
                     <notebook>
-                        <page string="📋 Individual Items" name="items_list">
+                        <page string="📋 Individual Items" name="items_list" invisible="not is_fixed_asset">
                             <field name="item_ids" readonly="1">
                                 <list string="Items">
                                     <field name="name" string="Item Name"/>
@@ -181,6 +182,7 @@
                             <field name="name"/>
                         </group>
                         <group string="Status">
+                            <field name="is_fixed_asset"/>
                             <field name="active"/>
                         </group>
                     </group>
@@ -211,12 +213,13 @@
                         </group>
                         <group string="Status &amp; Statistics">
                             <field name="item_count" string="Total Items Linked" readonly="1"/>
+                            <field name="is_fixed_asset" readonly="1"/>
                             <field name="active" readonly="1"/>
                         </group>
                     </group>
 
                     <notebook>
-                        <page string="📋 Individual Items" name="items_list">
+                        <page string="📋 Individual Items" name="items_list" invisible="not is_fixed_asset">
                             <field name="item_ids" readonly="1">
                                 <list string="Items">
                                     <field name="name" string="Item Name"/>
