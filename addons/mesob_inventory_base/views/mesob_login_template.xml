@@ -12,7 +12,7 @@
                             <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="Mesob Logo" class="mesob_logo"/>
                         </div>
                         <h1 class="mesob_title">Mesob</h1>
-                        <p class="mesob_subtitle">Enterprise Inventory System</p>
+                        <p class="mesob_subtitle">Inventory management system</p>
                     </div>
                     <div t-attf-class="card border-0 mx-auto bg-100 {{login_card_classes}} o_database_list" style="max-width: 300px;">
                         <div class="card-body">
