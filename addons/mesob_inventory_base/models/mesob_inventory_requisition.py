@@ -1,5 +1,6 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError
+from lxml import etree
 
 
 class MesobInventoryRequisition(models.Model):
@@ -132,6 +133,45 @@ class MesobInventoryRequisition(models.Model):
         for record in self:
             record.issue_voucher_count = len(record.issue_voucher_ids)
 
+    # ── View Customization ──────────────────────────────────────────────
+
+    @api.model
+    def get_view(self, view_id=None, view_type="form", **options):
+        """Hide New button for PAO and Storekeeper on both list and form views.
+
+        Only staff (group_mesob_inventory_user) may create requisitions.
+
+        - list view:  create="0" removes the toolbar New button.
+        - form view:  create="0" removes the New button in the breadcrumb
+                      pager (the one visible when browsing an existing record).
+
+        Uses lxml to safely set the attribute on the root node instead of
+        fragile string replacement.
+        """
+        result = super().get_view(view_id, view_type, **options)
+
+        if view_type in ("list", "form"):
+            user = self.env.user
+            is_pao = user.has_group("mesob_inventory_base.group_mesob_pao")
+            is_storekeeper = user.has_group(
+                "mesob_inventory_base.group_mesob_storekeeper"
+            )
+            is_stock_clerk = user.has_group(
+                "mesob_inventory_base.group_mesob_stock_clerk"
+            )
+
+            if is_pao or is_storekeeper or is_stock_clerk:
+                arch = result.get("arch", "")
+                if isinstance(arch, str):
+                    arch = arch.encode("utf-8")
+                root = etree.fromstring(arch)
+                root.set("create", "0")
+                result["arch"] = etree.tostring(
+                    root, encoding="unicode", pretty_print=False
+                )
+
+        return result
+
     # ── Actions ─────────────────────────────────────────────────────────
 
     def action_submit(self):
@@ -178,11 +218,11 @@ class MesobInventoryRequisition(models.Model):
     def action_cancel(self):
         """Cancel the requisition."""
         for record in self:
-            if record.state in ("cancelled",):
+            if record.state == "cancelled":
                 raise UserError("Requisition is already cancelled.")
             if record.state in ("issued", "received"):
                 raise UserError(
-                    "Cannot cancel requisition that has been issued. "
+                    "Cannot cancel a requisition that has been issued. "
                     "Please cancel the issue voucher first."
                 )
             record.state = "cancelled"
@@ -191,98 +231,116 @@ class MesobInventoryRequisition(models.Model):
     def action_create_issue_voucher(self):
         """Create Issue Voucher (Model 22) from approved requisition."""
         self.ensure_one()
-        
+
         if self.state != "approved":
             raise UserError("Only approved requisitions can generate issue vouchers.")
-        
+
         if not self.line_ids:
             raise UserError("Cannot create issue voucher: no requisition lines found.")
-        
-        # Create issue voucher
+
         voucher_vals = {
             "requisition_id": self.id,
             "issue_date": fields.Date.today(),
             "issued_by_id": self.env.user.id,
             "line_ids": [],
         }
-        
-        # Copy requisition lines to issue voucher lines
+
         for req_line in self.line_ids:
-            # If line has specific item, use it
+
+            # ── Case 1: specific item on the line ──────────────────────
             if req_line.item_id:
                 voucher_vals["line_ids"].append((0, 0, {
                     "item_id": req_line.item_id.id,
                     "quantity_issued": req_line.quantity,
-                    "uom_id": req_line.uom_id.id if req_line.uom_id else req_line.item_id.uom_id.id,
+                    "uom_id": (
+                        req_line.uom_id.id
+                        if req_line.uom_id
+                        else req_line.item_id.uom_id.id
+                    ),
                     "note": req_line.note,
                 }))
-            # If line has classifications, find available items
+
+            # ── Case 2: classification-only line ───────────────────────
             elif req_line.major_classification_id:
-                # Build domain for finding items
                 domain = [
-                    ('classification_id', '=', req_line.major_classification_id.id),
-                    ('active', '=', True)
+                    ("classification_id", "=", req_line.major_classification_id.id),
+                    ("active", "=", True),
                 ]
                 if req_line.sub_classification_id:
-                    domain.append(('sub_classification_id', '=', req_line.sub_classification_id.id))
-                
-                # Find all items matching the classification
-                all_items = self.env['mesob.inventory.item'].search(domain)
-                
+                    domain.append((
+                        "sub_classification_id",
+                        "=",
+                        req_line.sub_classification_id.id,
+                    ))
+
+                all_items = self.env["mesob.inventory.item"].search(domain)
+
                 if not all_items:
+                    sub_label = (
+                        f" / Sub {req_line.sub_classification_id.name}"
+                        if req_line.sub_classification_id
+                        else ""
+                    )
                     raise UserError(
                         f"No items found for Major Classification "
-                        f"'{req_line.major_classification_id.name}'"
-                        f"{(' / Sub ' + req_line.sub_classification_id.name) if req_line.sub_classification_id else ''}. "
-                        f"Please receive items first before creating issue voucher."
+                        f"'{req_line.major_classification_id.name}'{sub_label}. "
+                        "Please receive items first before creating an issue voucher."
                     )
-                
-                # Filter out already issued items
-                # Get items that have NOT been issued yet
-                issued_item_ids = self.env['mesob.inventory.issue.voucher.line'].search([
-                    ('voucher_id.state', 'in', ['issued', 'received'])
-                ]).mapped('item_id').ids
-                
-                available_items = all_items.filtered(lambda i: i.id not in issued_item_ids)
-                
+
+                issued_item_ids = (
+                    self.env["mesob.inventory.issue.voucher.line"]
+                    .search([("voucher_id.state", "in", ["issued", "received"])])
+                    .mapped("item_id")
+                    .ids
+                )
+
+                available_items = all_items.filtered(
+                    lambda i: i.id not in issued_item_ids
+                )
+
                 if not available_items:
+                    sub_label = (
+                        f" / Sub {req_line.sub_classification_id.name}"
+                        if req_line.sub_classification_id
+                        else ""
+                    )
                     raise UserError(
                         f"No available items found for classification "
-                        f"'{req_line.major_classification_id.name}'"
-                        f"{(' / Sub ' + req_line.sub_classification_id.name) if req_line.sub_classification_id else ''}. "
-                        f"All items ({len(all_items)}) have already been issued."
+                        f"'{req_line.major_classification_id.name}'{sub_label}. "
+                        f"All {len(all_items)} item(s) have already been issued."
                     )
-                
-                # Limit to requested quantity
-                available_items = available_items[:int(req_line.quantity)]
-                
+
+                available_items = available_items[: int(req_line.quantity)]
+
                 if len(available_items) < req_line.quantity:
                     raise UserError(
                         f"Not enough available items for classification "
                         f"'{req_line.major_classification_id.name}'. "
-                        f"Requested: {int(req_line.quantity)}, Available: {len(available_items)}, "
+                        f"Requested: {int(req_line.quantity)}, "
+                        f"Available: {len(available_items)}, "
                         f"Total: {len(all_items)}."
                     )
-                
-                # Create issue line for each available item
+
                 for item in available_items:
                     voucher_vals["line_ids"].append((0, 0, {
                         "item_id": item.id,
-                        "quantity_issued": 1.0,  # One unit per item
-                        "uom_id": item.uom_id.id if item.uom_id else req_line.uom_id.id,
+                        "quantity_issued": 1.0,
+                        "uom_id": (
+                            item.uom_id.id if item.uom_id else req_line.uom_id.id
+                        ),
                         "note": req_line.note,
                     }))
+
+            # ── Case 3: invalid line ────────────────────────────────────
             else:
                 raise UserError(
-                    "Invalid requisition line: must have either a specific item or classifications."
+                    "Invalid requisition line: must have either a specific item "
+                    "or a major classification."
                 )
-        
+
         voucher = self.env["mesob.inventory.issue.voucher"].create(voucher_vals)
-        
-        # Update requisition state
         self.state = "issued"
-        
-        # Return action to open the new voucher
+
         return {
             "name": "Issue Voucher",
             "type": "ir.actions.act_window",

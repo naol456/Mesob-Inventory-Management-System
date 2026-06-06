@@ -205,5 +205,4 @@
         <field name="res_model">mesob.inventory.issue.voucher</field>
         <field name="view_mode">list,form</field>
     </record>
-
 </odoo>
