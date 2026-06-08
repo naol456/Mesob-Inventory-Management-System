@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<!-- ══════════════════════════════════════════════════════
+     4.8  STOCK TAKING
+     ══════════════════════════════════════════════════════ -->
+
+    <!-- Line subview -->
+    <record id="mesob_stock_taking_line_list_view" model="ir.ui.view">
+        <field name="name">mesob.stock.taking.line.list</field>
+        <field name="model">mesob.stock.taking.line</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="product_id"/>
+                <field name="location_id"/>
+                <field name="uom_id" optional="show"/>
+                <field name="theoretical_qty"/>
+                <field name="counted_qty"/>
+                <field name="difference" readonly="1"/>
+                <field name="is_counted"/>
+                <field name="discrepancy_reason"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form -->
+    <record id="mesob_stock_taking_form_view" model="ir.ui.view">
+        <field name="name">mesob.stock.taking.form</field>
+        <field name="model">mesob.stock.taking</field>
+        <field name="arch" type="xml">
+            <form string="Stock Taking">
+                <header>
+                    <button name="action_start_taking" string="Start Taking"
+                            type="object" invisible="state != 'draft'"/>
+                    <button name="action_complete" string="Complete"
+                            type="object" invisible="state != 'in_progress'"
+                            class="btn-primary"/>
+                    <button name="action_cancel" string="Cancel"
+                            type="object" invisible="state in ('done','cancel')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,in_progress,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="General">
+                            <field name="taking_type"/>
+                            <field name="date"/>
+                            <field name="responsible_id"/>
+                        </group>
+                        <group string="Schedule">
+                            <field name="start_time"/>
+                            <field name="end_time"/>
+                            <field name="training_done"/>
+                        </group>
+                    </group>
+                    <group string="Summary" invisible="state == 'draft'">
+                        <field name="total_lines"/>
+                        <field name="discrepancy_count"/>
+                    </group>
+                    <notebook>
+                        <page string="Stock Lines">
+                            <field name="line_ids"/>
+                        </page>
+                        <page string="Instructions / Notes">
+                            <field name="instructions"
+                                   placeholder="PAO instructions for this stock taking..."/>
+                            <field name="note" placeholder="Additional notes..."/>
+                        </page>
+                        <page string="Team (FR-ST-009)">
+                            <group>
+                                <group string="Stock Taking Team (Storekeepers excluded)">
+                                    <field name="team_ids" nolabel="1"
+                                           widget="many2many_tags"/>
+                                </group>
+                                <group string="Storekeeper Guides / Witnesses">
+                                    <field name="guide_ids" nolabel="1"
+                                           widget="many2many_tags"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- List -->
+    <record id="mesob_stock_taking_list_view" model="ir.ui.view">
+        <field name="name">mesob.stock.taking.list</field>
+        <field name="model">mesob.stock.taking</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="taking_type"/>
+                <field name="date"/>
+                <field name="responsible_id"/>
+                <field name="total_lines"/>
+                <field name="discrepancy_count"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search -->
+    <record id="mesob_stock_taking_search_view" model="ir.ui.view">
+        <field name="name">mesob.stock.taking.search</field>
+        <field name="model">mesob.stock.taking</field>
+        <field name="arch" type="xml">
+            <search string="Search Stock Taking">
+                <field name="name"/>
+                <field name="responsible_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="mesob_stock_taking_action" model="ir.actions.act_window">
+        <field name="name">Stock Taking</field>
+        <field name="res_model">mesob.stock.taking</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+<!-- ══════════════════════════════════════════════════════
+     4.9  HANDOVER / TAKEOVER
+     ══════════════════════════════════════════════════════ -->
+
+    <record id="mesob_stock_handover_form_view" model="ir.ui.view">
+        <field name="name">mesob.stock.handover.form</field>
+        <field name="model">mesob.stock.handover</field>
+        <field name="arch" type="xml">
+            <form string="Stock Handover Certificate">
+                <header>
+                    <button name="action_start" string="Start Handover"
+                            type="object" invisible="state != 'draft'"
+                            class="btn-primary"/>
+                    <button name="action_certify" string="Certify"
+                            type="object" invisible="state != 'in_progress'"
+                            class="btn-primary"/>
+                    <button name="action_cancel" string="Cancel"
+                            type="object" invisible="state in ('certified','cancel')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,in_progress,certified"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Handover Details">
+                            <field name="trigger_reason"/>
+                            <field name="date"/>
+                            <field name="pao_id"/>
+                        </group>
+                        <group string="Parties">
+                            <field name="outgoing_storekeeper_id"/>
+                            <field name="incoming_storekeeper_id"/>
+                            <field name="witness_id"/>
+                        </group>
+                    </group>
+                    <group string="Linked Stock Taking">
+                        <field name="stock_taking_id"/>
+                    </group>
+                    <notebook>
+                        <page string="Copy Distribution (FR-HO-003)">
+                            <group>
+                                <field name="pao_copy_sent"/>
+                                <field name="incoming_copy_sent"/>
+                                <field name="outgoing_copy_sent"/>
+                            </group>
+                        </page>
+                        <page string="Notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="mesob_stock_handover_list_view" model="ir.ui.view">
+        <field name="name">mesob.stock.handover.list</field>
+        <field name="model">mesob.stock.handover</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="date"/>
+                <field name="trigger_reason"/>
+                <field name="outgoing_storekeeper_id"/>
+                <field name="incoming_storekeeper_id"/>
+                <field name="witness_id"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="mesob_stock_handover_action" model="ir.actions.act_window">
+        <field name="name">Handover / Takeover</field>
+        <field name="res_model">mesob.stock.handover</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+<!-- ══════════════════════════════════════════════════════
+     4.10  STOCK CONTROL
+     ══════════════════════════════════════════════════════ -->
+
+    <record id="mesob_stock_control_form_view" model="ir.ui.view">
+        <field name="name">mesob.stock.control.form</field>
+        <field name="model">mesob.stock.control</field>
+        <field name="arch" type="xml">
+            <form string="Stock Control Levels">
+                <sheet>
+                    <group>
+                        <group string="Item">
+                            <field name="product_id"/>
+                            <field name="location_id"/>
+                            <field name="abc_class"/>
+                            <field name="qty_on_hand"/>
+                            <field name="alert_level"/>
+                        </group>
+                        <group string="Control Levels (FR-SC-001)">
+                            <field name="safety_stock"/>
+                            <field name="min_qty"/>
+                            <field name="reorder_qty"/>
+                            <field name="hastening_qty"/>
+                            <field name="max_qty"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Lead Times (FR-SC-002)">
+                            <field name="admin_lead_time"/>
+                            <field name="supplier_lead_time"/>
+                            <field name="total_lead_time"/>
+                        </group>
+                        <group string="Review Schedule (FR-SC-004)">
+                            <field name="review_frequency"/>
+                            <field name="last_review_date"/>
+                            <field name="next_review_date"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="note" nolabel="1"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="mesob_stock_control_list_view" model="ir.ui.view">
+        <field name="name">mesob.stock.control.list</field>
+        <field name="model">mesob.stock.control</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="product_id"/>
+                <field name="location_id"/>
+                <field name="abc_class"/>
+                <field name="qty_on_hand"/>
+                <field name="min_qty"/>
+                <field name="reorder_qty"/>
+                <field name="max_qty"/>
+                <field name="total_lead_time"/>
+                <field name="alert_level"/>
+                <field name="next_review_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="mesob_stock_control_search_view" model="ir.ui.view">
+        <field name="name">mesob.stock.control.search</field>
+        <field name="model">mesob.stock.control</field>
+        <field name="arch" type="xml">
+            <search string="Search Stock Control">
+                <field name="product_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="mesob_stock_control_action" model="ir.actions.act_window">
+        <field name="name">Stock Control Levels</field>
+        <field name="res_model">mesob.stock.control</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+<!-- ══════════════════════════════════════════════════════
+     4.7  REPORTING
+     ══════════════════════════════════════════════════════ -->
+
+    <record id="mesob_stock_report_list_view" model="ir.ui.view">
+        <field name="name">mesob.stock.report.list</field>
+        <field name="model">mesob.stock.report</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="taking_name"/>
+                <field name="taking_date"/>
+                <field name="taking_type"/>
+                <field name="taking_state"/>
+                <field name="product_id"/>
+                <field name="location_id"/>
+                <field name="theoretical_qty"/>
+                <field name="counted_qty"/>
+                <field name="difference"/>
+                <field name="discrepancy_reason"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="mesob_stock_report_search_view" model="ir.ui.view">
+        <field name="name">mesob.stock.report.search</field>
+        <field name="model">mesob.stock.report</field>
+        <field name="arch" type="xml">
+            <search string="Search Discrepancy Report">
+                <field name="product_id"/>
+                <field name="taking_name"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="mesob_stock_report_pivot_view" model="ir.ui.view">
+        <field name="name">mesob.stock.report.pivot</field>
+        <field name="model">mesob.stock.report</field>
+        <field name="arch" type="xml">
+            <pivot string="Discrepancy Report">
+                <field name="taking_date" type="row"/>
+                <field name="product_id"  type="row"/>
+                <field name="difference"  type="measure"/>
+                <field name="theoretical_qty" type="measure"/>
+                <field name="counted_qty"     type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="mesob_stock_report_graph_view" model="ir.ui.view">
+        <field name="name">mesob.stock.report.graph</field>
+        <field name="model">mesob.stock.report</field>
+        <field name="arch" type="xml">
+            <graph string="Discrepancy Chart" type="bar">
+                <field name="product_id" type="row"/>
+                <field name="difference" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="mesob_stock_report_action" model="ir.actions.act_window">
+        <field name="name">Discrepancy Report</field>
+        <field name="res_model">mesob.stock.report</field>
+        <field name="view_mode">list,pivot,graph</field>
+    </record>
+
+
+<!-- ══════════════════════════════════════════════════════
+     MENUS — under Mesob Inventory (mesob_inventory_base)
+     ══════════════════════════════════════════════════════ -->
+
+    <!-- Operations submenu items (alongside Requisitions) -->
+    <menuitem id="mesob_stock_taking_menu"
+              name="Stock Taking"
+              parent="mesob_inventory_base.menu_mesob_inventory_operations"
+              action="mesob_stock_taking_action"
+              sequence="10"/>
+
+    <menuitem id="mesob_stock_handover_menu"
+              name="Handover / Takeover"
+              parent="mesob_inventory_base.menu_mesob_inventory_operations"
+              action="mesob_stock_handover_action"
+              sequence="11"/>
+
+    <menuitem id="mesob_stock_control_menu"
+              name="Stock Control Levels"
+              parent="mesob_inventory_base.menu_mesob_inventory_operations"
+              action="mesob_stock_control_action"
+              sequence="12"/>
+
+    <!-- Reporting submenu (new) -->
+    <menuitem id="menu_mesob_reporting"
+              name="Reporting"
+              parent="mesob_inventory_base.menu_mesob_inventory_root"
+              sequence="30"/>
+
+    <menuitem id="mesob_stock_report_menu"
+              name="Discrepancy Report"
+              parent="menu_mesob_reporting"
+              action="mesob_stock_report_action"
+              sequence="10"/>
+
+</odoo>

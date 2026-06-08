@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mesob_stock_taking_manager,mesob.stock.taking.manager,model_mesob_stock_taking,stock.group_stock_manager,1,1,1,1
+access_mesob_stock_taking_user,mesob.stock.taking.user,model_mesob_stock_taking,stock.group_stock_user,1,1,0,0
+access_mesob_stock_taking_line_manager,mesob.stock.taking.line.manager,model_mesob_stock_taking_line,stock.group_stock_manager,1,1,1,1
+access_mesob_stock_taking_line_user,mesob.stock.taking.line.user,model_mesob_stock_taking_line,stock.group_stock_user,1,1,0,0
+access_mesob_stock_handover_manager,mesob.stock.handover.manager,model_mesob_stock_handover,stock.group_stock_manager,1,1,1,1
+access_mesob_stock_handover_user,mesob.stock.handover.user,model_mesob_stock_handover,stock.group_stock_user,1,0,0,0
+access_mesob_stock_control_manager,mesob.stock.control.manager,model_mesob_stock_control,stock.group_stock_manager,1,1,1,1
+access_mesob_stock_control_user,mesob.stock.control.user,model_mesob_stock_control,stock.group_stock_user,1,0,0,0
+access_mesob_stock_report_manager,mesob.stock.report.manager,model_mesob_stock_report,stock.group_stock_manager,1,0,0,0
+access_mesob_stock_report_user,mesob.stock.report.user,model_mesob_stock_report,stock.group_stock_user,1,0,0,0

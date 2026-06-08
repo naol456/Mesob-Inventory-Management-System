@@ -1,0 +1,5 @@
+<odoo>
+    <!-- Menu -->
+    <menuitem id="mesob_stock_taking_menu_root" name="Stock Taking" parent="stock.menu_stock_root"/>
+    <menuitem id="mesob_stock_taking_menu" name="Stock Taking" parent="mesob_stock_taking_menu_root" action="mesob_stock_taking_action"/>
+</odoo>
