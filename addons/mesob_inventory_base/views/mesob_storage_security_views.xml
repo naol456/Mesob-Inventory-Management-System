@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ==================== STORAGE PLANS ==================== -->
+    <record id="view_mesob_storage_plan_tree" model="ir.ui.view">
+        <field name="name">mesob.storage.plan.tree</field>
+        <field name="model">mesob.storage.plan</field>
+        <field name="arch" type="xml">
+            <list string="Warehouse Storage Plans">
+                <field name="name"/>
+                <field name="aisles"/>
+                <field name="gates_count"/>
+                <field name="state" widget="badge" decoration-success="state == 'approved'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_storage_plan_form" model="ir.ui.view">
+        <field name="name">mesob.storage.plan.form</field>
+        <field name="model">mesob.storage.plan</field>
+        <field name="arch" type="xml">
+            <form string="Storage Plan &amp; Layout">
+                <header>
+                    <button name="action_approve" string="Approve Layout Plan" type="object" class="oe_highlight" invisible="state == 'approved'" groups="mesob_inventory_base.group_mesob_pao"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approved"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" readonly="state == 'approved'"/>
+                            <field name="aisles" readonly="state == 'approved'"/>
+                        </group>
+                        <group>
+                            <field name="gates_count" readonly="state == 'approved'"/>
+                            <field name="layout_file" filename="name" readonly="state == 'approved'"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="description" readonly="state == 'approved'"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== KEY CUSTODY REGISTER ==================== -->
+    <record id="view_mesob_storage_key_register_tree" model="ir.ui.view">
+        <field name="name">mesob.storage.key.register.tree</field>
+        <field name="model">mesob.storage.key.register</field>
+        <field name="arch" type="xml">
+            <list string="Key Custody Ledger">
+                <field name="name"/>
+                <field name="key_id"/>
+                <field name="collected_by_id"/>
+                <field name="collected_at"/>
+                <field name="deposited_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_storage_key_register_form" model="ir.ui.view">
+        <field name="name">mesob.storage.key.register.form</field>
+        <field name="model">mesob.storage.key.register</field>
+        <field name="arch" type="xml">
+            <form string="Key Custody Transaction">
+                <header>
+                    <button name="action_deposit_keys" string="Deposit Keys Back" type="object" class="oe_highlight" invisible="deposited_at != False"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="key_id"/>
+                            <field name="collected_by_id"/>
+                        </group>
+                        <group>
+                            <field name="collected_at"/>
+                            <field name="deposited_at" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="notes" placeholder="Enter any custody remarks/notes..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== VISITOR ACCESS LOGS ==================== -->
+    <record id="view_mesob_storage_visitor_log_tree" model="ir.ui.view">
+        <field name="name">mesob.storage.visitor.log.tree</field>
+        <field name="model">mesob.storage.visitor.log</field>
+        <field name="arch" type="xml">
+            <list string="Visitor Entry Logs">
+                <field name="name"/>
+                <field name="visitor_name"/>
+                <field name="organization"/>
+                <field name="purpose"/>
+                <field name="entry_time"/>
+                <field name="exit_time"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_storage_visitor_log_form" model="ir.ui.view">
+        <field name="name">mesob.storage.visitor.log.form</field>
+        <field name="model">mesob.storage.visitor.log</field>
+        <field name="arch" type="xml">
+            <form string="Visitor Entry Record">
+                <header>
+                    <button name="action_exit" string="Log Visitor Exit" type="object" class="oe_highlight" invisible="exit_time != False"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="visitor_name"/>
+                            <field name="organization"/>
+                        </group>
+                        <group>
+                            <field name="entry_time"/>
+                            <field name="exit_time" readonly="1"/>
+                            <field name="security_escort_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="purpose"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== SAFETY CHECKLISTS ==================== -->
+    <record id="view_mesob_storage_safety_checklist_tree" model="ir.ui.view">
+        <field name="name">mesob.storage.safety.checklist.tree</field>
+        <field name="model">mesob.storage.safety.checklist</field>
+        <field name="arch" type="xml">
+            <list string="Warehouse Safety Inspections">
+                <field name="name"/>
+                <field name="inspector_id"/>
+                <field name="date"/>
+                <field name="has_fire_extinguishers_checked"/>
+                <field name="has_ppe_available"/>
+                <field name="has_first_aid_kit"/>
+                <field name="has_emergency_exits_clear"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_storage_safety_checklist_form" model="ir.ui.view">
+        <field name="name">mesob.storage.safety.checklist.form</field>
+        <field name="model">mesob.storage.safety.checklist</field>
+        <field name="arch" type="xml">
+            <form string="Safety Inspection Checklist">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="inspector_id"/>
+                            <field name="date"/>
+                        </group>
+                        <group string="Inspection Audits (FR-STOR-005/006)">
+                            <field name="has_fire_extinguishers_checked"/>
+                            <field name="has_ppe_available"/>
+                            <field name="has_first_aid_kit"/>
+                            <field name="has_emergency_exits_clear"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="remarks" placeholder="Observations, recommendations or corrective actions taken..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== ACTIONS ==================== -->
+    <record id="action_mesob_storage_plan" model="ir.actions.act_window">
+        <field name="name">Storage Plans &amp; Layouts</field>
+        <field name="res_model">mesob.storage.plan</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_mesob_storage_key_register" model="ir.actions.act_window">
+        <field name="name">Key Custody Register</field>
+        <field name="res_model">mesob.storage.key.register</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_mesob_storage_visitor_log" model="ir.actions.act_window">
+        <field name="name">Visitor Entry Logs</field>
+        <field name="res_model">mesob.storage.visitor.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_mesob_storage_safety_checklist" model="ir.actions.act_window">
+        <field name="name">Safety Inspections</field>
+        <field name="res_model">mesob.storage.safety.checklist</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ==================== MENU ITEMS ==================== -->
+    <menuitem id="menu_mesob_storage_security_root"
+              name="Storage, Safety &amp; Security"
+              parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper"
+              sequence="30"/>
+
+    <menuitem id="menu_mesob_storage_plan"
+              name="Layout Plans"
+              parent="menu_mesob_storage_security_root"
+              action="action_mesob_storage_plan"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_storage_key_register"
+              name="Key Custody Ledger"
+              parent="menu_mesob_storage_security_root"
+              action="action_mesob_storage_key_register"
+              sequence="20"/>
+
+    <menuitem id="menu_mesob_storage_visitor_log"
+              name="Visitor Logbook"
+              parent="menu_mesob_storage_security_root"
+              action="action_mesob_storage_visitor_log"
+              sequence="30"/>
+
+    <menuitem id="menu_mesob_storage_safety_checklist"
+              name="Safety &amp; Fire Inspections"
+              parent="menu_mesob_storage_security_root"
+              action="action_mesob_storage_safety_checklist"
+              sequence="40"/>
+</odoo>

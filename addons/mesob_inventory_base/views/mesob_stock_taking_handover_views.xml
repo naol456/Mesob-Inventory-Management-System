@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ==================== STOCK TAKING EVENTS ==================== -->
+    <record id="view_mesob_stock_taking_tree" model="ir.ui.view">
+        <field name="name">mesob.stock.taking.tree</field>
+        <field name="model">mesob.stock.taking</field>
+        <field name="arch" type="xml">
+            <list string="Stock-Taking Events">
+                <field name="name"/>
+                <field name="pao_id"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="is_pre_training_done"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_stock_taking_form" model="ir.ui.view">
+        <field name="name">mesob.stock.taking.form</field>
+        <field name="model">mesob.stock.taking</field>
+        <field name="arch" type="xml">
+            <form string="Stock-Taking Event">
+                <header>
+                    <button name="action_start_stock_taking" string="Start Stock-Take" type="object" class="oe_highlight" invisible="state != 'draft'" groups="mesob_inventory_base.group_mesob_pao"/>
+                    <button name="action_complete_and_reconcile" string="Complete &amp; Reconcile" type="object" class="oe_highlight" invisible="state != 'ongoing'" groups="mesob_inventory_base.group_mesob_pao"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,ongoing,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="pao_id" readonly="state != 'draft'"/>
+                            <field name="date_start" readonly="state != 'draft'"/>
+                            <field name="date_end" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="is_pre_training_done" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Team Assignment" name="team">
+                            <group>
+                                <field name="team_member_ids" widget="many2many_tags" readonly="state != 'draft'"/>
+                                <field name="guide_storekeeper_ids" widget="many2many_tags" readonly="state != 'draft'"/>
+                            </group>
+                            <group>
+                                <field name="instructions" readonly="state != 'draft'"/>
+                            </group>
+                        </page>
+                        <page string="Stock taking Sheets" name="sheets">
+                            <field name="line_ids" readonly="state != 'ongoing'">
+                                <list editable="bottom" create="false" delete="false">
+                                    <field name="serial_number" readonly="1"/>
+                                    <field name="item_id" readonly="1"/>
+                                    <field name="item_code" readonly="1"/>
+                                    <field name="location_label" readonly="1"/>
+                                    <field name="recorded_qty" readonly="1"/>
+                                    <field name="physical_qty"/>
+                                    <field name="discrepancy" readonly="1"/>
+                                    <field name="is_counted"/>
+                                    <field name="discrepancy_reason"/>
+                                    <field name="corrective_action"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== STOCK HANDOVER ==================== -->
+    <record id="view_mesob_stock_handover_tree" model="ir.ui.view">
+        <field name="name">mesob.stock.handover.tree</field>
+        <field name="model">mesob.stock.handover</field>
+        <field name="arch" type="xml">
+            <list string="Storekeeper Handovers">
+                <field name="name"/>
+                <field name="trigger_event"/>
+                <field name="outgoing_storekeeper_id"/>
+                <field name="incoming_storekeeper_id"/>
+                <field name="witness_id"/>
+                <field name="date"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_stock_handover_form" model="ir.ui.view">
+        <field name="name">mesob.stock.handover.form</field>
+        <field name="model">mesob.stock.handover</field>
+        <field name="arch" type="xml">
+            <form string="Storekeeper Stock Handover">
+                <header>
+                    <button name="action_start_counting" string="Generate Handover Sheet" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_sign_handover" string="Sign Custody" type="object" class="oe_highlight" invisible="state != 'counting'"/>
+                    <button name="action_finalize_handover" string="Complete Handover" type="object" class="oe_highlight" invisible="state != 'signed'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,counting,signed,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="outgoing_storekeeper_id" readonly="state != 'draft'"/>
+                            <field name="incoming_storekeeper_id" readonly="state != 'draft'"/>
+                            <field name="trigger_event" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="witness_id" readonly="state != 'draft'"/>
+                            <field name="date" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Handover Custody Certificate" name="cert">
+                            <field name="certificate" placeholder="Certificate statement..." readonly="state != 'draft'"/>
+                        </page>
+                        <page string="Stock Sheets" name="sheets">
+                            <field name="line_ids" readonly="state != 'counting'">
+                                <list editable="bottom" create="false" delete="false">
+                                    <field name="item_id" readonly="1"/>
+                                    <field name="item_code" readonly="1"/>
+                                    <field name="system_qty" readonly="1"/>
+                                    <field name="counted_qty"/>
+                                    <field name="discrepancy" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== ACTIONS ==================== -->
+    <record id="action_mesob_stock_taking" model="ir.actions.act_window">
+        <field name="name">Stock Taking (FR-ST)</field>
+        <field name="res_model">mesob.stock.taking</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_mesob_stock_handover" model="ir.actions.act_window">
+        <field name="name">Storekeeper Handovers (FR-HO)</field>
+        <field name="res_model">mesob.stock.handover</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ==================== MENU ITEMS ==================== -->
+    <menuitem id="menu_mesob_stock_taking_root"
+              name="Stock-Taking &amp; Handovers"
+              parent="menu_mesob_inventory_root"
+              sequence="19"/>
+
+    <menuitem id="menu_mesob_stock_taking_sub"
+              name="Physical Stock Taking"
+              parent="menu_mesob_stock_taking_root"
+              action="action_mesob_stock_taking"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_stock_handover_sub"
+              name="Storekeeper Handovers"
+              parent="menu_mesob_stock_taking_root"
+              action="action_mesob_stock_handover"
+              sequence="20"/>
+</odoo>

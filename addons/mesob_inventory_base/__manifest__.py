@@ -44,6 +44,7 @@
         "data/mesob_issue_voucher_sequence.xml",
         "data/mesob_gate_pass_sequence.xml",
         "data/mesob_reorder_alert_sequence.xml",
+        "data/mesob_procurement_sequences.xml",
         # Company data
         "data/mesob_company_data.xml",
         # Assets (Modern UI Styles)
@@ -64,6 +65,9 @@
         "views/mesob_bin_card_views.xml",
         "views/mesob_stock_record_card_views.xml",
         "views/mesob_stock_reorder_alert_views.xml",
+        "views/mesob_procurement_views.xml",
+        "views/mesob_stock_taking_handover_views.xml",
+        "views/mesob_storage_security_views.xml",
         # Menus
         "views/mesob_inventory_menus.xml",
         # Wizards
