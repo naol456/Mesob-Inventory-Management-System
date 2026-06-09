@@ -43,9 +43,38 @@ class MesobInventoryReceiving(models.Model):
 
     supplier_id = fields.Many2one(
         "res.partner",
-        string="Supplier / Source",
-        help="Supplier or returning department.",
+        string="Supplier",
+        help="Supplier providing the goods.",
         domain="[('is_company', '=', True)]"
+    )
+    
+    department_id = fields.Selection(
+        [
+            ("ministry_transport_logistics", "Ministry of Transport and Logistics"),
+            ("commercial_bank_ethiopia", "Commercial Bank of Ethiopia"),
+            ("ethio_telecom", "Ethio telecom"),
+            ("education_training_authority", "Education and Training Authority"),
+            ("ethiopian_environmental_protection", "Ethiopian Environmental Protection Authority"),
+            ("ethiopian_food_drug_authority", "Ethiopian Food and Drug Authority"),
+            ("ethiopian_agricultural_authority", "Ethiopian Agricultural Authority"),
+            ("ethiopian_construction_authority", "Ethiopian Construction Authority"),
+            ("ministry_health", "Ministry of Health"),
+            ("ethiopian_customs_commission", "Ethiopian Customs Commission"),
+            ("ministry_justice", "Ministry of Justice"),
+            ("ministry_trade_regional_integration", "Ministry of Trade and Regional Integration"),
+            ("ministry_tourism", "Ministry of Tourism"),
+            ("ethiopian_postal_service", "Ethiopian Postal Service Enterprise"),
+            ("ethiopian_investment_commission", "Ethiopian Investment Commission"),
+            ("educational_assessment_examination", "Educational Assessment and Examination Service"),
+            ("documents_authentication_registration", "Documents Authentication and Registration Service"),
+            ("ministry_revenues", "Ministry of Revenues"),
+            ("ministry_foreign_affairs", "Ministry of Foreign Affairs"),
+            ("ministry_labor_skills", "Ministry of Labor and Skills"),
+            ("immigration_citizenship_service", "Immigration and Citizenship Service"),
+            ("national_id_program", "National ID Program"),
+        ],
+        string="Returning Department",
+        help="Department returning the goods.",
     )
 
     purchase_order_ref = fields.Char(
@@ -163,61 +192,19 @@ class MesobInventoryReceiving(models.Model):
     # ── Onchange ───────────────────────────────────────────────────
     @api.onchange("source_type")
     def _onchange_source_type(self):
-        """Auto-set no-payment flag and filter suppliers based on source type.
+        """Auto-set no-payment flag and clear/reset fields based on source type.
         
-        - For 'supplier': Show only companies marked as suppliers (supplier_rank > 0)
-        - For 'dept_return': Show only companies that are departments (not users, not main company)
-        
-        Both modes allow creating new records via quick-create.
+        - For 'supplier': Show supplier_id field, hide department_id
+        - For 'dept_return': Show department_id field, hide supplier_id
         """
-        # Get user partners to exclude (Administrator, jo, lemin, staff, etc.)
-        user_partner_ids = self.env['res.users'].search([]).mapped('partner_id').ids
-        
-        # Get the main company to exclude
-        main_company_id = self.env.company.partner_id.id
-        
         # Auto-set no-payment flag for department returns
         if self.source_type == "dept_return":
             self.is_no_payment = True
-            # Clear supplier if it's a user or main company
-            if self.supplier_id and (self.supplier_id.id in user_partner_ids or self.supplier_id.id == main_company_id):
-                self.supplier_id = False
-            # Return domain: companies only, exclude users and main company
-            return {
-                'domain': {
-                    'supplier_id': [
-                        ('is_company', '=', True),
-                        ('id', 'not in', user_partner_ids + [main_company_id])
-                    ]
-                }
-            }
+            self.supplier_id = False  # Clear supplier when switching to department
         else:
             self.is_no_payment = False
-            # Clear supplier if it's not marked as supplier
-            if self.supplier_id and self.supplier_id.supplier_rank == 0:
-                self.supplier_id = False
-            # Return domain: companies with supplier_rank > 0, exclude users and main company
-            return {
-                'domain': {
-                    'supplier_id': [
-                        ('is_company', '=', True),
-                        ('supplier_rank', '>', 0),
-                        ('id', 'not in', user_partner_ids + [main_company_id])
-                    ]
-                }
-            }
+            self.department_id = False  # Clear department when switching to supplier
     
-    @api.model
-    def create(self, vals):
-        """Ensure supplier has correct flags when creating new partner via quick-create."""
-        rec = super().create(vals)
-        
-        # If supplier_id was just created via quick-create, set supplier_rank
-        if rec.supplier_id and rec.source_type == 'supplier' and rec.supplier_id.supplier_rank == 0:
-            rec.supplier_id.write({'supplier_rank': 1})
-        
-        return rec
-
     # ── Actions ────────────────────────────────────────────────────
 
     @api.model

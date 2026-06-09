@@ -92,4 +92,44 @@
         <field name="perm_unlink">0</field>
     </record>
 
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         Record Rules for Receiving Orders (Model 21)
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Storekeeper: can see all, create, and approve -->
+    <record id="rule_receiving_storekeeper" model="ir.rule">
+        <field name="name">Storekeeper: All Receiving Orders</field>
+        <field name="model_id" ref="model_mesob_inventory_receiving"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_storekeeper')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- PAO: can see all receiving orders, read-only -->
+    <record id="rule_receiving_pao" model="ir.rule">
+        <field name="name">PAO: All Receiving Orders (Read-Only)</field>
+        <field name="model_id" ref="model_mesob_inventory_receiving"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- Stock Clerk: can see all receiving orders, read-only -->
+    <record id="rule_receiving_stock_clerk" model="ir.rule">
+        <field name="name">Stock Clerk: All Receiving Orders (Read-Only)</field>
+        <field name="model_id" ref="model_mesob_inventory_receiving"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_stock_clerk')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
 </odoo>
