@@ -83,6 +83,11 @@ class MesobInventoryItem(models.Model):
     )
     description = fields.Text()
     active = fields.Boolean(default=True)
+    is_surplus = fields.Boolean(
+        string="Is Surplus",
+        default=False,
+        help="Whether this item is flagged as surplus in the Disposal system (BR-PROC-008).",
+    )
 
 
     # ── Unit of Measure ─────────────────────────────────────────────────
@@ -349,6 +354,30 @@ class MesobInventoryItem(models.Model):
                 item.stock_status = 'high'
             else:
                 item.stock_status = 'normal'
+
+            # FR-PROC-029: Auto-generate draft Purchase Requisition (need) upon reorder trigger
+            if item.reorder_level > 0 and current <= item.reorder_level:
+                # Check for outstanding open POs for this item code to prevent duplicate ordering
+                outstanding_pos = self.env['mesob.procurement.order.line'].search([
+                    ('item_id', '=', item.id),
+                    ('order_id.state', 'in', ['draft', 'pending', 'approved', 'sent'])
+                ])
+                if not outstanding_pos:
+                    # Search if need already exists in draft to avoid duplication
+                    existing_need = self.env['mesob.procurement.need'].search([
+                        ('item_id', '=', item.id),
+                        ('state', '=', 'draft')
+                    ])
+                    if not existing_need:
+                        # Auto-create draft need request
+                        self.env['mesob.procurement.need'].create({
+                            'department': 'ministry_transport_logistics', # default department fallback
+                            'item_id': item.id,
+                            'quantity': max(1.0, item.reorder_level - current),
+                            'estimated_unit_price': 100.0, # default estimate
+                            'expected_delivery_period': 'Auto-Reorder Lead Period',
+                            'state': 'draft'
+                        })
 
     def _compute_issue_status(self):
         for rec in self:

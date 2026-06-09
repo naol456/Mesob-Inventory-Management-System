@@ -15,4 +15,8 @@ from . import mesob_gate_pass
 from . import mesob_gate_pass_line
 from . import mesob_bin_card
 from . import mesob_stock_record_card
-from . import mesob_stock_reorder_alert 
+from . import mesob_stock_reorder_alert
+from . import res_partner
+from . import mesob_procurement
+from . import mesob_stock_taking
+from . import mesob_stock_handover
