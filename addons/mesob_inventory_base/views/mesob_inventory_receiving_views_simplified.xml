@@ -40,20 +40,25 @@
                 <header>
                     <button name="action_receive" type="object" string="✓ Mark as Received"
                             class="btn-primary"
-                            invisible="state != 'draft'"/>
+                            invisible="state != 'draft'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
                     <button name="action_start_inspection" type="object"
                             string="🔍 Start Inspection"
                             class="btn-primary"
-                            invisible="state != 'received'"/>
+                            invisible="state != 'received'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
                     <button name="action_accept" type="object" string="✓ Accept Items"
                             class="btn-success"
-                            invisible="state != 'inspecting'"/>
+                            invisible="state != 'inspecting'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
                     <button name="action_reject" type="object" string="✗ Reject Items"
                             class="btn-danger"
-                            invisible="state != 'inspecting'"/>
+                            invisible="state != 'inspecting'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
                     <button name="action_done" type="object" string="Finalize"
                             class="btn-primary"
-                            invisible="state not in ('accepted', 'rejected')"/>
+                            invisible="state not in ('accepted', 'rejected')"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,received,inspecting,accepted,done"/>
                 </header>
@@ -95,9 +100,15 @@
                                    readonly="state != 'draft'"/>
                             <field name="supplier_id" 
                                    string="From"
-                                   placeholder="Select supplier or department..."
+                                   placeholder="Type to create new or search existing..."
                                    readonly="state != 'draft'"
-                                   options="{'no_create': True}"/>
+                                   options="{'no_open': True, 'no_quick_create': False}"
+                                   context="{
+                                       'default_is_company': True,
+                                       'default_company_type': 'company',
+                                       'default_supplier_rank': 1 if source_type == 'supplier' else 0,
+                                       'show_address': 1
+                                   }"/>
                             <field name="purchase_order_ref" 
                                    placeholder="e.g., PO-2026-001 or Packing Slip #123"
                                    readonly="state != 'draft'"/>

@@ -1,5 +1,6 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError
+from lxml import etree
 
 
 class MesobInventoryReceiving(models.Model):
@@ -44,6 +45,7 @@ class MesobInventoryReceiving(models.Model):
         "res.partner",
         string="Supplier / Source",
         help="Supplier or returning department.",
+        domain="[('is_company', '=', True)]"
     )
 
     purchase_order_ref = fields.Char(
@@ -161,13 +163,85 @@ class MesobInventoryReceiving(models.Model):
     # ── Onchange ───────────────────────────────────────────────────
     @api.onchange("source_type")
     def _onchange_source_type(self):
-        """Auto-set no-payment flag for department returns."""
+        """Auto-set no-payment flag and filter suppliers based on source type.
+        
+        - For 'supplier': Show only companies marked as suppliers (supplier_rank > 0)
+        - For 'dept_return': Show only companies that are departments (not users, not main company)
+        
+        Both modes allow creating new records via quick-create.
+        """
+        # Get user partners to exclude (Administrator, jo, lemin, staff, etc.)
+        user_partner_ids = self.env['res.users'].search([]).mapped('partner_id').ids
+        
+        # Get the main company to exclude
+        main_company_id = self.env.company.partner_id.id
+        
+        # Auto-set no-payment flag for department returns
         if self.source_type == "dept_return":
             self.is_no_payment = True
+            # Clear supplier if it's a user or main company
+            if self.supplier_id and (self.supplier_id.id in user_partner_ids or self.supplier_id.id == main_company_id):
+                self.supplier_id = False
+            # Return domain: companies only, exclude users and main company
+            return {
+                'domain': {
+                    'supplier_id': [
+                        ('is_company', '=', True),
+                        ('id', 'not in', user_partner_ids + [main_company_id])
+                    ]
+                }
+            }
         else:
             self.is_no_payment = False
+            # Clear supplier if it's not marked as supplier
+            if self.supplier_id and self.supplier_id.supplier_rank == 0:
+                self.supplier_id = False
+            # Return domain: companies with supplier_rank > 0, exclude users and main company
+            return {
+                'domain': {
+                    'supplier_id': [
+                        ('is_company', '=', True),
+                        ('supplier_rank', '>', 0),
+                        ('id', 'not in', user_partner_ids + [main_company_id])
+                    ]
+                }
+            }
+    
+    @api.model
+    def create(self, vals):
+        """Ensure supplier has correct flags when creating new partner via quick-create."""
+        rec = super().create(vals)
+        
+        # If supplier_id was just created via quick-create, set supplier_rank
+        if rec.supplier_id and rec.source_type == 'supplier' and rec.supplier_id.supplier_rank == 0:
+            rec.supplier_id.write({'supplier_rank': 1})
+        
+        return rec
 
     # ── Actions ────────────────────────────────────────────────────
+
+    @api.model
+    def get_view(self, view_id=None, view_type="form", **options):
+        """Hide New button for PAO and Stock Clerk on both list and form views.
+        
+        Only Storekeeper can create Receiving Orders.
+        """
+        result = super().get_view(view_id, view_type, **options)
+        
+        if view_type in ("list", "form"):
+            user = self.env.user
+            is_pao = user.has_group("mesob_inventory_base.group_mesob_pao")
+            is_stock_clerk = user.has_group("mesob_inventory_base.group_mesob_stock_clerk")
+            
+            if is_pao or is_stock_clerk:
+                arch = result.get("arch", "")
+                if isinstance(arch, str):
+                    arch = arch.encode("utf-8")
+                root = etree.fromstring(arch)
+                root.set("create", "0")
+                result["arch"] = etree.tostring(root, encoding="unicode", pretty_print=False)
+        
+        return result
 
     def action_receive(self):
         """Mark goods as physically received at store."""
