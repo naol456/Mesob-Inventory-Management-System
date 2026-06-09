@@ -1,0 +1,2477 @@
+/* ══════════════════════════════════════════════════════════════
+   MESOB INVENTORY - FIGMA DESIGN SYSTEM
+   Based on Ministry of Foreign Affairs Design
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+    /* Primary Colors - From Figma Design */
+    --mesob-navy: #1e3a5f;
+    --mesob-navy-dark: #152a45;
+    --mesob-navy-light: #2d4d7a;
+    
+    --mesob-blue: #3b5998;
+    --mesob-blue-dark: #2d4373;
+    --mesob-blue-light: #4a6bb5;
+    
+    --mesob-yellow: #fdb714;
+    --mesob-yellow-dark: #e5a512;
+    --mesob-yellow-light: #fec642;
+    
+    /* Status Colors */
+    --mesob-success: #10b981;
+    --mesob-success-light: #d1fae5;
+    --mesob-success-dark: #059669;
+    
+    --mesob-warning: #f59e0b;
+    --mesob-warning-light: #fef3c7;
+    --mesob-warning-dark: #d97706;
+    
+    --mesob-danger: #ef4444;
+    --mesob-danger-light: #fee2e2;
+    --mesob-danger-dark: #dc2626;
+    
+    --mesob-info: #3b82f6;
+    --mesob-info-light: #dbeafe;
+    --mesob-info-dark: #2563eb;
+    
+    /* Neutral Palette */
+    --mesob-white: #ffffff;
+    --mesob-gray-50: #f9fafb;
+    --mesob-gray-100: #f3f4f6;
+    --mesob-gray-200: #e5e7eb;
+    --mesob-gray-300: #d1d5db;
+    --mesob-gray-400: #9ca3af;
+    --mesob-gray-500: #6b7280;
+    --mesob-gray-600: #4b5563;
+    --mesob-gray-700: #374151;
+    --mesob-gray-800: #1f2937;
+    --mesob-gray-900: #111827;
+    
+    /* Typography */
+    --mesob-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mesob-font-size-xs: 11px;
+    --mesob-font-size-sm: 12px;
+    --mesob-font-size-base: 14px;
+    --mesob-font-size-lg: 16px;
+    --mesob-font-size-xl: 18px;
+    --mesob-font-size-2xl: 24px;
+    --mesob-font-size-3xl: 32px;
+    --mesob-line-height: 1.5;
+    
+    /* Spacing - 4px base unit */
+    --mesob-space-1: 4px;
+    --mesob-space-2: 8px;
+    --mesob-space-3: 12px;
+    --mesob-space-4: 16px;
+    --mesob-space-5: 20px;
+    --mesob-space-6: 24px;
+    --mesob-space-8: 32px;
+    --mesob-space-10: 40px;
+    --mesob-space-12: 48px;
+    
+    /* Border Radius */
+    --mesob-radius-sm: 6px;
+    --mesob-radius-md: 8px;
+    --mesob-radius-lg: 12px;
+    --mesob-radius-xl: 16px;
+    --mesob-radius-2xl: 20px;
+    
+    /* Shadows */
+    --mesob-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --mesob-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --mesob-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --mesob-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    
+    /* Borders */
+    --mesob-border-color: #e5e7eb;
+    --mesob-border-width: 1px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   COMPLETE LAYOUT - HORIZONTAL MENU (OPTION 1)
+   Beautiful top navigation with Figma colors
+   ══════════════════════════════════════════════════════════════ */
+
+body {
+    font-family: var(--mesob-font-family) !important;
+    font-size: var(--mesob-font-size-base) !important;
+    line-height: var(--mesob-line-height) !important;
+    color: var(--mesob-gray-900) !important;
+    background-color: var(--mesob-gray-50) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TOP NAVIGATION BAR - NAVY BLUE WITH YELLOW ACCENTS
+   ══════════════════════════════════════════════════════════════ */
+
+.o_main_navbar {
+    background: var(--mesob-navy) !important;
+    box-shadow: var(--mesob-shadow-md) !important;
+    border-bottom: none !important;
+    height: 56px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 var(--mesob-space-6) !important;
+    gap: var(--mesob-space-4) !important;
+}
+
+/* Yellow MESOB Logo Box */
+.o_navbar_apps_menu,
+.o_menu_brand {
+    background: var(--mesob-yellow) !important;
+    color: var(--mesob-navy) !important;
+    padding: var(--mesob-space-2) var(--mesob-space-4) !important;
+    border-radius: var(--mesob-radius-md) !important;
+    font-weight: 700 !important;
+    font-size: var(--mesob-font-size-lg) !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 80px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.o_navbar_apps_menu:hover,
+.o_menu_brand:hover {
+    background: var(--mesob-yellow-dark) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: var(--mesob-shadow-sm) !important;
+}
+
+/* App Title - "Mesob Inventory" */
+.o_menu_brand_text,
+.o_navbar_title {
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: var(--mesob-font-size-xl) !important;
+    letter-spacing: -0.3px !important;
+    margin-right: var(--mesob-space-4) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HORIZONTAL MENU ITEMS - Operations | Dispatch | Documents | Master Data
+   ══════════════════════════════════════════════════════════════ */
+
+.o_menu_sections {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: var(--mesob-space-1) !important;
+    align-items: center !important;
+    flex: 1 !important;
+}
+
+/* Menu Item Buttons */
+.o_menu_sections .dropdown-toggle,
+.o_menu_sections > button,
+.o_menu_sections .o_menu_entry {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-weight: 500 !important;
+    font-size: var(--mesob-font-size-base) !important;
+    padding: var(--mesob-space-2) var(--mesob-space-4) !important;
+    border-radius: var(--mesob-radius-md) !important;
+    transition: all 0.2s ease !important;
+    border: none !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    cursor: pointer !important;
+}
+
+.o_menu_sections .dropdown-toggle:hover,
+.o_menu_sections > button:hover,
+.o_menu_sections .o_menu_entry:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: white !important;
+}
+
+/* Active/Selected Menu Item */
+.o_menu_sections .dropdown-toggle.active,
+.o_menu_sections > button.active,
+.o_menu_sections .o_menu_entry.active,
+.o_menu_sections .show > .dropdown-toggle {
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+/* Dropdown Arrow */
+.o_menu_sections .dropdown-toggle::after {
+    margin-left: var(--mesob-space-2) !important;
+    opacity: 0.7 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DROPDOWN MENUS - Clean Navy Style
+   ══════════════════════════════════════════════════════════════ */
+
+.o_menu_sections .dropdown-menu {
+    background: var(--mesob-navy-dark) !important;
+    border: none !important;
+    border-radius: var(--mesob-radius-lg) !important;
+    box-shadow: var(--mesob-shadow-xl) !important;
+    padding: var(--mesob-space-3) !important;
+    margin-top: var(--mesob-space-2) !important;
+    min-width: 240px !important;
+}
+
+.o_menu_sections .dropdown-menu .dropdown-item {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    padding: var(--mesob-space-3) var(--mesob-space-4) !important;
+    border-radius: var(--mesob-radius-md) !important;
+    margin: 2px 0 !important;
+    font-size: var(--mesob-font-size-base) !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: var(--mesob-space-3) !important;
+}
+
+.o_menu_sections .dropdown-menu .dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: white !important;
+}
+
+.o_menu_sections .dropdown-menu .dropdown-item.active,
+.o_menu_sections .dropdown-menu .dropdown-item:active {
+    background: var(--mesob-yellow) !important;
+    color: var(--mesob-navy) !important;
+    font-weight: 600 !important;
+}
+
+/* Dropdown item icons */
+.o_menu_sections .dropdown-menu .dropdown-item i,
+.o_menu_sections .dropdown-menu .dropdown-item .fa {
+    width: 20px !important;
+    text-align: center !important;
+    opacity: 0.8 !important;
+}
+
+.o_menu_sections .dropdown-menu .dropdown-item.active i,
+.o_menu_sections .dropdown-menu .dropdown-item:active i {
+    opacity: 1 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SYSTEM TRAY - Right side icons (notifications, user menu)
+   ══════════════════════════════════════════════════════════════ */
+
+.o_menu_systray {
+    display: flex !important;
+    align-items: center !important;
+    gap: var(--mesob-space-2) !important;
+    margin-left: auto !important;
+}
+
+.o_menu_systray > * {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.o_menu_systray .dropdown-toggle {
+    background: transparent !important;
+    border: none !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    padding: var(--mesob-space-2) !important;
+    border-radius: var(--mesob-radius-md) !important;
+    transition: all 0.2s ease !important;
+}
+
+.o_menu_systray .dropdown-toggle:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: white !important;
+}
+
+/* User avatar in top bar */
+.o_menu_systray .o_user_avatar {
+    background: var(--mesob-yellow) !important;
+    color: var(--mesob-navy) !important;
+    font-weight: 700 !important;
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: var(--mesob-font-size-base) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SIDEBAR MENU - FIGMA DESIGN (EXACTLY LIKE SCREENSHOT)
+   ══════════════════════════════════════════════════════════════ */
+
+/* Sidebar Container */
+.o_action_manager .o_menu_sections,
+.o_main_navbar .o_menu_sections,
+.o_main .o_menu_sections {
+    background: var(--mesob-navy) !important;
+    padding: var(--mesob-space-4) !important;
+}
+
+/* Main Menu Section Title */
+.o_menu_sections .o_menu_brand,
+.o_menu_sections .menu_section_title {
+    color: rgba(255, 255, 255, 0.5) !important;
+    font-size: var(--mesob-font-size-xs) !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
+    margin: var(--mesob-space-4) 0 var(--mesob-space-3) 0 !important;
+    padding: 0 var(--mesob-space-3) !important;
+}
+
+/* Menu Items - SIMPLE CLEAN STYLE (NOT CARDS BY DEFAULT) */
+.o_menu_sections .dropdown-item,
+.o_menu_sections button,
+.o_menu_sections a.dropdown-item {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500 !important;
+    font-size: var(--mesob-font-size-base) !important;
+    padding: var(--mesob-space-3) var(--mesob-space-4) !important;
+    border-radius: var(--mesob-radius-lg) !important;
+    transition: all 0.2s ease !important;
+    margin: var(--mesob-space-1) 0 !important;
+    border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: var(--mesob-space-3) !important;
+}
+
+.o_menu_sections .dropdown-item:hover,
+.o_menu_sections button:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: white !important;
+}
+
+/* Active/Selected Menu Item - YELLOW CARD BACKGROUND (LIKE REQUISITIONS) */
+.o_menu_sections .dropdown-item.active,
+.o_menu_sections button.active,
+.o_menu_sections .dropdown-item:active,
+.o_menu_sections .dropdown-item.o_active,
+.o_menu_sections .o_active {
+    background: var(--mesob-yellow) !important;
+    color: var(--mesob-navy) !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+}
+
+/* Menu Icons */
+.o_menu_sections .dropdown-item i,
+.o_menu_sections button i,
+.o_menu_sections .dropdown-item .fa,
+.o_menu_sections button .fa {
+    font-size: var(--mesob-font-size-lg) !important;
+    width: 24px !important;
+    text-align: center !important;
+    opacity: 0.9 !important;
+}
+
+/* Active menu icon - full opacity */
+.o_menu_sections .dropdown-item.active i,
+.o_menu_sections button.active i,
+.o_menu_sections .o_active i {
+    opacity: 1 !important;
+}
+
+/* Badge Notifications (like "24" on Requisitions or "New" on HR Sync) */
+.o_menu_sections .badge {
+    background: var(--mesob-danger) !important;
+    color: white !important;
+    font-size: var(--mesob-font-size-xs) !important;
+    padding: 3px 8px !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    margin-left: auto !important;
+    min-width: 24px !important;
+    text-align: center !important;
+}
+
+/* Badge on active item */
+.o_menu_sections .dropdown-item.active .badge,
+.o_menu_sections .o_active .badge {
+    background: var(--mesob-navy) !important;
+    color: var(--mesob-yellow) !important;
+}
+
+/* "New" badge style */
+.o_menu_sections .badge.badge-danger,
+.o_menu_sections .badge-new {
+    background: var(--mesob-danger) !important;
+    color: white !important;
+    text-transform: uppercase !important;
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+}
+
+/* Menu Dropdown/Submenu */
+.o_menu_sections .dropdown-menu {
+    background: var(--mesob-navy-dark) !important;
+    border: none !important;
+    border-radius: var(--mesob-radius-lg) !important;
+    box-shadow: var(--mesob-shadow-xl) !important;
+    padding: var(--mesob-space-2) !important;
+    margin-left: var(--mesob-space-2) !important;
+}
+
+.o_menu_sections .dropdown-menu .dropdown-item {
+    background: transparent !important;
+    padding: var(--mesob-space-2) var(--mesob-space-3) !important;
+    margin: 2px 0 !important;
+    font-size: var(--mesob-font-size-sm) !important;
+}
+
+.o_menu_sections .dropdown-menu .dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.o_menu_sections .dropdown-menu .dropdown-item.active {
+    background: var(--mesob-yellow) !important;
+    color: var(--mesob-navy) !important;
+}
+
+/* Settings at Bottom */
+.o_menu_sections .o_menu_settings {
+    margin-top: auto !important;
+    padding-top: var(--mesob-space-6) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* User Profile Section at Bottom (Yellow Circle with Initials) */
+.o_menu_sections .o_user_menu,
+.o_menu_sections .o_user_info {
+    background: transparent !important;
+    border-radius: var(--mesob-radius-lg) !important;
+    padding: var(--mesob-space-3) !important;
+    margin-top: var(--mesob-space-4) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: var(--mesob-space-3) !important;
+}
+
+.o_menu_sections .o_user_avatar,
+.o_menu_sections .o_avatar {
+    background: var(--mesob-yellow) !important;
+    color: var(--mesob-navy) !important;
+    font-weight: 700 !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: var(--mesob-font-size-lg) !important;
+    flex-shrink: 0 !important;
+}
+
+.o_menu_sections .o_user_name {
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: var(--mesob-font-size-base) !important;
+}
+
+.o_menu_sections .o_user_role {
+    color: var(--mesob-yellow) !important;
+    font-size: var(--mesob-font-size-sm) !important;
+    font-weight: 500 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DASHBOARD CARDS - FIGMA DESIGN
+   ══════════════════════════════════════════════════════════════ */
+
+/* Main Content Area */
+.o_content {
+    background: var(--mesob-gray-50) !important;
+    padding: var(--mesob-space-6) !important;
+}
+
+/* Dashboard Header Card (like "Current Institution Overview") */
+.o_dashboard_header {
+    background: var(--mesob-blue) !important;
+    color: white !important;
+    padding: var(--mesob-space-6) !important;
+    border-radius: var(--mesob-radius-xl) !important;
+    margin-bottom: var(--mesob-space-6) !important;
+    box-shadow: var(--mesob-shadow-lg) !important;
+}
+
+.o_dashboard_header h1 {
+    font-size: var(--mesob-font-size-3xl) !important;
+    font-weight: 700 !important;
+    margin-bottom: var(--mesob-space-2) !important;
+}
+
+.o_dashboard_header p {
+    font-size: var(--mesob-font-size-base) !important;
+    opacity: 0.9 !important;
+}
+
+/* Metric Cards (like "Requests Pending Approval", "Low Stock Items") */
+.o_kanban_view .o_kanban_record,
+.o_dashboard_card {
+    background: white !important;
+    border: none !important;
+    border-radius: var(--mesob-radius-xl) !important;
+    box-shadow: var(--mesob-shadow-md) !important;
+    padding: var(--mesob-space-6) !important;
+    transition: all 0.2s ease !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.o_kanban_view .o_kanban_record:hover,
+.o_dashboard_card:hover {
+    box-shadow: var(--mesob-shadow-lg) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Card Icon Container */
+.o_dashboard_card_icon {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: var(--mesob-radius-lg) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-bottom: var(--mesob-space-4) !important;
+    font-size: var(--mesob-font-size-2xl) !important;
+}
+
+/* Icon Colors - Different for each card type */
+.o_dashboard_card_icon.warning {
+    background: var(--mesob-warning-light) !important;
+    color: var(--mesob-warning-dark) !important;
+}
+
+.o_dashboard_card_icon.danger {
+    background: var(--mesob-danger-light) !important;
+    color: var(--mesob-danger-dark) !important;
+}
+
+.o_dashboard_card_icon.success {
+    background: var(--mesob-success-light) !important;
+    color: var(--mesob-success-dark) !important;
+}
+
+.o_dashboard_card_icon.info {
+    background: var(--mesob-info-light) !important;
+    color: var(--mesob-info-dark) !important;
+}
+
+/* Card Title */
+.o_dashboard_card_title {
+    font-size: var(--mesob-font-size-sm) !important;
+    color: var(--mesob-gray-600) !important;
+    font-weight: 500 !important;
+    margin-bottom: var(--mesob-space-2) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* Card Value (Big Number) */
+.o_dashboard_card_value {
+    font-size: var(--mesob-font-size-3xl) !important;
+    font-weight: 700 !important;
+    color: var(--mesob-gray-900) !important;
+    margin-bottom: var(--mesob-space-1) !important;
+}
+
+/* Card Subtitle */
+.o_dashboard_card_subtitle {
+    font-size: var(--mesob-font-size-sm) !important;
+    color: var(--mesob-gray-500) !important;
+    font-weight: 400 !important;
+}
+
+/* Card Footer (like "↓ 12% vs last month") */
+.o_dashboard_card_footer {
+    font-size: var(--mesob-font-size-sm) !important;
+    margin-top: var(--mesob-space-3) !important;
+    padding-top: var(--mesob-space-3) !important;
+    border-top: 1px solid var(--mesob-gray-200) !important;
+}
+
+.o_dashboard_card_footer.increase {
+    color: var(--mesob-success) !important;
+}
+
+.o_dashboard_card_footer.decrease {
+    color: var(--mesob-danger) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   REQUEST MANAGEMENT PAGE - FIGMA DESIGN
+   ══════════════════════════════════════════════════════════════ */
+
+/* Page Header */
+.o_control_panel {
+    background: white !important;
+    border-bottom: var(--mesob-border-width) solid var(--mesob-gray-200) !important;
+    padding: var(--mesob-space-5) var(--mesob-space-6) !important;
+}
+
+.o_control_panel .o_breadcrumb {
+    font-size: var(--mesob-font-size-2xl) !important;
+    font-weight: 700 !important;
+    color: var(--mesob-gray-900) !important;
+}
+
+.o_control_panel .o_breadcrumb .breadcrumb-item {
+    color: var(--mesob-gray-600) !important;
+}
+
+.o_control_panel .o_breadcrumb .breadcrumb-item.active {
+    color: var(--mesob-gray-900) !important;
+}
+
+/* Action Buttons (Filter, Export, New Request) */
+.o_control_panel .o_cp_buttons {
+    gap: var(--mesob-space-3) !important;
+}
+
+.o_control_panel .btn {
+    border-radius: var(--mesob-radius-md) !important;
+    padding: var(--mesob-space-2) var(--mesob-space-4) !important;
+    font-weight: 600 !important;
+    box-shadow: var(--mesob-shadow-sm) !important;
+}
+
+.o_control_panel .btn-primary {
+    background: var(--mesob-yellow) !important;
+    color: var(--mesob-navy) !important;
+    border: none !important;
+}
+
+.o_control_panel .btn-primary:hover {
+    background: var(--mesob-yellow-dark) !important;
+    box-shadow: var(--mesob-shadow-md) !important;
+}
+
+/* Summary Cards Row (Total Requests, Pending, Approved, Draft) */
+.o_kanban_view.o_kanban_dashboard {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+    gap: var(--mesob-space-4) !important;
+    margin-bottom: var(--mesob-space-6) !important;
+}
+
+.o_kanban_dashboard .o_kanban_record {
+    background: white !important;
+    border-radius: var(--mesob-radius-lg) !important;
+    padding: var(--mesob-space-5) !important;
+    box-shadow: var(--mesob-shadow-sm) !important;
+    border-left: 4px solid var(--mesob-blue) !important;
+}
+
+.o_kanban_dashboard .o_kanban_record:hover {
+    box-shadow: var(--mesob-shadow-md) !important;
+    transform: translateY(-2px) !important;
+}
+
+.o_kanban_dashboard .o_kanban_record .o_kanban_card_header {
+    font-size: var(--mesob-font-size-sm) !important;
+    color: var(--mesob-gray-600) !important;
+    font-weight: 500 !important;
+    margin-bottom: var(--mesob-space-2) !important;
+}
+
+.o_kanban_dashboard .o_kanban_record .o_kanban_card_content {
+    font-size: var(--mesob-font-size-3xl) !important;
+    font-weight: 700 !important;
+    color: var(--mesob-gray-900) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LIST VIEW - FIGMA DESIGN
+   ══════════════════════════════════════════════════════════════ */
+
+.o_list_view {
+    background: transparent !important;
+    padding: var(--mesob-space-4) !important;
+}
+
+.o_list_table {
+    background: white !important;
+    border-radius: var(--mesob-radius-xl) !important;
+    overflow: hidden !important;
+    box-shadow: var(--mesob-shadow-md) !important;
+    border: none !important;
+}
+
+.o_list_table thead {
+    background: var(--mesob-gray-100) !important;
+    border-bottom: 2px solid var(--mesob-gray-200) !important;
+}
+
+.o_list_table thead th {
+    color: var(--mesob-gray-700) !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    font-size: var(--mesob-font-size-sm) !important;
+    letter-spacing: 0 !important;
+    padding: var(--mesob-space-4) var(--mesob-space-4) !important;
+    border: none !important;
+}
+
+.o_list_table tbody tr {
+    transition: background-color 0.15s ease !important;
+    border-bottom: var(--mesob-border-width) solid var(--mesob-gray-100) !important;
+}
+
+.o_list_table tbody tr:hover {
+    background: var(--mesob-gray-50) !important;
+}
+
+.o_list_table tbody td {
+    padding: var(--mesob-space-4) var(--mesob-space-4) !important;
+    color: var(--mesob-gray-800) !important;
+    font-size: var(--mesob-font-size-base) !important;
+    vertical-align: middle !important;
+}
+
+.o_list_table tbody tr:last-child {
+    border-bottom: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BADGES - FIGMA DESIGN
+   ══════════════════════════════════════════════════════════════ */
+
+.badge {
+    padding: 4px 10px !important;
+    border-radius: 4px !important;
+    font-weight: 600 !important;
+    font-size: var(--mesob-font-size-xs) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
+}
+
+.badge-info {
+    background: var(--mesob-info) !important;
+    color: white !important;
+}
+
+.badge-success {
+    background: var(--mesob-success) !important;
+    color: white !important;
+}
+
+.badge-warning {
+    background: var(--mesob-warning) !important;
+    color: var(--mesob-navy) !important;
+}
+
+.badge-danger {
+    background: var(--mesob-danger) !important;
+    color: white !important;
+}
+
+.badge-secondary {
+    background: var(--mesob-gray-500) !important;
+    color: white !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BUTTONS - FIGMA DESIGN
+   ══════════════════════════════════════════════════════════════ */
+
+.btn {
+    border-radius: var(--mesob-radius-md) !important;
+    padding: var(--mesob-space-2) var(--mesob-space-4) !important;
+    font-weight: 600 !important;
+    font-size: var(--mesob-font-size-base) !important;
+    transition: all 0.2s ease !important;
+    border: none !important;
+}
+
+.btn-primary {
+    background: var(--mesob-blue) !important;
+    color: white !important;
+    box-shadow: var(--mesob-shadow-sm) !important;
+}
+
+.btn-primary:hover {
+    background: var(--mesob-blue-dark) !important;
+    box-shadow: var(--mesob-shadow-md) !important;
+    transform: translateY(-1px) !important;
+}
+
+.btn-success {
+    background: var(--mesob-success) !important;
+    color: white !important;
+    box-shadow: var(--mesob-shadow-sm) !important;
+}
+
+.btn-success:hover {
+    background: var(--mesob-success-dark) !important;
+    box-shadow: var(--mesob-shadow-md) !important;
+    transform: translateY(-1px) !important;
+}
+
+.btn-danger {
+    background: var(--mesob-danger) !important;
+    color: white !important;
+    box-shadow: var(--mesob-shadow-sm) !important;
+}
+
+.btn-danger:hover {
+    background: var(--mesob-danger-dark) !important;
+    box-shadow: var(--mesob-shadow-md) !important;
+    transform: translateY(-1px) !important;
+}
+
+.btn-warning {
+    background: var(--mesob-yellow) !important;
+    color: var(--mesob-navy) !important;
+    box-shadow: var(--mesob-shadow-sm) !important;
+}
+
+.btn-warning:hover {
+    background: var(--mesob-yellow-dark) !important;
+    box-shadow: var(--mesob-shadow-md) !important;
+    transform: translateY(-1px) !important;
+}
+
+.btn-secondary {
+    background: white !important;
+    border: var(--mesob-border-width) solid var(--mesob-gray-300) !important;
+    color: var(--mesob-gray-700) !important;
+}
+
+.btn-secondary:hover {
+    background: var(--mesob-gray-50) !important;
+    border-color: var(--mesob-gray-400) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FORM VIEW - GOVERNMENT DOCUMENT STYLE (LIKE MODEL 22)
+   Federal Democratic Republic of Ethiopia Official Document Design
+   ══════════════════════════════════════════════════════════════ */
+
+/* Apply government document style to specific models */
+.o_form_view[data-model="mesob.inventory.issue.voucher"],
+.o_form_view[data-model="mesob.inventory.model19"],
+.o_form_view[data-model="mesob.gate.pass"],
+.o_form_view[data-model="mesob.inventory.dsr"] {
+    background: white !important;
+    border-radius: 0 !important;
+    box-shadow: var(--mesob-shadow-xl) !important;
+    border: 3px solid var(--mesob-blue) !important;
+    overflow: visible !important;
+    max-width: 1400px !important;
+    margin: var(--mesob-space-6) auto !important;
+}
+
+/* Document Header - Blue Background with Yellow M Logo */
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .oe_title,
+.o_form_view[data-model="mesob.inventory.model19"] .oe_title,
+.o_form_view[data-model="mesob.gate.pass"] .oe_title,
+.o_form_view[data-model="mesob.inventory.dsr"] .oe_title {
+    background: var(--mesob-blue) !important;
+    color: white !important;
+    padding: var(--mesob-space-10) var(--mesob-space-8) var(--mesob-space-8) !important;
+    margin: 0 0 var(--mesob-space-8) 0 !important;
+    text-align: center !important;
+    border-radius: 0 !important;
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+}
+
+/* Yellow M Logo Circle at Top */
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .oe_title::before,
+.o_form_view[data-model="mesob.inventory.model19"] .oe_title::before,
+.o_form_view[data-model="mesob.gate.pass"] .oe_title::before,
+.o_form_view[data-model="mesob.inventory.dsr"] .oe_title::before {
+    content: "M" !important;
+    background: var(--mesob-yellow) !important;
+    color: var(--mesob-navy) !important;
+    width: 80px !important;
+    height: 80px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 48px !important;
+    font-weight: 700 !important;
+    margin-bottom: var(--mesob-space-5) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Main Document Title - "Federal Democratic Republic of Ethiopia" */
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .oe_title h1,
+.o_form_view[data-model="mesob.inventory.model19"] .oe_title h1,
+.o_form_view[data-model="mesob.gate.pass"] .oe_title h1,
+.o_form_view[data-model="mesob.inventory.dsr"] .oe_title h1 {
+    color: white !important;
+    font-weight: 700 !important;
+    font-size: 32px !important;
+    margin: 0 0 var(--mesob-space-3) 0 !important;
+    text-align: center !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+}
+
+/* Subtitle - Model Number (Model 22, Model 19, etc.) */
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .oe_title h3,
+.o_form_view[data-model="mesob.inventory.model19"] .oe_title h3,
+.o_form_view[data-model="mesob.gate.pass"] .oe_title h3,
+.o_form_view[data-model="mesob.inventory.dsr"] .oe_title h3 {
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-weight: 600 !important;
+    font-size: 20px !important;
+    margin: 0 !important;
+    text-align: center !important;
+    letter-spacing: 0.3px !important;
+}
+
+/* Yellow Underline Accent */
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .oe_title::after,
+.o_form_view[data-model="mesob.inventory.model19"] .oe_title::after,
+.o_form_view[data-model="mesob.gate.pass"] .oe_title::after,
+.o_form_view[data-model="mesob.inventory.dsr"] .oe_title::after {
+    content: "" !important;
+    display: block !important;
+    width: 150px !important;
+    height: 5px !important;
+    background: var(--mesob-yellow) !important;
+    margin: var(--mesob-space-5) auto 0 !important;
+    border-radius: 3px !important;
+}
+
+/* Form Sheet - Clean White Content Area */
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_form_sheet,
+.o_form_view[data-model="mesob.inventory.model19"] .o_form_sheet,
+.o_form_view[data-model="mesob.gate.pass"] .o_form_sheet,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_form_sheet {
+    padding: var(--mesob-space-10) var(--mesob-space-12) !important;
+    background: white !important;
+}
+
+/* Document Number and Date Section - Two Column Layout */
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_form_sheet > .o_group:first-of-type,
+.o_form_view[data-model="mesob.inventory.model19"] .o_form_sheet > .o_group:first-of-type,
+.o_form_view[data-model="mesob.gate.pass"] .o_form_sheet > .o_group:first-of-type,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_form_sheet > .o_group:first-of-type {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: var(--mesob-space-8) !important;
+    padding: var(--mesob-space-6) 0 !important;
+    border-bottom: 3px solid var(--mesob-gray-200) !important;
+    margin-bottom: var(--mesob-space-8) !important;
+}
+
+/* Form Groups - Professional Typography */
+.o_group {
+    margin-bottom: var(--mesob-space-6) !important;
+}
+
+.o_group .o_group_title {
+    font-weight: 600 !important;
+    font-size: var(--mesob-font-size-sm) !important;
+    color: var(--mesob-gray-500) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    margin-bottom: var(--mesob-space-3) !important;
+}
+
+/* Form Labels */
+.o_form_label {
+    font-weight: 500 !important;
+    font-size: var(--mesob-font-size-sm) !important;
+    color: var(--mesob-gray-600) !important;
+    margin-bottom: var(--mesob-space-2) !important;
+}
+
+/* Form Field Values */
+.o_field_widget {
+    color: var(--mesob-gray-900) !important;
+    font-weight: 600 !important;
+    font-size: var(--mesob-font-size-lg) !important;
+}
+
+/* Form Inputs */
+.o_field_widget input,
+.o_field_widget select,
+.o_field_widget textarea {
+    border: 2px solid var(--mesob-gray-300) !important;
+    border-radius: var(--mesob-radius-md) !important;
+    padding: var(--mesob-space-3) var(--mesob-space-4) !important;
+    font-size: var(--mesob-font-size-base) !important;
+    transition: all 0.2s ease !important;
+}
+
+.o_field_widget input:focus,
+.o_field_widget select:focus,
+.o_field_widget textarea:focus {
+    border-color: var(--mesob-blue) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(59, 89, 152, 0.1) !important;
+}
+
+/* Statusbar - Clean Style */
+.o_form_statusbar {
+    background: var(--mesob-gray-50) !important;
+    border-bottom: 2px solid var(--mesob-gray-200) !important;
+    padding: var(--mesob-space-4) var(--mesob-space-6) !important;
+}
+
+.o_statusbar_status .o_arrow_button {
+    background: white !important;
+    border: 2px solid var(--mesob-gray-300) !important;
+    color: var(--mesob-gray-600) !important;
+    font-weight: 500 !important;
+    padding: var(--mesob-space-2) var(--mesob-space-4) !important;
+}
+
+.o_statusbar_status .o_arrow_button.btn-primary {
+    background: var(--mesob-blue) !important;
+    border-color: var(--mesob-blue) !important;
+    color: white !important;
+}
+
+/* Smart Buttons */
+.oe_button_box {
+    margin-bottom: var(--mesob-space-6) !important;
+    padding: var(--mesob-space-4) 0 !important;
+    border-bottom: 2px solid var(--mesob-gray-200) !important;
+}
+
+.oe_stat_button {
+    background: white !important;
+    border: 2px solid var(--mesob-gray-200) !important;
+    border-radius: var(--mesob-radius-lg) !important;
+    padding: var(--mesob-space-4) !important;
+    transition: all 0.2s ease !important;
+}
+
+.oe_stat_button:hover {
+    background: var(--mesob-gray-50) !important;
+    border-color: var(--mesob-blue) !important;
+    box-shadow: var(--mesob-shadow-sm) !important;
+}
+
+.o_stat_info .o_stat_text {
+    font-size: var(--mesob-font-size-sm) !important;
+    color: var(--mesob-gray-600) !important;
+    font-weight: 400 !important;
+}
+
+.o_stat_info .o_stat_value {
+    font-size: var(--mesob-font-size-xl) !important;
+    color: var(--mesob-blue) !important;
+    font-weight: 700 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SEARCH & FILTERS - FIGMA DESIGN
+   ══════════════════════════════════════════════════════════════ */
+
+.o_searchview {
+    background: white !important;
+    border-radius: var(--mesob-radius-lg) !important;
+    box-shadow: var(--mesob-shadow-sm) !important;
+    padding: var(--mesob-space-2) !important;
+    border: var(--mesob-border-width) solid var(--mesob-gray-200) !important;
+}
+
+.o_searchview input {
+    border: none !important;
+    border-radius: var(--mesob-radius-md) !important;
+    padding: var(--mesob-space-2) var(--mesob-space-4) !important;
+    font-size: var(--mesob-font-size-base) !important;
+}
+
+.o_searchview input:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(59, 89, 152, 0.1) !important;
+}
+
+.o_searchview .o_searchview_facet {
+    background: var(--mesob-blue) !important;
+    border: none !important;
+    border-radius: var(--mesob-radius-sm) !important;
+    color: white !important;
+    padding: var(--mesob-space-1) var(--mesob-space-3) !important;
+    font-weight: 500 !important;
+    font-size: var(--mesob-font-size-sm) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ALERT BOXES - FIGMA DESIGN
+   ══════════════════════════════════════════════════════════════ */
+
+.alert {
+    border-radius: var(--mesob-radius-lg) !important;
+    padding: var(--mesob-space-4) var(--mesob-space-5) !important;
+    border: none !important;
+    font-size: var(--mesob-font-size-base) !important;
+    border-left: 4px solid !important;
+}
+
+.alert-info {
+    background-color: var(--mesob-info-light) !important;
+    border-left-color: var(--mesob-info) !important;
+    color: var(--mesob-info-dark) !important;
+}
+
+.alert-warning {
+    background-color: var(--mesob-warning-light) !important;
+    border-left-color: var(--mesob-warning) !important;
+    color: var(--mesob-warning-dark) !important;
+}
+
+.alert-success {
+    background-color: var(--mesob-success-light) !important;
+    border-left-color: var(--mesob-success) !important;
+    color: var(--mesob-success-dark) !important;
+}
+
+.alert-danger {
+    background-color: var(--mesob-danger-light) !important;
+    border-left-color: var(--mesob-danger) !important;
+    color: var(--mesob-danger-dark) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE DESIGN - ODOO 17 STYLE
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    .o_list_view {
+        padding: var(--o-space-2) !important;
+    }
+    
+    .o_list_table thead th {
+        padding: var(--o-space-2) !important;
+        font-size: 11px !important;
+    }
+    
+    .o_list_table tbody td {
+        padding: var(--o-space-2) !important;
+        font-size: 13px !important;
+    }
+    
+    .o_menu_sections .dropdown-menu {
+        min-width: 200px !important;
+    }
+    
+    .badge {
+        padding: 3px 8px !important;
+        font-size: 10px !important;
+    }
+    
+    .o_form_sheet {
+        padding: var(--o-space-4) !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .o_list_table {
+        font-size: 12px !important;
+    }
+    
+    .o_menu_sections button.dropdown-toggle {
+        padding: 4px 10px !important;
+        font-size: 13px !important;
+    }
+    
+    .btn {
+        padding: 5px 10px !important;
+        font-size: 13px !important;
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   REQUISITION LINES - ODOO 17 STYLE
+   ══════════════════════════════════════════════════════════════ */
+
+.mesob_requisition_lines.o_list_table {
+    background: white !important;
+    border-radius: var(--o-radius-lg) !important;
+    overflow: hidden !important;
+    box-shadow: var(--o-shadow-sm) !important;
+    border: var(--o-border-width) solid var(--o-border-color) !important;
+}
+
+.mesob_requisition_lines.o_list_table thead {
+    background: var(--o-gray-100) !important;
+    border-bottom: 2px solid var(--o-border-color) !important;
+}
+
+.mesob_requisition_lines.o_list_table thead th {
+    color: var(--o-gray-700) !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    font-size: var(--o-font-size-sm) !important;
+    letter-spacing: 0 !important;
+    padding: var(--o-space-3) var(--o-space-3) !important;
+    border: none !important;
+    text-align: left !important;
+}
+
+.mesob_requisition_lines.o_list_table tbody tr {
+    transition: background-color 0.15s ease !important;
+    border-bottom: var(--o-border-width) solid var(--o-gray-200) !important;
+    background: white !important;
+}
+
+.mesob_requisition_lines.o_list_table tbody tr:hover {
+    background: var(--o-gray-50) !important;
+}
+
+.mesob_requisition_lines.o_list_table tbody td {
+    padding: var(--o-space-3) !important;
+    color: var(--o-gray-800) !important;
+    font-size: var(--o-font-size-base) !important;
+    vertical-align: middle !important;
+    border-right: none !important;
+}
+
+/* Enhance "Add a line" button */
+.mesob_requisition_lines .o_field_x2many_list_row_add a {
+    background: var(--o-primary) !important;
+    color: white !important;
+    padding: var(--o-space-2) var(--o-space-4) !important;
+    border-radius: var(--o-radius-sm) !important;
+    font-weight: 500 !important;
+    font-size: var(--o-font-size-base) !important;
+    border: none !important;
+    transition: background-color 0.15s ease !important;
+}
+
+.mesob_requisition_lines .o_field_x2many_list_row_add a:hover {
+    background: var(--o-primary-dark) !important;
+}
+
+/* Input fields in the table */
+.mesob_requisition_lines input,
+.mesob_requisition_lines select,
+.mesob_requisition_lines textarea {
+    border: var(--o-border-width) solid var(--o-border-color) !important;
+    border-radius: var(--o-radius-sm) !important;
+    padding: var(--o-space-2) var(--o-space-3) !important;
+    font-size: var(--o-font-size-base) !important;
+    transition: border-color 0.15s ease !important;
+    background: white !important;
+}
+
+.mesob_requisition_lines input:focus,
+.mesob_requisition_lines select:focus,
+.mesob_requisition_lines textarea:focus {
+    border-color: var(--o-primary) !important;
+    box-shadow: 0 0 0 3px var(--o-primary-subtle) !important;
+    outline: none !important;
+}
+
+/* Delete button styling */
+.mesob_requisition_lines .o_list_record_remove button {
+    background: var(--o-danger) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: var(--o-radius-sm) !important;
+    padding: var(--o-space-1) var(--o-space-2) !important;
+    transition: background-color 0.15s ease !important;
+}
+
+.mesob_requisition_lines .o_list_record_remove button:hover {
+    background: var(--o-danger-dark) !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ISSUE VOUCHER LINES - ODOO 17 STYLE
+   ══════════════════════════════════════════════════════════════ */
+
+.mesob_issue_lines {
+    .o_field_x2many_list_row_add a {
+        background: var(--o-secondary) !important;
+        color: white !important;
+        padding: var(--o-space-2) var(--o-space-4) !important;
+        border-radius: var(--o-radius-sm) !important;
+        font-weight: 500 !important;
+        font-size: var(--o-font-size-base) !important;
+        transition: background-color 0.15s ease !important;
+        border: none !important;
+        
+        &:hover {
+            background: var(--o-primary-dark) !important;
+        }
+    }
+    
+    table.o_list_table {
+        thead {
+            background: var(--o-gray-100) !important;
+            border-bottom: 2px solid var(--o-border-color) !important;
+            
+            th {
+                color: var(--o-gray-700) !important;
+                font-weight: 600 !important;
+                padding: var(--o-space-3) var(--o-space-3) !important;
+                border: none !important;
+                text-transform: none !important;
+                letter-spacing: 0 !important;
+                font-size: var(--o-font-size-sm) !important;
+            }
+        }
+        
+        tbody tr {
+            transition: background-color 0.15s ease;
+            border-bottom: var(--o-border-width) solid var(--o-gray-200);
+            
+            &:hover {
+                background: var(--o-gray-50) !important;
+            }
+            
+            td {
+                padding: var(--o-space-3) !important;
+                vertical-align: middle !important;
+                
+                input, select, .o_field_widget {
+                    border: var(--o-border-width) solid var(--o-border-color) !important;
+                    border-radius: var(--o-radius-sm) !important;
+                    padding: var(--o-space-2) var(--o-space-3) !important;
+                    transition: border-color 0.15s ease;
+                    
+                    &:focus {
+                        border-color: var(--o-primary) !important;
+                        box-shadow: 0 0 0 3px var(--o-primary-subtle) !important;
+                        outline: none;
+                    }
+                }
+                
+                .o_list_record_remove button {
+                    background: var(--o-danger) !important;
+                    color: white !important;
+                    border: none !important;
+                    border-radius: var(--o-radius-sm) !important;
+                    padding: var(--o-space-1) var(--o-space-2) !important;
+                    transition: background-color 0.15s ease;
+                    
+                    &:hover {
+                        background: var(--o-danger-dark) !important;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* Issue Voucher Line Form Modal */
+.modal-dialog:has(.o_form_view[data-model="mesob.inventory.issue.voucher.line"]) {
+    .modal-content {
+        border-radius: var(--o-radius-lg);
+        border: var(--o-border-width) solid var(--o-border-color);
+        box-shadow: var(--o-shadow-xl);
+    }
+    
+    .modal-header {
+        background: var(--o-gray-50);
+        border-bottom: var(--o-border-width) solid var(--o-border-color);
+        padding: var(--o-space-4);
+        
+        .modal-title {
+            font-weight: 600;
+            font-size: var(--o-font-size-lg);
+            color: var(--o-gray-900);
+        }
+    }
+    
+    .o_form_sheet {
+        .o_group {
+            .o_wrap_label label {
+                font-size: var(--o-font-size-sm);
+                font-weight: 500;
+                color: var(--o-gray-600);
+                margin-bottom: var(--o-space-1);
+            }
+            
+            .o_field_widget {
+                border: var(--o-border-width) solid var(--o-border-color);
+                border-radius: var(--o-radius-sm);
+                padding: var(--o-space-2) var(--o-space-3);
+                transition: border-color 0.15s ease;
+                
+                &:focus {
+                    border-color: var(--o-primary);
+                    box-shadow: 0 0 0 3px var(--o-primary-subtle);
+                }
+            }
+        }
+    }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   INVENTORY ITEMS LIST - ODOO 17 STYLE
+   ══════════════════════════════════════════════════════════════ */
+
+.mesob_items_list {
+    table.o_list_table {
+        thead {
+            background: var(--o-gray-100) !important;
+            border-bottom: 2px solid var(--o-border-color) !important;
+            
+            th {
+                color: var(--o-gray-700) !important;
+                font-weight: 600 !important;
+                padding: var(--o-space-3) var(--o-space-3) !important;
+                border: none !important;
+                text-transform: none !important;
+                letter-spacing: 0 !important;
+                font-size: var(--o-font-size-sm) !important;
+            }
+        }
+        
+        tbody tr {
+            transition: background-color 0.15s ease;
+            border-bottom: var(--o-border-width) solid var(--o-gray-200);
+            
+            &:hover {
+                background: var(--o-gray-50) !important;
+            }
+            
+            &.text-success {
+                background: var(--o-success-light) !important;
+                font-weight: 500;
+                
+                &:hover {
+                    background: #c3f0d4 !important;
+                }
+            }
+            
+            &.text-warning {
+                background: var(--o-warning-light) !important;
+                
+                &:hover {
+                    background: #fde8b8 !important;
+                }
+            }
+            
+            &.text-muted {
+                opacity: 0.6;
+            }
+        }
+    }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   RECEIVING LINES - FIGMA DESIGN
+   ══════════════════════════════════════════════════════════════ */
+
+.mesob_receiving_lines {
+    .o_field_x2many_list_row_add a {
+        background: var(--mesob-blue) !important;
+        color: white !important;
+        padding: var(--mesob-space-3) var(--mesob-space-5) !important;
+        border-radius: var(--mesob-radius-md) !important;
+        font-weight: 600 !important;
+        font-size: var(--mesob-font-size-base) !important;
+        transition: all 0.2s ease !important;
+        border: none !important;
+        box-shadow: var(--mesob-shadow-sm) !important;
+        
+        &:hover {
+            background: var(--mesob-blue-dark) !important;
+            box-shadow: var(--mesob-shadow-md) !important;
+            transform: translateY(-1px) !important;
+        }
+    }
+    
+    table.o_list_table {
+        thead {
+            background: var(--mesob-navy) !important;
+            border-bottom: none !important;
+            
+            th {
+                color: white !important;
+                font-weight: 600 !important;
+                padding: var(--mesob-space-4) var(--mesob-space-4) !important;
+                border: none !important;
+                text-transform: none !important;
+                letter-spacing: 0 !important;
+                font-size: var(--mesob-font-size-sm) !important;
+            }
+        }
+        
+        tbody tr {
+            transition: background-color 0.15s ease;
+            border-bottom: var(--mesob-border-width) solid var(--mesob-gray-100);
+            
+            &:hover {
+                background: var(--mesob-gray-50) !important;
+            }
+            
+            td {
+                padding: var(--mesob-space-4) !important;
+                vertical-align: middle !important;
+                
+                input, select, .o_field_widget {
+                    border: var(--mesob-border-width) solid var(--mesob-gray-300) !important;
+                    border-radius: var(--mesob-radius-md) !important;
+                    padding: var(--mesob-space-2) var(--mesob-space-3) !important;
+                    transition: border-color 0.15s ease;
+                    font-size: var(--mesob-font-size-base) !important;
+                    
+                    &:focus {
+                        border-color: var(--mesob-blue) !important;
+                        outline: none !important;
+                        box-shadow: 0 0 0 3px rgba(59, 89, 152, 0.1) !important;
+                    }
+                }
+                
+                .o_list_record_remove button {
+                    background: var(--mesob-danger) !important;
+                    color: white !important;
+                    border: none !important;
+                    border-radius: var(--mesob-radius-sm) !important;
+                    padding: var(--mesob-space-2) var(--mesob-space-3) !important;
+                    transition: background-color 0.15s ease;
+                    
+                    &:hover {
+                        background: var(--mesob-danger-dark) !important;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* Receiving Line Form Modal */
+.modal-dialog:has(.o_form_view[data-model="mesob.inventory.receiving.line"]) {
+    .modal-content {
+        border-radius: var(--mesob-radius-xl);
+        border: none;
+        box-shadow: var(--mesob-shadow-xl);
+    }
+    
+    .modal-header {
+        background: var(--mesob-navy);
+        color: white;
+        padding: var(--mesob-space-5);
+        border-bottom: none;
+        
+        .modal-title {
+            font-weight: 600;
+            font-size: var(--mesob-font-size-xl);
+        }
+    }
+    
+    .o_form_sheet {
+        .o_group {
+            .o_wrap_label label {
+                font-size: var(--mesob-font-size-sm);
+                font-weight: 500;
+                color: var(--mesob-gray-600);
+                margin-bottom: var(--mesob-space-2);
+            }
+            
+            .o_field_widget {
+                border: var(--mesob-border-width) solid var(--mesob-gray-300);
+                border-radius: var(--mesob-radius-md);
+                padding: var(--mesob-space-3) var(--mesob-space-4);
+                transition: border-color 0.15s ease;
+                
+                &:focus {
+                    border-color: var(--mesob-blue);
+                    box-shadow: 0 0 0 3px rgba(59, 89, 152, 0.1);
+                }
+            }
+        }
+    }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   Receiving Order Simplified Form - FIGMA DESIGN
+   ══════════════════════════════════════════════════════════════ */
+
+.o_form_receiving_simplified {
+    .oe_title h1 {
+        color: var(--mesob-gray-900);
+        font-weight: 700;
+        font-size: var(--mesob-font-size-3xl);
+    }
+    
+    .oe_title h3 {
+        margin-top: var(--mesob-space-2);
+        font-size: var(--mesob-font-size-base);
+        color: var(--mesob-gray-600);
+    }
+    
+    /* Group headers */
+    .o_group .o_group_title {
+        font-weight: 600;
+        color: var(--mesob-gray-800);
+        font-size: var(--mesob-font-size-lg);
+        padding-bottom: var(--mesob-space-3);
+        border-bottom: 2px solid var(--mesob-gray-200);
+        margin-bottom: var(--mesob-space-4);
+    }
+    
+    /* Alert boxes */
+    .alert {
+        border-radius: var(--mesob-radius-lg);
+        margin-bottom: var(--mesob-space-5);
+        padding: var(--mesob-space-4) var(--mesob-space-5);
+        border-left: 4px solid;
+        font-size: var(--mesob-font-size-base);
+        
+        &.alert-info {
+            background-color: var(--mesob-info-light);
+            border-left-color: var(--mesob-info);
+            color: var(--mesob-info-dark);
+        }
+        
+        &.alert-warning {
+            background-color: var(--mesob-warning-light);
+            border-left-color: var(--mesob-warning);
+            color: var(--mesob-warning-dark);
+        }
+        
+        strong {
+            font-weight: 600;
+        }
+    }
+    
+    /* Line items table */
+    .o_list_table {
+        thead th {
+            background-color: var(--mesob-navy) !important;
+            font-weight: 600 !important;
+            color: white !important;
+            border-bottom: none !important;
+            padding: var(--mesob-space-4) var(--mesob-space-4) !important;
+            font-size: var(--mesob-font-size-sm) !important;
+            text-transform: none !important;
+        }
+        
+        tbody tr {
+            &:hover {
+                background-color: var(--mesob-gray-50) !important;
+            }
+        }
+        
+        /* Highlight accepted/rejected columns */
+        .o_data_cell {
+            &.o_list_number {
+                font-weight: 500;
+            }
+        }
+    }
+    
+    /* Status badges */
+    .badge {
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: var(--mesob-font-size-xs);
+    }
+    
+    /* Smart buttons */
+    .oe_button_box {
+        .oe_stat_button {
+            border-radius: var(--mesob-radius-lg);
+            transition: all 0.2s ease;
+            background: white;
+            border: var(--mesob-border-width) solid var(--mesob-gray-200);
+            
+            &:hover {
+                background: var(--mesob-gray-50);
+                border-color: var(--mesob-blue);
+                box-shadow: var(--mesob-shadow-sm);
+            }
+            
+            .o_stat_info {
+                .o_stat_text {
+                    font-size: var(--mesob-font-size-sm);
+                    color: var(--mesob-gray-600);
+                }
+                
+                .o_stat_value {
+                    font-size: var(--mesob-font-size-xl);
+                    font-weight: 700;
+                    color: var(--mesob-gray-900);
+                }
+            }
+        }
+    }
+    
+    /* Form buttons */
+    .o_form_statusbar {
+        .btn {
+            border-radius: var(--mesob-radius-md);
+            font-weight: 600;
+            padding: var(--mesob-space-2) var(--mesob-space-4);
+            transition: all 0.2s ease;
+        }
+    }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   Receiving Line Items - Enhanced Visibility (FIGMA DESIGN)
+   ══════════════════════════════════════════════════════════════ */
+
+.o_form_receiving_simplified {
+    .o_list_table {
+        /* Make table headers highly visible - DARK NAVY */
+        thead th {
+            background-color: var(--mesob-navy) !important;
+            color: white !important;
+            font-weight: 600 !important;
+            font-size: var(--mesob-font-size-sm) !important;
+            padding: var(--mesob-space-4) var(--mesob-space-4) !important;
+            border-bottom: none !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+        }
+        
+        /* Special styling for inspection columns */
+        thead th:nth-child(5) { /* Accepted column */
+            background-color: var(--mesob-success) !important;
+        }
+        
+        thead th:nth-child(6) { /* Rejected column */
+            background-color: var(--mesob-danger) !important;
+        }
+        
+        /* Make accepted column more visible */
+        .o_data_cell.o_list_number {
+            font-weight: 600 !important;
+            font-size: var(--mesob-font-size-base) !important;
+            
+            /* Accepted quantities - green highlight */
+            &.text-success {
+                background-color: var(--mesob-success-light) !important;
+                color: var(--mesob-success-dark) !important;
+                border-left: 3px solid var(--mesob-success) !important;
+            }
+            
+            /* Rejected quantities - red highlight */
+            &.text-danger {
+                background-color: var(--mesob-danger-light) !important;
+                color: var(--mesob-danger-dark) !important;
+                border-left: 3px solid var(--mesob-danger) !important;
+            }
+        }
+        
+        /* Editable cells - yellow highlight */
+        .o_data_cell.o_field_widget {
+            &:not(.o_readonly_modifier) {
+                background-color: var(--mesob-warning-light) !important;
+                border: var(--mesob-border-width) dashed var(--mesob-warning) !important;
+                cursor: pointer !important;
+                
+                &:hover {
+                    background-color: #fef3c7 !important;
+                    border-color: var(--mesob-warning-dark) !important;
+                }
+                
+                &:focus-within {
+                    background-color: white !important;
+                    border: 2px solid var(--mesob-blue) !important;
+                    box-shadow: 0 0 0 3px rgba(59, 89, 152, 0.1) !important;
+                }
+            }
+        }
+        
+        /* Readonly cells - subtle gray */
+        .o_readonly_modifier {
+            background-color: var(--mesob-gray-50) !important;
+            color: var(--mesob-gray-600) !important;
+        }
+    }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   GOVERNMENT DOCUMENT FORMS - ADDITIONAL STYLING
+   Professional Ethiopian Government Document Design
+   ══════════════════════════════════════════════════════════════ */
+
+/* Form Groups - Professional Typography for Government Documents */
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_group,
+.o_form_view[data-model="mesob.inventory.model19"] .o_group,
+.o_form_view[data-model="mesob.gate.pass"] .o_group,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_group {
+    margin-bottom: var(--mesob-space-8) !important;
+}
+
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_group .o_group_title,
+.o_form_view[data-model="mesob.inventory.model19"] .o_group .o_group_title,
+.o_form_view[data-model="mesob.gate.pass"] .o_group .o_group_title,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_group .o_group_title {
+    font-weight: 700 !important;
+    font-size: var(--mesob-font-size-lg) !important;
+    color: var(--mesob-navy) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    margin-bottom: var(--mesob-space-4) !important;
+    padding-bottom: var(--mesob-space-3) !important;
+    border-bottom: 2px solid var(--mesob-yellow) !important;
+}
+
+/* Form Labels - Government Document Style */
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_form_label,
+.o_form_view[data-model="mesob.inventory.model19"] .o_form_label,
+.o_form_view[data-model="mesob.gate.pass"] .o_form_label,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_form_label {
+    font-weight: 600 !important;
+    font-size: var(--mesob-font-size-sm) !important;
+    color: var(--mesob-gray-700) !important;
+    margin-bottom: var(--mesob-space-2) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
+}
+
+/* Form Field Values - Bold and Clear */
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_field_widget,
+.o_form_view[data-model="mesob.inventory.model19"] .o_field_widget,
+.o_form_view[data-model="mesob.gate.pass"] .o_field_widget,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_field_widget {
+    color: var(--mesob-gray-900) !important;
+    font-weight: 600 !important;
+    font-size: var(--mesob-font-size-base) !important;
+}
+
+/* Form Inputs - Clean Professional Style */
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_field_widget input,
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_field_widget select,
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_field_widget textarea,
+.o_form_view[data-model="mesob.inventory.model19"] .o_field_widget input,
+.o_form_view[data-model="mesob.inventory.model19"] .o_field_widget select,
+.o_form_view[data-model="mesob.inventory.model19"] .o_field_widget textarea,
+.o_form_view[data-model="mesob.gate.pass"] .o_field_widget input,
+.o_form_view[data-model="mesob.gate.pass"] .o_field_widget select,
+.o_form_view[data-model="mesob.gate.pass"] .o_field_widget textarea,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_field_widget input,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_field_widget select,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_field_widget textarea {
+    border: 2px solid var(--mesob-gray-300) !important;
+    border-radius: var(--mesob-radius-sm) !important;
+    padding: var(--mesob-space-3) var(--mesob-space-4) !important;
+    font-size: var(--mesob-font-size-base) !important;
+    transition: all 0.2s ease !important;
+    background: white !important;
+}
+
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_field_widget input:focus,
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_field_widget select:focus,
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_field_widget textarea:focus,
+.o_form_view[data-model="mesob.inventory.model19"] .o_field_widget input:focus,
+.o_form_view[data-model="mesob.inventory.model19"] .o_field_widget select:focus,
+.o_form_view[data-model="mesob.inventory.model19"] .o_field_widget textarea:focus,
+.o_form_view[data-model="mesob.gate.pass"] .o_field_widget input:focus,
+.o_form_view[data-model="mesob.gate.pass"] .o_field_widget select:focus,
+.o_form_view[data-model="mesob.gate.pass"] .o_field_widget textarea:focus,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_field_widget input:focus,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_field_widget select:focus,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_field_widget textarea:focus {
+    border-color: var(--mesob-blue) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(59, 89, 152, 0.1) !important;
+}
+
+/* Line Items Table in Government Documents */
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_list_table,
+.o_form_view[data-model="mesob.inventory.model19"] .o_list_table,
+.o_form_view[data-model="mesob.gate.pass"] .o_list_table,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_list_table {
+    border: 2px solid var(--mesob-gray-300) !important;
+    border-radius: 0 !important;
+    margin-top: var(--mesob-space-6) !important;
+}
+
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_list_table thead th,
+.o_form_view[data-model="mesob.inventory.model19"] .o_list_table thead th,
+.o_form_view[data-model="mesob.gate.pass"] .o_list_table thead th,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_list_table thead th {
+    background: var(--mesob-navy) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: var(--mesob-font-size-sm) !important;
+    padding: var(--mesob-space-4) var(--mesob-space-3) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_list_table tbody td,
+.o_form_view[data-model="mesob.inventory.model19"] .o_list_table tbody td,
+.o_form_view[data-model="mesob.gate.pass"] .o_list_table tbody td,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_list_table tbody td {
+    padding: var(--mesob-space-3) !important;
+    border: 1px solid var(--mesob-gray-300) !important;
+    font-size: var(--mesob-font-size-base) !important;
+}
+
+/* Notebook tabs in government documents */
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_notebook,
+.o_form_view[data-model="mesob.inventory.model19"] .o_notebook,
+.o_form_view[data-model="mesob.gate.pass"] .o_notebook,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_notebook {
+    margin-top: var(--mesob-space-8) !important;
+    border-top: 3px solid var(--mesob-gray-200) !important;
+    padding-top: var(--mesob-space-6) !important;
+}
+
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_notebook .nav-link,
+.o_form_view[data-model="mesob.inventory.model19"] .o_notebook .nav-link,
+.o_form_view[data-model="mesob.gate.pass"] .o_notebook .nav-link,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_notebook .nav-link {
+    font-weight: 600 !important;
+    font-size: var(--mesob-font-size-base) !important;
+    color: var(--mesob-gray-600) !important;
+    padding: var(--mesob-space-3) var(--mesob-space-5) !important;
+    border: none !important;
+    border-bottom: 3px solid transparent !important;
+    transition: all 0.2s ease !important;
+}
+
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_notebook .nav-link.active,
+.o_form_view[data-model="mesob.inventory.model19"] .o_notebook .nav-link.active,
+.o_form_view[data-model="mesob.gate.pass"] .o_notebook .nav-link.active,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_notebook .nav-link.active {
+    color: var(--mesob-navy) !important;
+    border-bottom-color: var(--mesob-yellow) !important;
+    background: transparent !important;
+}
+
+/* Statusbar in government documents */
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_form_statusbar,
+.o_form_view[data-model="mesob.inventory.model19"] .o_form_statusbar,
+.o_form_view[data-model="mesob.gate.pass"] .o_form_statusbar,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_form_statusbar {
+    background: var(--mesob-gray-50) !important;
+    border-bottom: 3px solid var(--mesob-gray-200) !important;
+    padding: var(--mesob-space-5) var(--mesob-space-6) !important;
+}
+
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_statusbar_status .o_arrow_button,
+.o_form_view[data-model="mesob.inventory.model19"] .o_statusbar_status .o_arrow_button,
+.o_form_view[data-model="mesob.gate.pass"] .o_statusbar_status .o_arrow_button,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_statusbar_status .o_arrow_button {
+    background: white !important;
+    border: 2px solid var(--mesob-gray-300) !important;
+    color: var(--mesob-gray-600) !important;
+    font-weight: 600 !important;
+    padding: var(--mesob-space-3) var(--mesob-space-5) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_statusbar_status .o_arrow_button.btn-primary,
+.o_form_view[data-model="mesob.inventory.model19"] .o_statusbar_status .o_arrow_button.btn-primary,
+.o_form_view[data-model="mesob.gate.pass"] .o_statusbar_status .o_arrow_button.btn-primary,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_statusbar_status .o_arrow_button.btn-primary {
+    background: var(--mesob-blue) !important;
+    border-color: var(--mesob-blue) !important;
+    color: white !important;
+}
+
+/* Action buttons in government documents */
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_form_statusbar .btn,
+.o_form_view[data-model="mesob.inventory.model19"] .o_form_statusbar .btn,
+.o_form_view[data-model="mesob.gate.pass"] .o_form_statusbar .btn,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_form_statusbar .btn {
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    padding: var(--mesob-space-3) var(--mesob-space-6) !important;
+    border-radius: var(--mesob-radius-md) !important;
+}
+
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_form_statusbar .btn.oe_highlight,
+.o_form_view[data-model="mesob.inventory.model19"] .o_form_statusbar .btn.oe_highlight,
+.o_form_view[data-model="mesob.gate.pass"] .o_form_statusbar .btn.oe_highlight,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_form_statusbar .btn.oe_highlight {
+    background: var(--mesob-yellow) !important;
+    color: var(--mesob-navy) !important;
+    border: none !important;
+    box-shadow: var(--mesob-shadow-md) !important;
+}
+
+.o_form_view[data-model="mesob.inventory.issue.voucher"] .o_form_statusbar .btn.oe_highlight:hover,
+.o_form_view[data-model="mesob.inventory.model19"] .o_form_statusbar .btn.oe_highlight:hover,
+.o_form_view[data-model="mesob.gate.pass"] .o_form_statusbar .btn.oe_highlight:hover,
+.o_form_view[data-model="mesob.inventory.dsr"] .o_form_statusbar .btn.oe_highlight:hover {
+    background: var(--mesob-yellow-dark) !important;
+    transform: translateY(-1px) !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   GOVERNMENT DOCUMENT HEADER - CSS CLASSES
+   Clean implementation for Ethiopian Government Documents
+   ══════════════════════════════════════════════════════════════ */
+
+/* Form container for government documents */
+.o_mesob_gov_doc .o_form_sheet {
+    padding: 0 !important;
+    max-width: 1400px !important;
+    margin: 0 auto !important;
+}
+
+/* Government Document Header Container */
+.mesob_gov_header {
+    background: #3b5998 !important;
+    color: white !important;
+    padding: 40px 32px 32px !important;
+    margin: 0 0 40px 0 !important;
+    text-align: center !important;
+    position: relative !important;
+    width: 100% !important;
+}
+
+/* Yellow M Logo Circle */
+.mesob_gov_logo {
+    background: #fdb714 !important;
+    color: #1e3a5f !important;
+    width: 80px !important;
+    height: 80px !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 48px !important;
+    font-weight: 700 !important;
+    margin: 0 auto 20px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Main Title - "Federal Democratic Republic of Ethiopia" */
+.mesob_gov_title {
+    color: white !important;
+    font-weight: 700 !important;
+    font-size: 32px !important;
+    margin: 0 0 12px 0 !important;
+    text-align: center !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    line-height: 1.3 !important;
+}
+
+/* Subtitle - Document Type */
+.mesob_gov_subtitle {
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-weight: 600 !important;
+    font-size: 20px !important;
+    margin: 0 0 8px 0 !important;
+    text-align: center !important;
+    letter-spacing: 0.3px !important;
+    line-height: 1.4 !important;
+}
+
+/* Model Number */
+.mesob_gov_model {
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-weight: 600 !important;
+    font-size: 20px !important;
+    margin: 0 !important;
+    text-align: center !important;
+    letter-spacing: 0.3px !important;
+}
+
+/* Yellow Underline Accent */
+.mesob_gov_underline {
+    width: 150px !important;
+    height: 5px !important;
+    background: #fdb714 !important;
+    margin: 20px auto 0 !important;
+    border-radius: 3px !important;
+}
+
+/* Document Number Styling */
+.mesob_doc_number {
+    color: #3b5998 !important;
+    font-weight: 700 !important;
+    font-size: 24px !important;
+    margin: 0 !important;
+}
+
+/* Content area padding after header */
+.o_mesob_gov_doc .o_form_sheet > .o_group {
+    padding: 0 40px !important;
+}
+
+.o_mesob_gov_doc .o_form_sheet > .o_notebook {
+    padding: 0 40px 40px !important;
+}
+
+/* Group titles in government documents */
+.o_mesob_gov_doc .o_group .o_group_title {
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    color: #1e3a5f !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+    margin-bottom: 16px !important;
+    padding-bottom: 8px !important;
+    border-bottom: 2px solid #fdb714 !important;
+}
+
+/* Labels in government documents */
+.o_mesob_gov_doc .o_form_label {
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    color: #4b5563 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
+}
+
+/* Field values in government documents */
+.o_mesob_gov_doc .o_field_widget {
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    color: #111827 !important;
+}
+
+/* Table headers in government documents */
+.o_mesob_gov_doc .o_list_table thead th {
+    background: #1e3a5f !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    padding: 12px 8px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Table cells in government documents */
+.o_mesob_gov_doc .o_list_table tbody td {
+    padding: 10px 8px !important;
+    border: 1px solid #d1d5db !important;
+    font-size: 14px !important;
+}
+
+/* Notebook tabs in government documents */
+.o_mesob_gov_doc .o_notebook {
+    margin-top: 32px !important;
+    border-top: 3px solid #e5e7eb !important;
+    padding-top: 24px !important;
+}
+
+.o_mesob_gov_doc .o_notebook .nav-link {
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    color: #6b7280 !important;
+    padding: 12px 20px !important;
+    border: none !important;
+    border-bottom: 3px solid transparent !important;
+    transition: all 0.2s ease !important;
+}
+
+.o_mesob_gov_doc .o_notebook .nav-link.active {
+    color: #1e3a5f !important;
+    border-bottom-color: #fdb714 !important;
+    background: transparent !important;
+}
+
+/* Statusbar in government documents */
+.o_mesob_gov_doc .o_form_statusbar {
+    background: #f9fafb !important;
+    border-bottom: 3px solid #e5e7eb !important;
+    padding: 16px 24px !important;
+}
+
+.o_mesob_gov_doc .o_statusbar_status .o_arrow_button {
+    background: white !important;
+    border: 2px solid #d1d5db !important;
+    color: #6b7280 !important;
+    font-weight: 600 !important;
+    padding: 10px 20px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    font-size: 12px !important;
+}
+
+.o_mesob_gov_doc .o_statusbar_status .o_arrow_button.btn-primary {
+    background: #3b5998 !important;
+    border-color: #3b5998 !important;
+    color: white !important;
+}
+
+/* Action buttons in government documents */
+.o_mesob_gov_doc .o_form_statusbar .btn.oe_highlight {
+    background: #fdb714 !important;
+    color: #1e3a5f !important;
+    border: none !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    padding: 10px 24px !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.2s ease !important;
+}
+
+.o_mesob_gov_doc .o_form_statusbar .btn.oe_highlight:hover {
+    background: #e5a512 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Input fields in government documents */
+.o_mesob_gov_doc input,
+.o_mesob_gov_doc select,
+.o_mesob_gov_doc textarea {
+    border: 2px solid #d1d5db !important;
+    border-radius: 4px !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+}
+
+.o_mesob_gov_doc input:focus,
+.o_mesob_gov_doc select:focus,
+.o_mesob_gov_doc textarea:focus {
+    border-color: #3b5998 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(59, 89, 152, 0.1) !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   GOVERNMENT DOCUMENT HEADER - PROPER CSS CLASSES
+   Ethiopian Federal Government Official Document Style
+   ══════════════════════════════════════════════════════════════ */
+
+/* Form with government document styling */
+.o_mesob_gov_doc .o_form_sheet {
+    padding: 0 !important;
+    max-width: 1400px !important;
+    margin: 0 auto !important;
+}
+
+/* Government Document Header Container */
+.mesob_gov_header {
+    background: var(--mesob-blue) !important;
+    color: white !important;
+    padding: 40px 32px 32px !important;
+    margin: 0 0 40px 0 !important;
+    text-align: center !important;
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+}
+
+/* Yellow M Logo Circle */
+.mesob_gov_logo {
+    background: var(--mesob-yellow) !important;
+    color: var(--mesob-navy) !important;
+    width: 80px !important;
+    height: 80px !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 48px !important;
+    font-weight: 700 !important;
+    margin-bottom: 20px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Main Title - "Federal Democratic Republic of Ethiopia" */
+.mesob_gov_title {
+    color: white !important;
+    font-weight: 700 !important;
+    font-size: 32px !important;
+    margin: 0 0 12px 0 !important;
+    text-align: center !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    line-height: 1.3 !important;
+}
+
+/* Subtitle - Document Type */
+.mesob_gov_subtitle {
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-weight: 600 !important;
+    font-size: 20px !important;
+    margin: 0 0 8px 0 !important;
+    text-align: center !important;
+    letter-spacing: 0.3px !important;
+    line-height: 1.4 !important;
+}
+
+/* Model Number */
+.mesob_gov_model {
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-weight: 600 !important;
+    font-size: 20px !important;
+    margin: 0 !important;
+    text-align: center !important;
+    letter-spacing: 0.3px !important;
+}
+
+/* Yellow Underline Accent */
+.mesob_gov_underline {
+    width: 150px !important;
+    height: 5px !important;
+    background: var(--mesob-yellow) !important;
+    margin: 20px auto 0 !important;
+    border-radius: 3px !important;
+}
+
+/* Document Number Styling */
+.mesob_doc_number {
+    color: var(--mesob-blue) !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    font-size: 24px !important;
+}
+
+/* Content area padding for government documents */
+.o_mesob_gov_doc .o_form_sheet > .o_group {
+    padding: 0 40px !important;
+}
+
+.o_mesob_gov_doc .o_form_sheet > .o_notebook {
+    padding: 0 40px 40px !important;
+}
+
+/* Group titles in government documents */
+.o_mesob_gov_doc .o_group .o_group_title {
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    color: var(--mesob-navy) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+    margin-bottom: 16px !important;
+    padding-bottom: 8px !important;
+    border-bottom: 2px solid var(--mesob-yellow) !important;
+}
+
+/* Form labels in government documents */
+.o_mesob_gov_doc .o_form_label {
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    color: var(--mesob-gray-700) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
+}
+
+/* Table styling in government documents */
+.o_mesob_gov_doc .o_list_table thead th {
+    background: var(--mesob-navy) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    padding: 12px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.o_mesob_gov_doc .o_list_table tbody td {
+    padding: 10px 12px !important;
+    border: 1px solid var(--mesob-gray-300) !important;
+    font-size: 14px !important;
+}
+
+.o_mesob_gov_doc .o_list_table {
+    border: 2px solid var(--mesob-gray-300) !important;
+    margin-top: 20px !important;
+}
+
+/* Notebook tabs in government documents */
+.o_mesob_gov_doc .o_notebook {
+    margin-top: 32px !important;
+    border-top: 3px solid var(--mesob-gray-200) !important;
+    padding-top: 24px !important;
+}
+
+.o_mesob_gov_doc .o_notebook .nav-link {
+    font-weight: 600 !important;
+    font-size: 15px !important;
+    color: var(--mesob-gray-600) !important;
+    padding: 12px 20px !important;
+    border: none !important;
+    border-bottom: 3px solid transparent !important;
+    transition: all 0.2s ease !important;
+}
+
+.o_mesob_gov_doc .o_notebook .nav-link.active {
+    color: var(--mesob-navy) !important;
+    border-bottom-color: var(--mesob-yellow) !important;
+    background: transparent !important;
+}
+
+/* Statusbar in government documents */
+.o_mesob_gov_doc .o_form_statusbar {
+    background: var(--mesob-gray-50) !important;
+    border-bottom: 3px solid var(--mesob-gray-200) !important;
+    padding: 16px 24px !important;
+}
+
+.o_mesob_gov_doc .o_statusbar_status .o_arrow_button {
+    background: white !important;
+    border: 2px solid var(--mesob-gray-300) !important;
+    color: var(--mesob-gray-600) !important;
+    font-weight: 600 !important;
+    padding: 10px 20px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.o_mesob_gov_doc .o_statusbar_status .o_arrow_button.btn-primary {
+    background: var(--mesob-blue) !important;
+    border-color: var(--mesob-blue) !important;
+    color: white !important;
+}
+
+/* Action buttons in government documents */
+.o_mesob_gov_doc .o_form_statusbar .btn.oe_highlight {
+    background: var(--mesob-yellow) !important;
+    color: var(--mesob-navy) !important;
+    border: none !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    padding: 10px 24px !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.2s ease !important;
+}
+
+.o_mesob_gov_doc .o_form_statusbar .btn.oe_highlight:hover {
+    background: var(--mesob-yellow-dark) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   GOVERNMENT DOCUMENT HEADER - ADDITIONAL OVERRIDES
+   Ensure header displays correctly in all contexts
+   ══════════════════════════════════════════════════════════════ */
+
+/* Force header to display at top of sheet */
+form.o_mesob_gov_doc .o_form_sheet > .mesob_gov_header:first-child {
+    margin: -24px -24px 40px -24px !important;
+}
+
+/* Ensure logo displays as flex */
+.mesob_gov_header .mesob_gov_logo {
+    display: inline-flex !important;
+}
+
+/* Make sure document number in header is white */
+.mesob_gov_header .mesob_doc_number {
+    color: white !important;
+}
+
+/* Ensure proper spacing for groups after header */
+.o_mesob_gov_doc .o_form_sheet > .o_group:first-of-type {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
