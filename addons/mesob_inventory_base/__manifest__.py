@@ -37,6 +37,8 @@
         "security/ir.model.access.csv",
         "security/mesob_inventory_record_rules.xml",
         "security/mesob_gate_pass_rules.xml",
+        # Root Menu
+        "views/mesob_inventory_root_menu.xml",
         # Seed / reference data
         "data/mesob_major_classification_data.xml",
         "data/mesob_requisition_sequence.xml",
