@@ -52,3 +52,7 @@ nul
 *.md.backup
 temp_*.xml
 MESOB_LOGIN_IMPLEMENTATION.md
+
+# Agent Skills
+.agents/
+skills-lock.json
