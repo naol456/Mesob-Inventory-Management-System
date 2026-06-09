@@ -103,3 +103,62 @@ class TestMesobStockTakingHandover(TransactionCase):
         # Finalize custody transfer
         ho.action_finalize_handover()
         self.assertEqual(ho.state, "done")
+
+
+class TestMesobStorageSecurity(TransactionCase):
+    """Automated Unit Tests for Warehouse Storage Safety & Security (Section 4.12)"""
+
+    def setUp(self):
+        super(TestMesobStorageSecurity, self).setUp()
+        self.plan_model = self.env["mesob.storage.plan"]
+        self.key_model = self.env["mesob.storage.key.register"]
+        self.visitor_model = self.env["mesob.storage.visitor.log"]
+        self.safety_model = self.env["mesob.storage.safety.checklist"]
+
+    def test_01_storage_plan_approval(self):
+        """FR-STOR-002: Test creation and approval of a storage physical plan."""
+        plan = self.plan_model.create({
+            "name": "HQ Store Layout v1",
+            "aisles": "Aisles A, B, C, D",
+            "gates_count": 2,
+        })
+        self.assertEqual(plan.state, "draft")
+        plan.action_approve()
+        self.assertEqual(plan.state, "approved")
+
+    def test_02_key_custody_tracking(self):
+        """FR-STOR-003: Ensure key collected and deposited timestamps record correctly."""
+        key_record = self.key_model.create({
+            "key_id": "Main-Gate-Key-01",
+            "collected_by_id": self.env.user.id,
+        })
+        self.assertTrue(key_record.collected_at)
+        self.assertFalse(key_record.deposited_at)
+        
+        key_record.action_deposit_keys()
+        self.assertTrue(key_record.deposited_at)
+
+    def test_03_visitor_log(self):
+        """FR-STOR-004: Validate visitor entrance and exit time registration."""
+        visitor = self.visitor_model.create({
+            "visitor_name": "Abebe Kebede",
+            "purpose": "IT Infrastructure Network Audit",
+        })
+        self.assertTrue(visitor.entry_time)
+        self.assertFalse(visitor.exit_time)
+        
+        visitor.action_exit()
+        self.assertTrue(visitor.exit_time)
+
+    def test_04_safety_precautions_checklist(self):
+        """FR-STOR-005/006: Verify safety check compliance inputs."""
+        checklist = self.safety_model.create({
+            "has_fire_extinguishers_checked": True,
+            "has_ppe_available": True,
+            "has_first_aid_kit": True,
+            "has_emergency_exits_clear": True,
+            "remarks": "All safety metrics pass.",
+        })
+        self.assertTrue(checklist.name)
+        self.assertTrue(checklist.has_fire_extinguishers_checked)
+        self.assertTrue(checklist.has_ppe_available)

@@ -44,4 +44,31 @@
         <field name="padding">4</field>
         <field name="company_id" eval="False"/>
     </record>
+
+    <!-- Auto-numbering sequence for Key Custody -->
+    <record id="seq_mesob_storage_key_register" model="ir.sequence">
+        <field name="name">Mesob Key Custody</field>
+        <field name="code">mesob.storage.key.register</field>
+        <field name="prefix">KEY-%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <!-- Auto-numbering sequence for Visitor Logs -->
+    <record id="seq_mesob_storage_visitor_log" model="ir.sequence">
+        <field name="name">Mesob Visitor Log</field>
+        <field name="code">mesob.storage.visitor.log</field>
+        <field name="prefix">VIS-%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <!-- Auto-numbering sequence for Safety Checklist -->
+    <record id="seq_mesob_storage_safety_checklist" model="ir.sequence">
+        <field name="name">Mesob Safety Checklist</field>
+        <field name="code">mesob.storage.safety.checklist</field>
+        <field name="prefix">SAF-%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
 </odoo>
