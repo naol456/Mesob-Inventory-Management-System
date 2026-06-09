@@ -52,4 +52,44 @@
         <field name="perm_unlink">0</field>
     </record>
 
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         Record Rules for Issue Vouchers (Model 22)
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Storekeeper: can see all, create, and mark as issued -->
+    <record id="rule_issue_voucher_storekeeper" model="ir.rule">
+        <field name="name">Storekeeper: All Issue Vouchers</field>
+        <field name="model_id" ref="model_mesob_inventory_issue_voucher"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_storekeeper')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- PAO: can see all issue vouchers, read-only -->
+    <record id="rule_issue_voucher_pao" model="ir.rule">
+        <field name="name">PAO: All Issue Vouchers (Read-Only)</field>
+        <field name="model_id" ref="model_mesob_inventory_issue_voucher"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- Stock Clerk: can see all issue vouchers, read-only -->
+    <record id="rule_issue_voucher_stock_clerk" model="ir.rule">
+        <field name="name">Stock Clerk: All Issue Vouchers (Read-Only)</field>
+        <field name="model_id" ref="model_mesob_inventory_issue_voucher"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_stock_clerk')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
 </odoo>

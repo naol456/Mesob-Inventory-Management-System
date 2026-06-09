@@ -44,4 +44,9 @@ Regular User Account:
 
  -->
 
+ <!-- to run and upgrade at same time -->
+
+ <!-- python odoo-19/odoo-bin -c odoo.conf -u mesob_inventory_base -d mesob_inventory -->
+
+
 
