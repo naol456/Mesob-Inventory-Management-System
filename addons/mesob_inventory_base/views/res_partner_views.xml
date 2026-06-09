@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Inherit Partner Form View to add FPPA Supplier Registration details -->
+    <record id="view_partner_form_mesob_inherit" model="ir.ui.view">
+        <field name="name">res.partner.form.mesob.inherit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <!-- Add a new tab for Ethiopian Federal Procurement (FPPA) information -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Federal Procurement (FPPA)" name="fppa_procurement">
+                    <group>
+                        <group string="Supplier Registration">
+                            <field name="legal_registration_number"/>
+                            <field name="tin"/>
+                            <field name="supply_category_ids" widget="many2many_tags"/>
+                            <field name="registration_expiry_date"/>
+                        </group>
+                        <group string="Suspension &amp; Performance">
+                            <field name="is_blacklisted"/>
+                            <field name="blacklist_reason" invisible="not is_blacklisted" required="is_blacklisted"/>
+                            <field name="performance_score" readonly="1"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Define a dedicated Vendor Tree/List View showing custom fields -->
+    <record id="view_partner_tree_mesob" model="ir.ui.view">
+        <field name="name">res.partner.tree.mesob</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <list string="Registered Suppliers">
+                <field name="name"/>
+                <field name="tin"/>
+                <field name="legal_registration_number"/>
+                <field name="registration_expiry_date"/>
+                <field name="is_blacklisted" widget="boolean_toggle"/>
+                <field name="performance_score"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Define action to open Partners filtered or customized for Suppliers -->
+    <record id="action_mesob_suppliers" model="ir.actions.act_window">
+        <field name="name">Registered Suppliers</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="view_id" ref="view_partner_tree_mesob"/>
+    </record>
+</odoo>

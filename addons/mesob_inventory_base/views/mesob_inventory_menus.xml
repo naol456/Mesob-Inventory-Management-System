@@ -136,7 +136,7 @@
     <menuitem id="menu_mesob_procurement"
               name="Procurement"
               parent="menu_mesob_inventory_root"
-              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
+              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao,base.group_user"
               sequence="18"/>
 
     <menuitem id="menu_mesob_procurement_plan"
