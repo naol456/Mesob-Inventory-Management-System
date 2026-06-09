@@ -48,6 +48,8 @@
         "data/mesob_company_data.xml",
         # Assets (Modern UI Styles)
         "views/mesob_inventory_assets.xml",
+        # Custom Login Layout
+        "views/mesob_login_template.xml",
         # Views (Base)
         "views/mesob_inventory_major_classification_views.xml",
         "views/mesob_inventory_sub_classification_views.xml",
