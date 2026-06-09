@@ -11,6 +11,46 @@ $input-focused-bg: #fffdf5;
 $label-text: #374151;
 $muted-text: #94a3b8;
 
+// Background gradient colors
+$bg-dark-navy: #0a1428;
+$bg-deep-navy: #1a2d5c;
+$bg-royal-blue: #2E4998;
+
+// Login page body background with gradient and grid
+body {
+    // Vertical gradient from dark navy to royal blue
+    background: linear-gradient(180deg, 
+        $bg-dark-navy 0%, 
+        $bg-deep-navy 50%, 
+        $bg-royal-blue 100%
+    ) !important;
+    
+    // Grid pattern overlay
+    background-image: 
+        linear-gradient(180deg, 
+            $bg-dark-navy 0%, 
+            $bg-deep-navy 50%, 
+            $bg-royal-blue 100%
+        ),
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 49px,
+            rgba(135, 206, 250, 0.08) 49px,
+            rgba(135, 206, 250, 0.08) 50px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 49px,
+            rgba(135, 206, 250, 0.08) 49px,
+            rgba(135, 206, 250, 0.08) 50px
+        ) !important;
+    
+    min-height: 100vh;
+    background-attachment: fixed !important;
+}
+
 // Login wrapper to contain header and card
 .mesob_login_wrapper {
     max-width: 400px;
