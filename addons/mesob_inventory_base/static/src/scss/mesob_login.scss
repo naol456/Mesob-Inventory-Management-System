@@ -1,0 +1,209 @@
+/* MESOB LOGIN PAGE STYLES */
+
+// Color Variables
+$navy: #213D8D;
+$header-blue: #3B55A4;
+$gold: #f5a623;
+$gold-shadow: rgba(245, 166, 35, 0.38);
+$border-default: #E0E0E0;
+$input-bg: #fafafa;
+$input-focused-bg: #fffdf5;
+$label-text: #374151;
+$muted-text: #94a3b8;
+
+// Login wrapper to contain header and card
+.mesob_login_wrapper {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+// Custom Header Section
+.mesob_login_header {
+    background: linear-gradient(135deg, $navy 0%, $header-blue 100%);
+    padding: 25px 20px 20px;
+    text-align: center;
+    margin: 0;
+    border-radius: 12px 12px 0 0;
+    
+    .mesob_logo_container {
+        margin-bottom: 12px;
+        
+        .mesob_logo {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto;
+            display: block;
+            filter: drop-shadow(0 3px 8px $gold-shadow);
+        }
+    }
+    
+    .mesob_title {
+        color: white;
+        font-size: 26px;
+        font-weight: 700;
+        margin: 8px 0 4px;
+        letter-spacing: 1px;
+    }
+    
+    .mesob_subtitle {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 13px;
+        font-weight: 400;
+        margin: 0;
+    }
+}
+
+// Login Page Container
+.container.py-5 {
+    padding-top: 3rem !important;
+}
+
+// Card Customization
+.mesob_login_wrapper .o_database_list.card {
+    max-width: 400px !important;
+    border-radius: 0 0 12px 12px !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07) !important;
+    margin-top: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border-top: none !important;
+    
+    .card-body {
+        padding: 30px;
+        padding-top: 25px;
+    }
+}
+
+// Labels
+.oe_login_form label,
+.o_database_list label {
+    color: $label-text;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+// Input Fields
+.oe_login_form input[type="text"],
+.oe_login_form input[type="password"],
+.oe_login_form input[type="email"],
+.o_database_list input[type="text"],
+.o_database_list input[type="password"] {
+    background-color: $input-bg;
+    border: 1.5px solid $border-default;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 15px;
+    color: $label-text;
+    transition: all 0.3s ease;
+    
+    &:focus {
+        background-color: $input-focused-bg;
+        border-color: $gold;
+        box-shadow: 0 0 0 3px $gold-shadow;
+        outline: none;
+    }
+    
+    &::placeholder {
+        color: $muted-text;
+    }
+}
+
+// Login Button
+.oe_login_form .btn-primary,
+.o_database_list .btn-primary {
+    background: linear-gradient(135deg, $navy 0%, $header-blue 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 14px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    
+    &:hover {
+        background: linear-gradient(135deg, darken($navy, 5%) 0%, darken($header-blue, 5%) 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(33, 61, 141, 0.3);
+    }
+    
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+// Links
+.oe_login_form a,
+.o_database_list a {
+    color: $header-blue;
+    font-weight: 500;
+    text-decoration: none;
+    
+    &:hover {
+        color: $navy;
+        text-decoration: underline;
+    }
+}
+
+// Database Selector Button
+.oe_login_form .btn.border,
+.o_database_list .btn.border {
+    background: white;
+    border-color: $border-default !important;
+    color: $label-text;
+    
+    &:hover {
+        background: $input-bg;
+        border-color: $gold !important;
+    }
+}
+
+// Alert Messages
+.oe_login_form .alert,
+.o_database_list .alert {
+    border-radius: 8px;
+    border-left: 4px solid;
+    
+    &.alert-success {
+        border-left-color: #28a745;
+        background-color: rgba(40, 167, 69, 0.1);
+    }
+    
+    &.alert-danger {
+        border-left-color: #dc3545;
+        background-color: rgba(220, 53, 69, 0.1);
+    }
+}
+
+// Responsive
+@media (max-width: 576px) {
+    .mesob_login_wrapper {
+        max-width: 300px;
+    }
+    
+    .mesob_login_header {
+        padding: 20px 15px 18px;
+        
+        .mesob_logo_container .mesob_logo {
+            width: 55px;
+            height: 55px;
+        }
+        
+        .mesob_title {
+            font-size: 22px;
+        }
+        
+        .mesob_subtitle {
+            font-size: 11px;
+        }
+    }
+    
+    .mesob_login_wrapper .o_database_list.card {
+        max-width: 300px !important;
+        
+        .card-body {
+            padding: 20px;
+        }
+    }
+}

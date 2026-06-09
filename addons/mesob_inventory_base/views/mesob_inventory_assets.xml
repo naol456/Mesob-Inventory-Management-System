@@ -20,4 +20,11 @@
         <field name="bundle">web.assets_backend</field>
         <field name="path">mesob_inventory_base/static/src/xml/mesob_dashboard.xml</field>
     </record>
+    
+    <!-- Login Page Assets -->
+    <record id="mesob_login_assets" model="ir.asset">
+        <field name="name">Mesob Login Page Styles</field>
+        <field name="bundle">web.assets_frontend</field>
+        <field name="path">mesob_inventory_base/static/src/scss/mesob_login.scss</field>
+    </record>
 </odoo>

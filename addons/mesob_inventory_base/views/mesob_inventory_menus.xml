@@ -2,39 +2,45 @@
 <odoo>
     <!-- ── Root Menu ──────────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_root" 
-              name="Mesob IMS"
+              name="Mesob Inventory"
               web_icon="mesob_inventory_base,static/description/icon.png"
-              groups="mesob_inventory_base.group_mesob_inventory_user"
+              groups="mesob_inventory_base.group_mesob_inventory_user,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_security_guard,mesob_inventory_base.group_mesob_auditor,mesob_inventory_base.group_mesob_dept_head,mesob_inventory_base.group_mesob_procurement"
               sequence="10"/>
 
     <!-- ── Operations ─────────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_operations"
               name="Operations"
               parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_inventory_user,mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao"
               sequence="10"/>
 
     <menuitem id="menu_mesob_inventory_receiving"
               name="Receiving Orders"
               parent="menu_mesob_inventory_operations"
               action="action_mesob_inventory_receiving"
+              groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_pao"
               sequence="5"/>
 
+    <!-- ONE menu for requisitions - create button hidden by get_view() method in model -->
     <menuitem id="menu_mesob_inventory_requisitions" 
               name="Requisitions (Model 20)"
               parent="menu_mesob_inventory_operations"
               action="action_mesob_inventory_requisition"
+              groups="mesob_inventory_base.group_mesob_inventory_user,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk"
               sequence="10"/>
 
     <menuitem id="menu_mesob_inventory_issue_vouchers" 
               name="Issue Vouchers (Model 22)"
               parent="menu_mesob_inventory_operations"
               action="action_mesob_inventory_issue_voucher"
+              groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao"
               sequence="20"/>
 
     <!-- ── Dispatch ───────────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_dispatch"
               name="Dispatch"
               parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_security_guard"
               sequence="12"/>
 
     <menuitem id="menu_mesob_gate_pass_all"
@@ -61,6 +67,7 @@
     <menuitem id="menu_mesob_inventory_documents"
               name="Documents"
               parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_pao"
               sequence="15"/>
 
     <menuitem id="menu_mesob_inventory_model19"
@@ -79,6 +86,7 @@
     <menuitem id="menu_mesob_inventory_stock_records"
               name="Stock Records &amp; Valuation"
               parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao"
               sequence="16"/>
 
     <menuitem id="menu_mesob_bin_cards"
@@ -122,6 +130,7 @@
     <menuitem id="menu_mesob_inventory_stock_control"
               name="Stock Control"
               parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao"
               sequence="17"/>
 
     <menuitem id="menu_mesob_stock_reorder_alerts"
@@ -134,6 +143,7 @@
     <menuitem id="menu_mesob_inventory_master_data"
               name="Master Data"
               parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper"
               sequence="20"/>
 
     <menuitem id="menu_mesob_inventory_classifications"

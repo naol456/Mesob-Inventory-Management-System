@@ -10,3 +10,38 @@ This repository contains **custom addons** for an FDRE-compliant inventory manag
 
 ## Workflow
 See `specs/Development-Workflow-Notion.md`.
+
+
+MESOB INVENTORY TEST ACCOUNTS
+==============================
+
+PAO Account:
+  Email: pao@mesob.local
+  Password: Pao123
+  
+
+Storekeeper Account:
+  Email: store@mesob.local
+  Password: Store123
+  
+
+Stock Clerk Account:
+  Email: clerk@mesob.local
+  Password: Clerk123
+  
+
+Regular User Account:
+  Email: user@mesob.local
+  Password: User123
+
+
+
+
+
+<!-- if you want to run it with XML auto-reload for development -->
+
+<!-- python odoo-19/odoo-bin -c odoo.conf --dev=xml
+
+ -->
+
+
