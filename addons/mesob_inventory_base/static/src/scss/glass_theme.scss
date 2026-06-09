@@ -16,9 +16,18 @@ label,
 .o_field_widget,
 .text-muted,
 .o_animated_number,
-h1, h2, h3, h4, h5,
 span, div, p {
     @include text-white-color;
+    font-family: $font-body !important;
+}
+
+h1, h2, h3, h4, h5, .o_kanban_record_title, .oe_title {
+    font-family: $font-display !important;
+    letter-spacing: -0.02em;
+}
+
+code, pre, .font-monospace, [class*="font-monospace"], [class*="font-mono"] {
+    font-family: $font-code !important;
 }
 
 a {
