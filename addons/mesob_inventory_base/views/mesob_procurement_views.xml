@@ -73,8 +73,8 @@
         <field name="arch" type="xml">
             <list string="Department Needs Requests">
                 <field name="department"/>
-                <field name="item_id"/>
-                <field name="item_code"/>
+                <field name="major_classification_id"/>
+                <field name="sub_classification_id"/>
                 <field name="quantity"/>
                 <field name="estimated_unit_price"/>
                 <field name="total_price" sum="Total Cost"/>
@@ -99,8 +99,8 @@
                     <group>
                         <group>
                             <field name="department" readonly="state != 'draft'"/>
-                            <field name="item_id" readonly="state != 'draft'"/>
-                            <field name="item_code"/>
+                            <field name="major_classification_id" readonly="state != 'draft'"/>
+                            <field name="sub_classification_id" readonly="state != 'draft'"/>
                         </group>
                         <group>
                             <field name="quantity" readonly="state != 'draft'"/>
@@ -293,7 +293,8 @@
                         <page string="Order Lines" name="lines">
                             <field name="line_ids" readonly="state != 'draft'">
                                 <list editable="bottom">
-                                    <field name="item_id"/>
+                                    <field name="major_classification_id"/>
+                                    <field name="sub_classification_id"/>
                                     <field name="quantity"/>
                                     <field name="qty_received" readonly="1"/>
                                     <field name="price_unit"/>

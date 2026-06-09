@@ -23,10 +23,16 @@ class TestMesobProcurement(TransactionCase):
             "code": "4402",
             "name": "Office Supplies",
         })
+        self.sub_classification = self.env["mesob.inventory.sub_classification"].create({
+            "code": "001",
+            "name": "Paper Supplies",
+            "major_classification_id": self.classification.id,
+        })
         self.item = self.item_model.create({
             "item_code": "4402-001-001",
             "name": "Test Paper",
             "classification_id": self.classification.id,
+            "sub_classification_id": self.sub_classification.id,
             "reorder_level": 10.0,
         })
 
@@ -54,14 +60,14 @@ class TestMesobProcurement(TransactionCase):
 
     def test_01_supplier_blacklist_validation(self):
         """FR-PROC-012: Ensure blacklisted supplier blocks PO creation."""
-        # Create an APP and a Lot
+        # Create an APP and a Lot (budget below threshold to pass lot constraints)
         plan = self.plan_model.create({
             "fiscal_year": "2018 E.C.",
         })
         lot = self.env["mesob.procurement.plan.lot"].create({
             "plan_id": plan.id,
             "name": "Lot 1",
-            "budget": 500000.0,
+            "budget": 150000.0,
             "mechanism": "shopping",
         })
 
@@ -131,7 +137,7 @@ class TestMesobProcurement(TransactionCase):
             "plan_id": plan.id,
             "name": "Lot 2",
             "budget": 5000000.0,
-            "mechanism": "shopping",
+            "mechanism": "bidding",  # Budget is above 200,000 so must be bidding/tendering
         })
         po = self.po_model.create({
             "plan_lot_id": lot.id,
@@ -172,7 +178,8 @@ class TestMesobProcurement(TransactionCase):
         lot = self.env["mesob.procurement.plan.lot"].create({
             "plan_id": plan.id,
             "name": "Office Assets Lot",
-            "budget": 200000.0,
+            "budget": 150000.0,
+            "mechanism": "shopping",
         })
         po = self.po_model.create({
             "plan_lot_id": lot.id,
@@ -180,7 +187,8 @@ class TestMesobProcurement(TransactionCase):
         })
         self.env["mesob.procurement.order.line"].create({
             "order_id": po.id,
-            "item_id": self.item.id,
+            "major_classification_id": self.classification.id,
+            "sub_classification_id": self.sub_classification.id,
             "quantity": 5.0,
             "price_unit": 100.0,
         })
@@ -198,3 +206,34 @@ class TestMesobProcurement(TransactionCase):
         self.item.write({"is_surplus": False})
         po.action_approve()
         self.assertEqual(po.state, "approved")
+
+    def test_05_fppa_shopping_threshold_restriction(self):
+        """FPPA Directives: Ensure a Shopping/RFQ lot budget cannot exceed ETB 200,000."""
+        plan = self.plan_model.create({"fiscal_year": "2018 E.C."})
+        with self.assertRaises(ValidationError):
+            self.env["mesob.procurement.plan.lot"].create({
+                "plan_id": plan.id,
+                "name": "High Budget Shopping",
+                "budget": 200001.0,  # Exceeds ETB 200,000 limit
+                "mechanism": "shopping",
+            })
+
+    def test_06_fppa_splitting_ban_restriction(self):
+        """FPPA Directives Article 26: Ensure splitting same-category lots to bypass bidding is blocked."""
+        plan = self.plan_model.create({"fiscal_year": "2018 E.C."})
+        self.env["mesob.procurement.plan.lot"].create({
+            "plan_id": plan.id,
+            "name": "Supplies Part 1",
+            "category": "supplies",
+            "budget": 100000.0,
+            "mechanism": "shopping",
+        })
+        # Attempting to add a duplicate 'supplies' category lot under 'shopping' must trigger a ValidationError
+        with self.assertRaises(ValidationError):
+            self.env["mesob.procurement.plan.lot"].create({
+                "plan_id": plan.id,
+                "name": "Supplies Part 2 (Split Lot)",
+                "category": "supplies",
+                "budget": 100000.0,
+                "mechanism": "shopping",
+            })

@@ -359,20 +359,23 @@ class MesobInventoryItem(models.Model):
             if item.reorder_level > 0 and current <= item.reorder_level:
                 # Check for outstanding open POs for this item code to prevent duplicate ordering
                 outstanding_pos = self.env['mesob.procurement.order.line'].search([
-                    ('item_id', '=', item.id),
+                    ('major_classification_id', '=', item.classification_id.id),
+                    ('sub_classification_id', '=', item.sub_classification_id.id),
                     ('order_id.state', 'in', ['draft', 'pending', 'approved', 'sent'])
                 ])
                 if not outstanding_pos:
                     # Search if need already exists in draft to avoid duplication
                     existing_need = self.env['mesob.procurement.need'].search([
-                        ('item_id', '=', item.id),
+                        ('major_classification_id', '=', item.classification_id.id),
+                        ('sub_classification_id', '=', item.sub_classification_id.id),
                         ('state', '=', 'draft')
                     ])
                     if not existing_need:
                         # Auto-create draft need request
                         self.env['mesob.procurement.need'].create({
                             'department': 'ministry_transport_logistics', # default department fallback
-                            'item_id': item.id,
+                            'major_classification_id': item.classification_id.id,
+                            'sub_classification_id': item.sub_classification_id.id,
                             'quantity': max(1.0, item.reorder_level - current),
                             'estimated_unit_price': 100.0, # default estimate
                             'expected_delivery_period': 'Auto-Reorder Lead Period',

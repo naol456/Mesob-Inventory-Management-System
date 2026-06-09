@@ -201,16 +201,16 @@ class MesobProcurementNeed(models.Model):
         string="Requesting Department",
         required=True,
     )
-    item_id = fields.Many2one(
-        "mesob.inventory.item",
-        string="Catalogued Stock Item",
+    major_classification_id = fields.Many2one(
+        "mesob.inventory.major.classification",
+        string="Major Classification",
         required=True,
-        help="Must be a catalogued item code ####-###-###.",
     )
-    item_code = fields.Char(
-        related="item_id.item_code",
-        string="Item Code",
-        readonly=True,
+    sub_classification_id = fields.Many2one(
+        "mesob.inventory.sub.classification",
+        string="Sub Classification",
+        required=True,
+        domain="[('major_classification_id', '=', major_classification_id)]",
     )
     quantity = fields.Float(string="Quantity Requested", required=True, default=1.0)
     estimated_unit_price = fields.Float(string="Estimated Unit Price", required=True)
@@ -592,8 +592,13 @@ class MesobProcurementOrder(models.Model):
             
             # Check Surplus block business rule (BR-PROC-008 / AC-PROC-006)
             for line in rec.line_ids:
-                if line.item_id.is_surplus:
-                    raise UserError(f"Approval Blocked: Stock item code '{line.item_id.item_code}' is currently flagged as surplus in the Disposal system! (BR-PROC-008)")
+                surplus_item = self.env["mesob.inventory.item"].search([
+                    ("classification_id", "=", line.major_classification_id.id),
+                    ("sub_classification_id", "=", line.sub_classification_id.id),
+                    ("is_surplus", "=", True)
+                ], limit=1)
+                if surplus_item:
+                    raise UserError(f"Approval Blocked: Sub-classification '{line.sub_classification_id.name}' has items flagged as surplus in the Disposal system! (BR-PROC-008)")
 
             rec.state = "approved"
         return True
@@ -606,7 +611,17 @@ class MesobProcurementOrderLine(models.Model):
     _description = "Purchase Order Line"
 
     order_id = fields.Many2one("mesob.procurement.order", string="Purchase Order", ondelete="cascade")
-    item_id = fields.Many2one("mesob.inventory.item", string="Catalogued Item", required=True)
+    major_classification_id = fields.Many2one(
+        "mesob.inventory.major.classification",
+        string="Major Classification",
+        required=True,
+    )
+    sub_classification_id = fields.Many2one(
+        "mesob.inventory.sub.classification",
+        string="Sub Classification",
+        required=True,
+        domain="[('major_classification_id', '=', major_classification_id)]",
+    )
     quantity = fields.Float(string="Quantity", required=True, default=1.0)
     qty_received = fields.Float(string="Received Qty", compute="_compute_received_qty", store=True)
     price_unit = fields.Float(string="Unit Price (ETB)", required=True)
@@ -617,17 +632,18 @@ class MesobProcurementOrderLine(models.Model):
         for line in self:
             line.price_subtotal = line.quantity * line.price_unit
 
-    @api.depends("order_id.name", "item_id")
+    @api.depends("order_id.name", "major_classification_id", "sub_classification_id")
     def _compute_received_qty(self):
         for line in self:
-            # Query accepted Model 19 quantities received under this PO reference
+            # Query accepted receiving line quantities under this PO reference for our major/sub classifications
             domain = [
                 ("receiving_id.purchase_order_ref", "=", line.order_id.name),
-                ("item_id", "=", line.item_id.id),
-                ("model19_id.state", "=", "done"),
+                ("item_id.classification_id", "=", line.major_classification_id.id),
+                ("item_id.sub_classification_id", "=", line.sub_classification_id.id),
+                ("receiving_id.state", "=", "done"),
             ]
-            receipt_lines = self.env["mesob.inventory.model19.line"].search(domain)
-            line.qty_received = sum(receipt_lines.mapped("quantity"))
+            receipt_lines = self.env["mesob.inventory.receiving.line"].search(domain)
+            line.qty_received = sum(receipt_lines.mapped("qty_accepted"))
 
 
 class MesobProcurementPaymentCertificate(models.Model):
