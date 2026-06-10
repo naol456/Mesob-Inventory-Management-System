@@ -5,18 +5,77 @@
         <field name="name">mesob.stock.record.card.list</field>
         <field name="model">mesob.stock.record.card</field>
         <field name="arch" type="xml">
-            <list string="Stock Record Cards" create="true" edit="true">
-                <field name="date"/>
+            <list string="Stock Record Cards" create="true" edit="true"
+                  default_order="date desc, item_id"
+                  decoration-info="transaction_type == 'transfer'"
+                  decoration-warning="transaction_type == 'adjustment'"
+                  decoration-success="transaction_type == 'receipt'"
+                  decoration-danger="transaction_type == 'issue'">
+                <field name="date" class="font-monospace text-muted"/>
+                <field name="item_id" class="fw-semibold"/>
+                <field name="transaction_type" class="fw-bold"/>
+                <field name="reference" class="font-monospace text-muted"/>
+                <field name="quantity_in" sum="Total In" class="text-end fw-bold font-monospace text-success"/>
+                <field name="quantity_out" sum="Total Out" class="text-end fw-bold font-monospace text-danger"/>
+                <field name="quantity_balance" class="text-end fw-bold font-monospace text-primary"/>
+                <field name="unit_cost" class="text-end font-monospace"/>
+                <field name="balance_value" sum="Total Value" class="text-end fw-bold font-monospace text-primary"/>
+                <field name="average_cost" class="text-end font-monospace text-muted"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Kanban View ────────────────────────────────────────────── -->
+    <record id="view_mesob_stock_record_card_kanban" model="ir.ui.view">
+        <field name="name">mesob.stock.record.card.kanban</field>
+        <field name="model">mesob.stock.record.card</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="transaction_type" drag_drop="false" class="o_kanban_mobile">
+                <field name="id"/>
                 <field name="item_id"/>
+                <field name="date"/>
                 <field name="transaction_type"/>
                 <field name="reference"/>
-                <field name="quantity_in" sum="Total In"/>
-                <field name="quantity_out" sum="Total Out"/>
                 <field name="quantity_balance"/>
-                <field name="unit_cost"/>
-                <field name="balance_value" sum="Total Value"/>
-                <field name="average_cost"/>
-            </list>
+                <field name="balance_value"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click card shadow-sm border-0 rounded p-3 mb-3 bg-white" style="min-height: 125px;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-primary text-white font-monospace fs-6 px-2 py-1">
+                                    <t t-esc="record.item_id.value"/>
+                                </span>
+                                <t t-if="record.transaction_type.raw_value == 'receipt'">
+                                    <span class="badge bg-success text-white px-2 py-1 small">
+                                        <i class="fa fa-download me-1"/>Receipt
+                                    </span>
+                                </t>
+                                <t t-elif="record.transaction_type.raw_value == 'issue'">
+                                    <span class="badge bg-danger text-white px-2 py-1 small">
+                                        <i class="fa fa-upload me-1"/>Issue
+                                    </span>
+                                </t>
+                                <t t-else="">
+                                    <span class="badge bg-warning text-dark px-2 py-1 small fw-bold">
+                                        <i class="fa fa-refresh me-1"/>Adjust/Transfer
+                                    </span>
+                                </t>
+                            </div>
+                            <h4 class="o_kanban_record_title fw-bold text-dark fs-5 mb-1 mt-1">
+                                Qty: <t t-esc="record.quantity_balance.value"/>
+                            </h4>
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                                <span class="text-muted small">
+                                    <i class="fa fa-usd me-1"/> <t t-esc="record.balance_value.value"/>
+                                </span>
+                                <span class="text-muted small font-monospace">
+                                    <i class="fa fa-calendar me-1"/> <t t-esc="record.date.value"/>
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
         </field>
     </record>
 
@@ -28,64 +87,73 @@
             <form string="Stock Record Card" class="o_mesob_gov_doc">
                 <header>
                     <button name="action_create_fifo_layers" string="Create FIFO Layers" type="object" 
-                            class="oe_highlight" invisible="transaction_type != 'receipt'"/>
+                            class="btn-primary" invisible="transaction_type != 'receipt'"/>
                 </header>
                 <sheet>
-                    <!-- Government Document Header -->
-                    <div class="mesob_gov_header">
-                        <div class="mesob_gov_logo"></div>
-                        <h1 class="mesob_gov_title">Federal Democratic Republic of Ethiopia</h1>
-                        <h2 class="mesob_gov_org">FDRE Mesob Center</h2>
-                        <h3 class="mesob_gov_subtitle">Stock Record Card (Model 19)</h3>
-                        <div class="mesob_gov_underline"></div>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="item_id" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Stock Record Card (Model 19)</div>
+                        </div>
                     </div>
                     
-                    <group>
-                        <group string="Item Information">
-                            <field name="item_id" options="{'no_create': True}"/>
-                            <field name="uom_id"/>
+                    <!-- Symmetrical Information: Multi-Column layout w/ No-Clutter Dropdowns -->
+                    <group class="mb-4" col="2">
+                        <group string="Item details" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="item_id" options="{'no_open': True, 'no_create': True}" class="mb-3"/>
+                            <field name="uom_id" class="mb-3"/>
                             <field name="currency_id" invisible="1"/>
                         </group>
-                        <group string="Transaction Details">
-                            <field name="date"/>
-                            <field name="transaction_type"/>
-                            <field name="reference"/>
-                            <field name="source_document"/>
+                        <group string="Transaction auditing" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="date" class="mb-3 font-monospace"/>
+                            <field name="transaction_type" class="mb-3"/>
+                            <field name="reference" class="mb-3 font-monospace"/>
+                            <field name="source_document" class="mb-3 font-monospace"/>
+                        </group>
+                    </group>
+
+                    <group class="mb-4" col="2">
+                        <group string="Stock quantities" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="quantity_in" class="text-end fw-bold font-monospace text-success mb-3"/>
+                            <field name="quantity_out" class="text-end fw-bold font-monospace text-danger mb-3"/>
+                            <field name="quantity_balance" class="text-end fw-bold font-monospace text-primary mb-3"/>
+                        </group>
+                        <group string="FIFO financial valuation" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="unit_cost" class="text-end font-monospace mb-3"/>
+                            <field name="total_cost_in" class="text-end font-monospace mb-3 text-success"/>
+                            <field name="total_cost_out" class="text-end font-monospace mb-3 text-danger"/>
+                            <field name="balance_value" class="text-end fw-bold font-monospace text-primary mb-3"/>
+                            <field name="average_cost" class="text-end font-monospace mb-3"/>
                         </group>
                     </group>
                     
-                    <group>
-                        <group string="Quantities">
-                            <field name="quantity_in"/>
-                            <field name="quantity_out"/>
-                            <field name="quantity_balance"/>
-                        </group>
-                        <group string="Valuation (FIFO)">
-                            <field name="unit_cost"/>
-                            <field name="total_cost_in"/>
-                            <field name="total_cost_out"/>
-                            <field name="balance_value"/>
-                            <field name="average_cost"/>
-                        </group>
-                    </group>
-                    
-                    <notebook>
-                        <page string="FIFO Layers" invisible="transaction_type != 'receipt'">
+                    <notebook class="mt-4">
+                        <page string="📄 FIFO Cost Layers" invisible="transaction_type != 'receipt'">
                             <field name="fifo_layer_ids">
-                                <list editable="bottom">
-                                    <field name="date"/>
-                                    <field name="quantity"/>
-                                    <field name="quantity_remaining"/>
-                                    <field name="quantity_consumed"/>
-                                    <field name="unit_cost"/>
-                                    <field name="total_cost"/>
-                                    <field name="cost_out"/>
-                                    <field name="is_exhausted"/>
+                                <list editable="bottom" class="glass-table border-0 rounded shadow-sm">
+                                    <field name="date" class="font-monospace text-muted"/>
+                                    <field name="quantity" class="text-end font-monospace"/>
+                                    <field name="quantity_remaining" class="text-end fw-bold font-monospace text-primary"/>
+                                    <field name="quantity_consumed" class="text-end font-monospace text-muted"/>
+                                    <field name="unit_cost" class="text-end font-monospace text-success"/>
+                                    <field name="total_cost" class="text-end fw-bold font-monospace text-primary"/>
+                                    <field name="cost_out" class="text-end font-monospace text-danger"/>
+                                    <field name="is_exhausted" widget="boolean_toggle"/>
                                 </list>
                             </field>
                         </page>
-                        <page string="Description">
-                            <field name="description" nolabel="1"/>
+                        <page string="📝 Transaction Notes" name="description_tab">
+                            <div class="p-3">
+                                <label for="description" class="fw-semibold text-muted mb-2 d-block">Ledger Description &amp; Audit Comments</label>
+                                <field name="description" placeholder="Write any transaction explanations, adjustments reasons, or inventory remarks..." class="w-100 border p-3 rounded" style="min-height: 100px;"/>
+                            </div>
                         </page>
                     </notebook>
                 </sheet>
@@ -112,7 +180,7 @@
     <record id="action_mesob_stock_record_card_raw" model="ir.actions.act_window">
         <field name="name">Raw Stock Record Ledger Entries</field>
         <field name="res_model">mesob.stock.record.card</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Manage Raw Stock Records
@@ -128,16 +196,16 @@
         <field name="name">mesob.stock.fifo.layer.list</field>
         <field name="model">mesob.stock.fifo.layer</field>
         <field name="arch" type="xml">
-            <list string="FIFO Cost Layers" create="false" edit="false">
-                <field name="date"/>
-                <field name="item_id"/>
-                <field name="quantity"/>
-                <field name="quantity_remaining"/>
-                <field name="quantity_consumed"/>
-                <field name="unit_cost"/>
-                <field name="total_cost"/>
-                <field name="cost_out"/>
-                <field name="is_exhausted"/>
+            <list string="FIFO Cost Layers" create="false" edit="false" class="glass-table border-0 rounded shadow-sm">
+                <field name="date" class="font-monospace text-muted"/>
+                <field name="item_id" class="fw-semibold"/>
+                <field name="quantity" class="text-end font-monospace"/>
+                <field name="quantity_remaining" class="text-end fw-bold font-monospace text-primary"/>
+                <field name="quantity_consumed" class="text-end font-monospace text-muted"/>
+                <field name="unit_cost" class="text-end font-monospace text-success"/>
+                <field name="total_cost" class="text-end fw-bold font-monospace text-primary"/>
+                <field name="cost_out" class="text-end font-monospace text-danger"/>
+                <field name="is_exhausted" widget="boolean_toggle"/>
             </list>
         </field>
     </record>
@@ -154,13 +222,13 @@
         <field name="name">mesob.stock.valuation.config.list</field>
         <field name="model">mesob.stock.valuation.config</field>
         <field name="arch" type="xml">
-            <list string="Valuation Configurations">
-                <field name="name"/>
-                <field name="item_id"/>
-                <field name="classification_id"/>
-                <field name="valuation_method"/>
-                <field name="standard_cost"/>
-                <field name="active"/>
+            <list string="Valuation Configurations" class="glass-table border-0 rounded shadow-sm">
+                <field name="name" class="fw-bold"/>
+                <field name="item_id" class="fw-semibold text-muted"/>
+                <field name="classification_id" class="fw-semibold text-muted"/>
+                <field name="valuation_method" class="fw-semibold"/>
+                <field name="standard_cost" class="text-end font-monospace"/>
+                <field name="active" widget="boolean_toggle"/>
             </list>
         </field>
     </record>
@@ -174,28 +242,28 @@
                 <sheet>
                     <div class="oe_title">
                         <h1>
-                            <field name="name" placeholder="Configuration Name"/>
+                            <field name="name" placeholder="Configuration Name" class="fw-bold text-primary"/>
                         </h1>
                     </div>
-                    <group>
-                        <group string="Scope">
-                            <field name="item_id"/>
-                            <field name="classification_id"/>
+                    <group class="mb-4" col="2">
+                        <group string="Scope" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="item_id" options="{'no_open': True, 'no_create': True}" class="mb-3"/>
+                            <field name="classification_id" options="{'no_open': True, 'no_create': True}" class="mb-3"/>
                         </group>
-                        <group string="Valuation Method">
-                            <field name="valuation_method"/>
-                            <field name="standard_cost" invisible="valuation_method != 'standard'"/>
+                        <group string="Valuation Method" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="valuation_method" class="mb-3"/>
+                            <field name="standard_cost" invisible="valuation_method != 'standard'" class="mb-3 font-monospace text-end"/>
                             <field name="currency_id" invisible="1"/>
                         </group>
                     </group>
-                    <group>
-                        <group string="Settings">
-                            <field name="auto_create_layers"/>
-                            <field name="track_by_location"/>
-                            <field name="allow_negative_stock"/>
+                    <group class="mb-4" col="2">
+                        <group string="Settings" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="auto_create_layers" widget="boolean_toggle" class="mb-3"/>
+                            <field name="track_by_location" widget="boolean_toggle" class="mb-3"/>
+                            <field name="allow_negative_stock" widget="boolean_toggle" class="mb-3"/>
                         </group>
-                        <group string="Status">
-                            <field name="active"/>
+                        <group string="Status" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="active" widget="boolean_toggle" class="mb-3"/>
                         </group>
                     </group>
                 </sheet>
