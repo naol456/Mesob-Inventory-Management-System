@@ -448,3 +448,40 @@ class MesobGatePass(models.Model):
                         "Contact PAO for controlled correction workflow."
                     )
         return super().write(vals)
+
+    # ── Role-Based Access Control (UI Level) ────────────────────────
+
+    @api.model
+    def get_view(self, view_id=None, view_type="form", **options):
+        """Hide New button for Security Guard on both list and form views.
+        
+        Security Guards can only dispatch authorized Gate Passes,
+        not create new ones. PAO and Storekeeper can create.
+        """
+        result = super(MesobGatePass, self).get_view(view_id, view_type, **options)
+        
+        # Import lxml for XML manipulation
+        from lxml import etree
+        
+        # Check if user is Security Guard
+        is_security_guard = self.env.user.has_group("mesob_inventory_base.group_mesob_security_guard")
+        
+        # Hide "New" button for Security Guard in list and form views
+        if is_security_guard and view_type in ("list", "form"):
+            doc = etree.XML(result["arch"])
+            
+            # For list view, hide create button
+            if view_type == "list":
+                # Set create="false" on tree/list element
+                for node in doc.xpath("//list | //tree"):
+                    node.set("create", "false")
+            
+            # For form view, hide create button in breadcrumb
+            elif view_type == "form":
+                # Set create="false" on form element
+                for node in doc.xpath("//form"):
+                    node.set("create", "false")
+            
+            result["arch"] = etree.tostring(doc, encoding="unicode")
+        
+        return result
