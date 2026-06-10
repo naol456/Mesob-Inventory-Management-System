@@ -105,24 +105,24 @@
               name="Analytics &amp; BI"
               parent="menu_mesob_inventory_root"
               groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper"
-              sequence="50"/>
+              sequence="1"/>
 
     <menuitem id="menu_mesob_valuation_pivot"
               name="Asset Valuation Analyzer"
               parent="menu_mesob_inventory_analytics"
               action="action_mesob_valuation_pivot"
-              sequence="10"/>
+              sequence="1"/>
 
     <menuitem id="menu_mesob_requisition_graph"
               name="Budget Consumption Chart"
               parent="menu_mesob_inventory_analytics"
               action="action_mesob_requisition_graph"
-              sequence="20"/>
+              sequence="2"/>
 
     <menuitem id="menu_mesob_reorder_risk_graph"
               name="Stockout Risk Analyzer"
               parent="menu_mesob_inventory_analytics"
               action="action_mesob_reorder_alert_graph"
-              sequence="30"/>
+              sequence="3"/>
 
 </odoo>
