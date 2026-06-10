@@ -62,7 +62,7 @@
                             </h4>
                             <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
                                 <span class="text-muted small">
-                                    <i class="fa fa-user me-1"/> <t t-esc="record.requested_by_id.value"/>
+                                    <i class="fa fa-user-circle me-1"/> <t t-esc="record.requested_by_id.value"/>
                                 </span>
                                 <span class="text-muted small font-monospace">
                                     <i class="fa fa-calendar me-1"/> <t t-esc="record.requested_on.value"/>
@@ -126,18 +126,22 @@
                         </h1>
                     </div>
 
-                    <group class="mb-4">
-                        <group string="Requisition Context" col="1" class="glass-card p-3 rounded shadow-sm border">
-                            <field name="issue_mode" readonly="state != 'draft'" class="mb-2"/>
-                            <field name="department" readonly="state != 'draft'" class="mb-2"/>
-                            <field name="requested_by_id" readonly="state != 'draft'" class="mb-2"/>
-                            <field name="requested_on" readonly="state != 'draft'" class="mb-2"/>
+                    <!-- Primary Creation Fields: Symmetrical 2-Column Grid -->
+                    <group class="mb-4" col="2">
+                        <group string="Requisition Information" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="issue_mode" widget="radio" options="{'horizontal': true}" readonly="state != 'draft'" class="mb-3"/>
+                            <field name="department" placeholder="e.g. IT Department, Finance, Logistics..." readonly="state != 'draft'" class="mb-3"/>
+                            <field name="requested_by_id" options="{'no_open': True, 'no_create': True}" readonly="state != 'draft'" class="mb-3"/>
+                            <field name="requested_on" readonly="state != 'draft'" class="mb-3"/>
                         </group>
-                        <group string="Audit &amp; Approvals" col="1" class="glass-card p-3 rounded shadow-sm border"
-                               invisible="state not in ('approved', 'rejected')">
-                            <field name="approved_by_id" readonly="True" class="mb-2"/>
-                            <field name="approved_on" readonly="True" class="mb-2"/>
-                            <field name="rejection_reason" invisible="state != 'rejected'" readonly="True" class="mb-2 text-danger fw-semibold"/>
+                    </group>
+
+                    <!-- Approvals Audit Card: Separated and Dynamically Displayed Direct Below Primary Card -->
+                    <group class="mb-4" invisible="state not in ('approved', 'rejected')">
+                        <group string="Approval &amp; Audit Logs" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="approved_by_id" readonly="True" class="mb-3"/>
+                            <field name="approved_on" readonly="True" class="mb-3"/>
+                            <field name="rejection_reason" invisible="state != 'rejected'" readonly="True" class="mb-3 text-danger fw-semibold" colspan="2"/>
                         </group>
                     </group>
 
@@ -145,12 +149,13 @@
                         <page string="Requisition Lines" name="lines">
                             <field name="line_ids" readonly="state != 'draft'">
                                 <list editable="bottom" class="glass-table border-0 rounded shadow-sm">
-                                    <field name="major_classification_id" class="fw-semibold"/>
+                                    <field name="major_classification_id" class="fw-semibold" options="{'no_open': True, 'no_create': True}"/>
                                     <field name="sub_classification_id" 
                                            domain="[('major_classification_id', '=', major_classification_id), ('active', '=', True)]"
-                                           class="fw-semibold text-muted"/>
-                                    <field name="quantity" class="text-end fw-bold font-monospace text-primary" style="font-size: 1.1em;"/>
-                                    <field name="note" placeholder="E.g. requested specifications..."/>
+                                           class="fw-semibold text-muted"
+                                           options="{'no_open': True, 'no_create': True}"/>
+                                    <field name="quantity" class="text-end fw-bold font-monospace text-primary" style="font-size: 1.1em;" placeholder="Quantity..."/>
+                                    <field name="note" placeholder="E.g. requested specifications, brand, size..."/>
                                 </list>
                             </field>
                         </page>
