@@ -448,3 +448,10 @@ class MesobGatePass(models.Model):
                         "Contact PAO for controlled correction workflow."
                     )
         return super().write(vals)
+
+    def unlink(self):
+        """Override unlink to prevent deleting dispatched Gate Passes."""
+        for record in self:
+            if record.state == "dispatched":
+                raise UserError("Cannot delete dispatched Gate Pass records to preserve auditability.")
+        return super().unlink()
