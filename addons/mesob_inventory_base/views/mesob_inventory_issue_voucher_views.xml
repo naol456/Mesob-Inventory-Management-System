@@ -113,12 +113,12 @@
                     
                     <!-- Main Information: Symmetrical Groups -->
                     <group class="mb-4">
-                        <group string="Issue details" col="1" class="glass-card p-3 rounded shadow-sm border">
+                        <group string="Issue details" class="glass-card p-3 rounded shadow-sm border">
                             <field name="issue_date" readonly="state != 'draft'" required="1" class="mb-2 font-monospace"/>
                             <field name="issued_by_id" readonly="1" class="mb-2"/>
                             <field name="requisition_id" readonly="1" options="{'no_open': True, 'no_create': True}" class="mb-2"/>
                         </group>
-                        <group string="Receiving details" col="1" class="glass-card p-3 rounded shadow-sm border">
+                        <group string="Receiving details" class="glass-card p-3 rounded shadow-sm border">
                             <field name="requesting_department" placeholder="e.g. IT Department, Logistics, Administration..." readonly="state != 'draft'" class="mb-2"/>
                         </group>
                     </group>
