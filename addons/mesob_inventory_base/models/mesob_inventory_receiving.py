@@ -1,5 +1,6 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError
+from lxml import etree
 
 
 class MesobInventoryReceiving(models.Model):
@@ -42,8 +43,38 @@ class MesobInventoryReceiving(models.Model):
 
     supplier_id = fields.Many2one(
         "res.partner",
-        string="Supplier / Source",
-        help="Supplier or returning department.",
+        string="Supplier",
+        help="Supplier providing the goods.",
+        domain="[('is_company', '=', True)]"
+    )
+    
+    department_id = fields.Selection(
+        [
+            ("ministry_transport_logistics", "Ministry of Transport and Logistics"),
+            ("commercial_bank_ethiopia", "Commercial Bank of Ethiopia"),
+            ("ethio_telecom", "Ethio telecom"),
+            ("education_training_authority", "Education and Training Authority"),
+            ("ethiopian_environmental_protection", "Ethiopian Environmental Protection Authority"),
+            ("ethiopian_food_drug_authority", "Ethiopian Food and Drug Authority"),
+            ("ethiopian_agricultural_authority", "Ethiopian Agricultural Authority"),
+            ("ethiopian_construction_authority", "Ethiopian Construction Authority"),
+            ("ministry_health", "Ministry of Health"),
+            ("ethiopian_customs_commission", "Ethiopian Customs Commission"),
+            ("ministry_justice", "Ministry of Justice"),
+            ("ministry_trade_regional_integration", "Ministry of Trade and Regional Integration"),
+            ("ministry_tourism", "Ministry of Tourism"),
+            ("ethiopian_postal_service", "Ethiopian Postal Service Enterprise"),
+            ("ethiopian_investment_commission", "Ethiopian Investment Commission"),
+            ("educational_assessment_examination", "Educational Assessment and Examination Service"),
+            ("documents_authentication_registration", "Documents Authentication and Registration Service"),
+            ("ministry_revenues", "Ministry of Revenues"),
+            ("ministry_foreign_affairs", "Ministry of Foreign Affairs"),
+            ("ministry_labor_skills", "Ministry of Labor and Skills"),
+            ("immigration_citizenship_service", "Immigration and Citizenship Service"),
+            ("national_id_program", "National ID Program"),
+        ],
+        string="Returning Department",
+        help="Department returning the goods.",
     )
 
     purchase_order_ref = fields.Char(
@@ -161,13 +192,43 @@ class MesobInventoryReceiving(models.Model):
     # ── Onchange ───────────────────────────────────────────────────
     @api.onchange("source_type")
     def _onchange_source_type(self):
-        """Auto-set no-payment flag for department returns."""
+        """Auto-set no-payment flag and clear/reset fields based on source type.
+        
+        - For 'supplier': Show supplier_id field, hide department_id
+        - For 'dept_return': Show department_id field, hide supplier_id
+        """
+        # Auto-set no-payment flag for department returns
         if self.source_type == "dept_return":
             self.is_no_payment = True
+            self.supplier_id = False  # Clear supplier when switching to department
         else:
             self.is_no_payment = False
-
+            self.department_id = False  # Clear department when switching to supplier
+    
     # ── Actions ────────────────────────────────────────────────────
+
+    @api.model
+    def get_view(self, view_id=None, view_type="form", **options):
+        """Hide New button for PAO and Stock Clerk on both list and form views.
+        
+        Only Storekeeper can create Receiving Orders.
+        """
+        result = super().get_view(view_id, view_type, **options)
+        
+        if view_type in ("list", "form"):
+            user = self.env.user
+            is_pao = user.has_group("mesob_inventory_base.group_mesob_pao")
+            is_stock_clerk = user.has_group("mesob_inventory_base.group_mesob_stock_clerk")
+            
+            if is_pao or is_stock_clerk:
+                arch = result.get("arch", "")
+                if isinstance(arch, str):
+                    arch = arch.encode("utf-8")
+                root = etree.fromstring(arch)
+                root.set("create", "0")
+                result["arch"] = etree.tostring(root, encoding="unicode", pretty_print=False)
+        
+        return result
 
     def action_receive(self):
         """Mark goods as physically received at store."""

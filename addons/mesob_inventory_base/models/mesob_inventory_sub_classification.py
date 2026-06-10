@@ -1,5 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
+from lxml import etree
 
 
 class MesobInventorySubClassification(models.Model):
@@ -89,6 +90,32 @@ class MesobInventorySubClassification(models.Model):
             else:
                 rec.display_name = rec.name or rec.code or ""
 
+    @api.model
+    def get_view(self, view_id=None, view_type='form', **options):
+        """Override to hide 'New' button when viewing from Bin Card navigation.
+        
+        Sub-Classifications are master data and should only be created from
+        the Master Data menu, not from the Bin Card ledger view.
+        """
+        result = super(MesobInventorySubClassification, self).get_view(view_id, view_type, **options)
+        
+        if view_type in ['tree', 'form']:
+            # Check if we're viewing from Bin Card navigation
+            from_bin_card = self._context.get('from_bin_card_navigation', False)
+            
+            # Hide create/edit/delete buttons when viewing from Bin Card context
+            if from_bin_card:
+                arch = result.get('arch', '')
+                if isinstance(arch, str):
+                    arch = arch.encode('utf-8')
+                root = etree.fromstring(arch)
+                root.set('create', '0')
+                root.set('edit', '0')
+                root.set('delete', '0')
+                result['arch'] = etree.tostring(root, encoding='unicode', pretty_print=False)
+        
+        return result
+
     def _compute_item_count(self):
         """Count items associated with this sub classification."""
         for rec in self:
@@ -129,6 +156,7 @@ class MesobInventorySubClassification(models.Model):
             "res_id": self.id,
             "view_id": view_id,
             "target": "current",
+            "context": {"from_bin_card_navigation": True},  # Flag to hide "New" button
         }
 
     def action_view_items_stock_card(self):

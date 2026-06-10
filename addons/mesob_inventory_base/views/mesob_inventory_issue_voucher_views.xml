@@ -81,10 +81,12 @@
                             groups="mesob_inventory_base.group_mesob_storekeeper"/>
                     <button name="action_confirm_receipt" string="✓ Confirm Receipt" type="object" 
                             class="btn-success" 
-                            invisible="state != 'issued'"/>
+                            invisible="state != 'issued'"
+                            groups="!mesob_inventory_base.group_mesob_storekeeper,!mesob_inventory_base.group_mesob_pao,!mesob_inventory_base.group_mesob_stock_clerk"/>
                     <button name="action_cancel" string="Cancel" type="object" 
                             confirm="Are you sure you want to cancel this issue voucher?"
-                            invisible="state in ('received', 'cancelled')"/>
+                            invisible="state in ('received', 'cancelled')"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
                     <button name="action_set_to_draft" string="Reset to Draft" type="object"
                             invisible="state != 'cancelled'"
                             groups="mesob_inventory_base.group_mesob_storekeeper"/>

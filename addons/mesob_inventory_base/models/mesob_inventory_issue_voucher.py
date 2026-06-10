@@ -1,5 +1,6 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from lxml import etree
 
 
 class MesobInventoryIssueVoucher(models.Model):
@@ -191,6 +192,34 @@ class MesobInventoryIssueVoucher(models.Model):
                 rec.display_name = f"{rec.name} - {rec.requesting_department}"
             else:
                 rec.display_name = rec.name or "New Issue Voucher"
+
+    # ── View Customization ──────────────────────────────────────────────
+
+    @api.model
+    def get_view(self, view_id=None, view_type="form", **options):
+        """Hide New button for PAO and Stock Clerk on both list and form views.
+        
+        Only Storekeeper can create Issue Vouchers.
+        
+        - list view:  create="0" removes the toolbar New button.
+        - form view:  create="0" removes the New button in the breadcrumb pager.
+        """
+        result = super().get_view(view_id, view_type, **options)
+        
+        if view_type in ("list", "form"):
+            user = self.env.user
+            is_pao = user.has_group("mesob_inventory_base.group_mesob_pao")
+            is_stock_clerk = user.has_group("mesob_inventory_base.group_mesob_stock_clerk")
+            
+            if is_pao or is_stock_clerk:
+                arch = result.get("arch", "")
+                if isinstance(arch, str):
+                    arch = arch.encode("utf-8")
+                root = etree.fromstring(arch)
+                root.set("create", "0")
+                result["arch"] = etree.tostring(root, encoding="unicode", pretty_print=False)
+        
+        return result
 
     # ── Actions ─────────────────────────────────────────────────────────
 

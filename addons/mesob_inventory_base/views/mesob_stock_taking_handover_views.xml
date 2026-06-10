@@ -157,17 +157,20 @@
     <menuitem id="menu_mesob_stock_taking_root"
               name="Stock-Taking &amp; Handovers"
               parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk"
               sequence="19"/>
 
     <menuitem id="menu_mesob_stock_taking_sub"
               name="Physical Stock Taking"
               parent="menu_mesob_stock_taking_root"
               action="action_mesob_stock_taking"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_stock_clerk"
               sequence="10"/>
 
     <menuitem id="menu_mesob_stock_handover_sub"
               name="Storekeeper Handovers"
               parent="menu_mesob_stock_taking_root"
               action="action_mesob_stock_handover"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper"
               sequence="20"/>
 </odoo>

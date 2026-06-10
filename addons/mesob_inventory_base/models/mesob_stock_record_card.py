@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
+from lxml import etree
 
 
 class MesobStockRecordCard(models.Model):
@@ -73,6 +74,41 @@ class MesobStockRecordCard(models.Model):
                 record.display_name = ' - '.join(filter(None, parts))
             else:
                 record.display_name = _('New Stock Record')
+    
+    @api.model
+    def get_view(self, view_id=None, view_type='form', **options):
+        """Override to hide 'New' button for Storekeeper and PAO (read-only roles)"""
+        result = super(MesobStockRecordCard, self).get_view(view_id, view_type, **options)
+        
+        if view_type in ['tree', 'form']:
+            doc = etree.XML(result['arch'])
+            
+            # Stock Clerk: Full access (maintains stock record cards)
+            # Storekeeper: Read-only (for reference)
+            # PAO: Read-only (oversight)
+            
+            is_storekeeper = self.env.user.has_group('mesob_inventory_base.group_mesob_storekeeper')
+            is_pao = self.env.user.has_group('mesob_inventory_base.group_mesob_pao')
+            is_stock_clerk = self.env.user.has_group('mesob_inventory_base.group_mesob_stock_clerk')
+            
+            # Hide create/edit/delete for Storekeeper and PAO (read-only)
+            if (is_storekeeper or is_pao) and not is_stock_clerk:
+                if view_type == 'tree':
+                    # Hide "New" button in list view
+                    for node in doc.xpath("//tree"):
+                        node.set('create', '0')
+                        node.set('edit', '0')
+                        node.set('delete', '0')
+                elif view_type == 'form':
+                    # Hide "New", "Edit", "Duplicate", "Delete" in form view
+                    for node in doc.xpath("//form"):
+                        node.set('create', '0')
+                        node.set('edit', '0')
+                        node.set('delete', '0')
+            
+            result['arch'] = etree.tostring(doc, encoding='unicode')
+        
+        return result
     
     @api.depends('quantity_in', 'unit_cost')
     def _compute_costs(self):

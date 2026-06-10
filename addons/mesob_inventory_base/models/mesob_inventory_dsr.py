@@ -1,5 +1,6 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError
+from lxml import etree
 
 
 class MesobInventoryDSR(models.Model):
@@ -116,6 +117,32 @@ class MesobInventoryDSR(models.Model):
                 rec.copy_procurement == "distributed",
                 rec.copy_storekeeper == "distributed",
             ])
+
+    # ── View Customization ──────────────────────────────────────────
+
+    @api.model
+    def get_view(self, view_id=None, view_type="form", **options):
+        """Hide New button for PAO and Stock Clerk on both list and form views.
+        
+        DSRs are auto-generated from Receiving Orders when items are rejected.
+        Only Storekeeper can manually create (if needed).
+        """
+        result = super().get_view(view_id, view_type, **options)
+        
+        if view_type in ("list", "form"):
+            user = self.env.user
+            is_pao = user.has_group("mesob_inventory_base.group_mesob_pao")
+            is_stock_clerk = user.has_group("mesob_inventory_base.group_mesob_stock_clerk")
+            
+            if is_pao or is_stock_clerk:
+                arch = result.get("arch", "")
+                if isinstance(arch, str):
+                    arch = arch.encode("utf-8")
+                root = etree.fromstring(arch)
+                root.set("create", "0")
+                result["arch"] = etree.tostring(root, encoding="unicode", pretty_print=False)
+        
+        return result
 
     # ── Actions ────────────────────────────────────────────────────
 

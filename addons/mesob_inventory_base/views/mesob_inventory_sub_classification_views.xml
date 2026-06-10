@@ -195,7 +195,7 @@
         <field name="name">mesob.inventory.sub.classification.form.ledger</field>
         <field name="model">mesob.inventory.sub.classification</field>
         <field name="arch" type="xml">
-            <form string="Sub Classification &amp; Bin Card Details" class="o_mesob_gov_doc">
+            <form string="Sub Classification &amp; Bin Card Details" class="o_mesob_gov_doc" create="false" edit="false">
                 <sheet>
                     <div class="mesob_gov_header">
                         <div class="mesob_gov_logo"></div>
@@ -237,18 +237,22 @@
                             </field>
                         </page>
                         <page string="📈 Bin Card Transaction Ledger" name="transaction_ledger">
-                            <field name="bin_card_ids" readonly="1">
-                                <list string="Transactions" default_order="date asc, id asc">
+                            <field name="bin_card_ids" context="{'default_sub_classification_id': id, 'default_major_classification_id': major_classification_id}">
+                                <list string="Transactions" default_order="date asc, id asc" editable="bottom">
                                     <field name="date" string="Date"/>
-                                    <field name="reference" string="Reference"/>
+                                    <field name="location" string="Storage Location"/>
                                     <field name="transaction_type" widget="badge"
                                            decoration-info="transaction_type == 'receipt'"
                                            decoration-warning="transaction_type == 'issue'"
                                            decoration-success="transaction_type == 'adjustment'"/>
+                                    <field name="reference" string="Reference"/>
                                     <field name="quantity_received" string="Received"/>
                                     <field name="quantity_distributed" string="Issued"/>
-                                    <field name="balance" string="Running Balance" decoration-bf="1"/>
+                                    <field name="uom_id" string="UOM"/>
+                                    <field name="balance" string="Running Balance" decoration-bf="1" readonly="1"/>
                                     <field name="received_by_id" string="Processed By"/>
+                                    <field name="major_classification_id" column_invisible="1"/>
+                                    <field name="sub_classification_id" column_invisible="1"/>
                                 </list>
                             </field>
                         </page>

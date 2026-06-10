@@ -66,6 +66,8 @@
         "views/mesob_procurement_views.xml",
         "views/mesob_stock_taking_handover_views.xml",
         "views/mesob_storage_security_views.xml",
+        # Login customization
+        "views/mesob_login_template.xml",
         # Menus
         "views/mesob_inventory_menus.xml",
         # Wizards
@@ -87,6 +89,9 @@
             "mesob_inventory_base/static/src/scss/navbar.scss",
             "mesob_inventory_base/static/src/js/navbar_sidebar.js",
             "mesob_inventory_base/static/src/xml/apps_sidebar.xml",
+        ],
+        "web.assets_frontend": [
+            "mesob_inventory_base/static/src/scss/mesob_login.scss",
         ],
         "web.assets_backend_lazy": [
             "mesob_inventory_base/static/src/js/canvas_text.js",

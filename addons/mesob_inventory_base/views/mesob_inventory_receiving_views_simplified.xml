@@ -40,20 +40,25 @@
                 <header>
                     <button name="action_receive" type="object" string="✓ Mark as Received"
                             class="btn-primary"
-                            invisible="state != 'draft'"/>
+                            invisible="state != 'draft'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
                     <button name="action_start_inspection" type="object"
                             string="🔍 Start Inspection"
                             class="btn-primary"
-                            invisible="state != 'received'"/>
+                            invisible="state != 'received'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
                     <button name="action_accept" type="object" string="✓ Accept Items"
                             class="btn-success"
-                            invisible="state != 'inspecting'"/>
+                            invisible="state != 'inspecting'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
                     <button name="action_reject" type="object" string="✗ Reject Items"
                             class="btn-danger"
-                            invisible="state != 'inspecting'"/>
+                            invisible="state != 'inspecting'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
                     <button name="action_done" type="object" string="Finalize"
                             class="btn-primary"
-                            invisible="state not in ('accepted', 'rejected')"/>
+                            invisible="state not in ('accepted', 'rejected')"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,received,inspecting,accepted,done"/>
                 </header>
@@ -94,10 +99,17 @@
                             <field name="source_type" widget="radio" options="{'horizontal': true}"
                                    readonly="state != 'draft'"/>
                             <field name="supplier_id" 
-                                   string="From"
-                                   placeholder="Select supplier or department..."
+                                   string="Supplier"
+                                   placeholder="Type supplier name and press Enter to create..."
                                    readonly="state != 'draft'"
-                                   options="{'no_create': True}"/>
+                                   invisible="source_type != 'supplier'"
+                                   context="{'default_is_company': True, 'default_supplier_rank': 1, 'default_company_type': 'company'}"/>
+                            <field name="department_id" 
+                                   string="Returning Department"
+                                   placeholder="Select the department returning goods..."
+                                   readonly="state != 'draft'"
+                                   invisible="source_type != 'dept_return'"
+                                   required="source_type == 'dept_return'"/>
                             <field name="purchase_order_ref" 
                                    placeholder="e.g., PO-2026-001 or Packing Slip #123"
                                    readonly="state != 'draft'"/>
