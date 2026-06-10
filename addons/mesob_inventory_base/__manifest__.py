@@ -49,10 +49,6 @@
         "data/mesob_procurement_sequences.xml",
         # Company data
         "data/mesob_company_data.xml",
-        # Assets (Modern UI Styles)
-        "views/mesob_inventory_assets.xml",
-        # Custom Login Layout
-        "views/mesob_login_template.xml",
         # Views (Base)
         "views/mesob_inventory_major_classification_views.xml",
         "views/mesob_inventory_sub_classification_views.xml",
@@ -79,6 +75,23 @@
         "reports/mesob_gate_pass_report.xml",
     ],
     "demo": [],
+    "assets": {
+        "web.assets_backend": [
+            "mesob_inventory_base/static/src/scss/variables.scss",
+            "mesob_inventory_base/static/src/scss/glass_theme.scss",
+            "mesob_inventory_base/static/src/scss/buttons.scss",
+            "mesob_inventory_base/static/src/scss/forms.scss",
+            "mesob_inventory_base/static/src/scss/lists.scss",
+            "mesob_inventory_base/static/src/scss/kanban.scss",
+            "mesob_inventory_base/static/src/scss/modals.scss",
+            "mesob_inventory_base/static/src/scss/navbar.scss",
+            "mesob_inventory_base/static/src/js/navbar_sidebar.js",
+            "mesob_inventory_base/static/src/xml/apps_sidebar.xml",
+        ],
+        "web.assets_backend_lazy": [
+            "mesob_inventory_base/static/src/js/canvas_text.js",
+        ],
+    },
     "installable": True,
     "application": True,
 }
