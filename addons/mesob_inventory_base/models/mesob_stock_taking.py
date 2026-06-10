@@ -75,11 +75,12 @@ class MesobStockTaking(models.Model):
         required=True,
     )
 
-    @api.model
-    def create(self, vals):
-        if vals.get("name", "New") == "New":
-            vals["name"] = self.env["ir.sequence"].next_by_code("mesob.stock.taking") or "New"
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("name", "New") == "New":
+                vals["name"] = self.env["ir.sequence"].next_by_code("mesob.stock.taking") or "New"
+        return super().create(vals_list)
 
     @api.constrains("team_member_ids", "guide_storekeeper_ids")
     def _check_storekeeper_exclusion(self):
@@ -87,7 +88,7 @@ class MesobStockTaking(models.Model):
         for rec in self:
             storekeeper_group = self.env.ref("mesob_inventory_base.group_mesob_storekeeper")
             for member in rec.team_member_ids:
-                if storekeeper_group in member.groups_id:
+                if storekeeper_group in member.group_ids:
                     raise ValidationError(
                         f"Validation Block: User '{member.name}' is a Storekeeper and "
                         f"MUST NOT be a member of the stock-taking counting team! (FR-ST-009)"

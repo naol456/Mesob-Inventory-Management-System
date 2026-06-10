@@ -168,6 +168,32 @@ class MesobStockRecordCard(models.Model):
                 'total_cost': self.total_cost_in,
             })
 
+    def action_consume_fifo(self):
+        """Consume FIFO layers for issues/issuances"""
+        self.ensure_one()
+        if self.transaction_type == 'issue' and self.quantity_out > 0:
+            qty_to_consume = self.quantity_out
+            total_cost_consumed = 0.0
+            
+            # Find all active (unexhausted) cost layers for this item in date asc order
+            active_layers = self.env['mesob.stock.fifo.layer'].search([
+                ('item_id', '=', self.item_id.id),
+                ('is_exhausted', '=', False)
+            ], order='date asc, id asc')
+            
+            for layer in active_layers:
+                if qty_to_consume <= 0.0:
+                    break
+                
+                # Consume from this layer
+                consume_qty = min(qty_to_consume, layer.quantity_remaining)
+                cost_consumed = layer.consume_quantity(consume_qty)
+                
+                qty_to_consume -= consume_qty
+                total_cost_consumed += cost_consumed
+                
+            self.total_cost_out = total_cost_consumed
+
 
 class MesobStockFIFOLayer(models.Model):
     """

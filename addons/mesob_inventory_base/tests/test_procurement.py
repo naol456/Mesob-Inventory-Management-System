@@ -34,22 +34,22 @@ class TestMesobProcurement(TransactionCase):
         self.supplier_domestic_70 = self.partner_model.create({
             "name": "Bidder A (Domestic 70%)",
             "tin": "123456789",
-            "is_blacklisted": False,
+            "fppa_blacklisted": False,
         })
         self.supplier_domestic_40 = self.partner_model.create({
             "name": "Bidder B (Domestic 40%)",
             "tin": "987654321",
-            "is_blacklisted": False,
+            "fppa_blacklisted": False,
         })
         self.supplier_foreign = self.partner_model.create({
             "name": "Bidder C (Foreign)",
             "tin": "111222333",
-            "is_blacklisted": False,
+            "fppa_blacklisted": False,
         })
         self.supplier_blacklisted = self.partner_model.create({
             "name": "Blacklisted Supplier",
             "tin": "444555666",
-            "is_blacklisted": True,
+            "fppa_blacklisted": True,
         })
 
     def test_01_supplier_blacklist_validation(self):
@@ -70,6 +70,7 @@ class TestMesobProcurement(TransactionCase):
                 "plan_lot_id": lot.id,
                 "supplier_id": self.supplier_blacklisted.id,
             })
+            self.env.flush_all()
 
     def test_02_bid_evaluation_domestic_preference(self):
         """FR-PROC-018 & AC-PROC-002: Test domestic preference margin ranking."""
@@ -83,6 +84,8 @@ class TestMesobProcurement(TransactionCase):
         tender = self.tender_model.create({
             "lot_id": lot.id,
             "technical_specifications": "Standard High-Quality Goods",
+            "advertisement_date": fields.Date.today(),
+            "submission_deadline": fields.Datetime.now(),
         })
 
         # Add bid submissions (Values matching AC-PROC-002 exactly)

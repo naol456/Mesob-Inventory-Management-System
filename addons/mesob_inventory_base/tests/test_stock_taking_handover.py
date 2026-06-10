@@ -16,25 +16,33 @@ class TestMesobStockTakingHandover(TransactionCase):
             "name": "PAO Supervisor",
             "login": "pao_super",
             "email": "pao@mesob.com",
-            "groups_id": [(4, self.env.ref("mesob_inventory_base.group_mesob_pao").id)],
+        })
+        self.user_pao.write({
+            "group_ids": [(4, self.env.ref("mesob_inventory_base.group_mesob_pao").id)],
         })
         self.user_sk_1 = self.env["res.users"].create({
             "name": "Storekeeper Outgoing",
             "login": "sk_out",
             "email": "sk1@mesob.com",
-            "groups_id": [(4, self.env.ref("mesob_inventory_base.group_mesob_storekeeper").id)],
+        })
+        self.user_sk_1.write({
+            "group_ids": [(4, self.env.ref("mesob_inventory_base.group_mesob_storekeeper").id)],
         })
         self.user_sk_2 = self.env["res.users"].create({
             "name": "Storekeeper Incoming",
             "login": "sk_in",
             "email": "sk2@mesob.com",
-            "groups_id": [(4, self.env.ref("mesob_inventory_base.group_mesob_storekeeper").id)],
+        })
+        self.user_sk_2.write({
+            "group_ids": [(4, self.env.ref("mesob_inventory_base.group_mesob_storekeeper").id)],
         })
         self.user_witness = self.env["res.users"].create({
             "name": "Auditor Witness",
             "login": "witness_aud",
             "email": "witness@mesob.com",
-            "groups_id": [(4, self.env.ref("mesob_inventory_base.group_mesob_auditor").id)],
+        })
+        self.user_witness.write({
+            "group_ids": [(4, self.env.ref("mesob_inventory_base.group_mesob_auditor").id)],
         })
 
     def test_01_stock_taking_storekeeper_exclusion(self):
