@@ -43,15 +43,9 @@
 }
 
 .o_cell {
-    background: $glass-bg-dark !important;
-    @include glass-border;
-    border-radius: $radius-sm;
-    padding: 10px;
-
-    &:hover {
-        background: $glass-bg-light !important;
-        border: 1px solid $glass-border-light !important;
-    }
+    background: transparent !important;
+    border: none !important;
+    padding: 6px 10px !important;
 }
 
 .o_notebook {
