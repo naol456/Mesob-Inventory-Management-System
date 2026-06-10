@@ -48,6 +48,17 @@
         <field name="binding_type">report</field>
     </record>
 
+    <!-- DSR (Damage/Shortage Report) Report Action -->
+    <record id="action_report_mesob_dsr" model="ir.actions.report">
+        <field name="name">Damage/Shortage Report (DSR)</field>
+        <field name="model">mesob.inventory.dsr</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mesob_inventory_base.report_mesob_dsr_document</field>
+        <field name="report_file">mesob_inventory_base.report_mesob_dsr_document</field>
+        <field name="binding_model_id" ref="model_mesob_inventory_dsr"/>
+        <field name="binding_type">report</field>
+    </record>
+
 
     <!-- ═══════════════════════════════════════════════════════════════════════
          REUSABLE TEMPLATES & STYLING
@@ -397,6 +408,89 @@
                             <div class="col-4 text-center">
                                 <p>_______________________</p>
                                 <p style="color: #0B1B3D; margin-bottom: 2px;">Approved By (PAO)</p>
+                                <span class="text-muted">Signature &amp; Date</span>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- 5. DSR (Damage/Shortage Report) Template -->
+    <template id="report_mesob_dsr_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                        <t t-call="mesob_inventory_base.mesob_report_header_snippet">
+                            <t t-set="doc_no" t-value="o.name"/>
+                            <t t-set="title" t-value="'Damage/Shortage Report (DSR)'"/>
+                        </t>
+
+                        <!-- Symmetrical Info Grids -->
+                        <div class="row mt-4" style="font-size: 13px; line-height: 1.6;">
+                            <div class="col-6">
+                                <h5 style="color: #0B1B3D; font-weight: bold; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">Supplier Details</h5>
+                                <strong>Vendor Name:</strong> <span t-field="o.supplier_id.name"/><br/>
+                                <strong>TIN:</strong> <span t-field="o.supplier_id.tin"/><br/>
+                                <strong>Report Date:</strong> <span t-field="o.date"/><br/>
+                            </div>
+                            <div class="col-6">
+                                <h5 style="color: #0B1B3D; font-weight: bold; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">Audit Details</h5>
+                                <strong>Receiving Order:</strong> <span t-field="o.receiving_id.name"/><br/>
+                                <strong>Status:</strong> <span t-field="o.state"/>
+                            </div>
+                        </div>
+
+                        <!-- Rejected Items Table -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5 style="color: #0B1B3D; font-weight: bold;">Rejected Materials</h5>
+                                <table class="table table-sm table-bordered" style="font-size: 12px; border-color: #dee2e6;">
+                                    <thead>
+                                        <tr style="background-color: #0B1B3D; color: #FFFFFF;">
+                                            <th style="padding: 6px;">#</th>
+                                            <th style="padding: 6px;">Item Code</th>
+                                            <th style="padding: 6px;">Item Name</th>
+                                            <th class="text-right" style="padding: 6px;">Qty Rejected</th>
+                                            <th style="padding: 6px;">UOM</th>
+                                            <th style="padding: 6px;">Discrepancy Type</th>
+                                            <th style="padding: 6px;">Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-set="line_num" t-value="0"/>
+                                        <tr t-foreach="o.line_ids" t-as="line">
+                                            <t t-set="line_num" t-value="line_num + 1"/>
+                                            <td style="padding: 6px;"><span t-esc="line_num"/></td>
+                                            <td style="padding: 6px;" class="font-monospace"><span t-field="line.item_id.item_code"/></td>
+                                            <td style="padding: 6px;" class="fw-semibold"><span t-field="line.item_id.name"/></td>
+                                            <td style="padding: 6px;" class="text-right fw-bold font-monospace text-danger"><span t-field="line.quantity"/></td>
+                                            <td style="padding: 6px;"><span t-field="line.uom_id.name"/></td>
+                                            <td style="padding: 6px;" class="fw-semibold text-warning"><span t-field="line.discrepancy_type"/></td>
+                                            <td style="padding: 6px;"><span t-field="line.notes or 'N/A'"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Symmetrical Signatures Footer -->
+                        <div class="row mt-5" style="font-size: 12px; font-weight: bold; padding-top: 20px;">
+                            <div class="col-4 text-center">
+                                <p>_______________________</p>
+                                <p style="color: #0B1B3D; margin-bottom: 2px;">Inspected By (Storekeeper)</p>
+                                <span class="text-muted">Signature &amp; Date</span>
+                            </div>
+                            <div class="col-4 text-center">
+                                <p>_______________________</p>
+                                <p style="color: #0B1B3D; margin-bottom: 2px;">Approved By (PAO)</p>
+                                <span class="text-muted">Signature &amp; Date</span>
+                            </div>
+                            <div class="col-4 text-center">
+                                <p>_______________________</p>
+                                <p style="color: #0B1B3D; margin-bottom: 2px;">Procurement Review</p>
                                 <span class="text-muted">Signature &amp; Date</span>
                             </div>
                         </div>

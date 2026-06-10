@@ -144,12 +144,15 @@ class MesobStockTaking(models.Model):
                     sub_class = line.item_id.sub_classification_id
                     if sub_class:
                         self.env["mesob.bin.card"].create({
+                            "major_classification_id": sub_class.major_classification_id.id,
                             "sub_classification_id": sub_class.id,
                             "date": fields.Date.today(),
                             "reference": f"Stock-Take Adj ({rec.name})",
-                            "receipt_qty": line.physical_qty if line.discrepancy > 0 else 0.0,
-                            "issue_qty": abs(line.discrepancy) if line.discrepancy < 0 else 0.0,
-                            "remarks": f"Red-Ink Audit Check: {line.discrepancy_reason or 'No reason provided'}",
+                            "quantity_received": line.physical_qty if line.discrepancy > 0 else 0.0,
+                            "quantity_distributed": abs(line.discrepancy) if line.discrepancy < 0 else 0.0,
+                            "description": f"Red-Ink Audit Check: {line.discrepancy_reason or 'No reason provided'}",
+                            "uom_id": line.item_id.uom_id.id,
+                            "transaction_type": "adjustment",
                         })
 
             rec.write({
