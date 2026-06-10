@@ -23,10 +23,17 @@ class TestMesobProcurement(TransactionCase):
             "code": "4402",
             "name": "Office Supplies",
         })
+        self.sub_classification = self.env["mesob.inventory.sub.classification"].create({
+            "code": "001",
+            "name": "Paper Supplies",
+            "major_classification_id": self.classification.id,
+            "is_fixed_asset": False,
+        })
         self.item = self.item_model.create({
             "item_code": "4402-001-001",
             "name": "Test Paper",
             "classification_id": self.classification.id,
+            "sub_classification_id": self.sub_classification.id,
             "reorder_level": 10.0,
         })
 
@@ -198,3 +205,52 @@ class TestMesobProcurement(TransactionCase):
         self.item.write({"is_surplus": False})
         po.action_approve()
         self.assertEqual(po.state, "approved")
+
+    def test_05_auto_lotting_by_sub_classification(self):
+        """Test Auto-Lotting by Sub-Classification automation."""
+        # Create department needs request pointing directly to classification/sub-classification instead of item_id
+        need1 = self.need_model.create({
+            "department": "ministry_health",
+            "major_classification_id": self.classification.id,
+            "sub_classification_id": self.sub_classification.id,
+            "quantity": 100.0,
+            "estimated_unit_price": 5.0,
+            "expected_delivery_period": "Q1",
+        })
+        need2 = self.need_model.create({
+            "department": "ethio_telecom",
+            "major_classification_id": self.classification.id,
+            "sub_classification_id": self.sub_classification.id,
+            "quantity": 200.0,
+            "estimated_unit_price": 4.5,
+            "expected_delivery_period": "Q1",
+        })
+
+        # Submit, Review and Lock both requests
+        need1.action_submit()
+        need1.action_review()
+        need1.action_lock()
+
+        need2.action_submit()
+        need2.action_review()
+        need2.action_lock()
+
+        # Create APP
+        plan = self.plan_model.create({
+            "fiscal_year": "2018 E.C.",
+        })
+
+        # Call Auto Generate Lots
+        plan.action_auto_generate_lots()
+
+        # Check that exactly 1 Lot was automatically created for "Paper Supplies" sub classification
+        self.assertEqual(len(plan.lot_ids), 1)
+        lot = plan.lot_ids[0]
+        self.assertEqual(lot.name, "Lot 1: Paper Supplies")
+        self.assertEqual(lot.category, "supplies")
+        # Budget = (100 * 5.0) + (200 * 4.5) = 500 + 900 = 1400
+        self.assertAlmostEqual(lot.budget, 1400.0)
+
+        # Check that both needs were successfully auto-linked to this lot
+        self.assertEqual(need1.lot_id.id, lot.id)
+        self.assertEqual(need2.lot_id.id, lot.id)

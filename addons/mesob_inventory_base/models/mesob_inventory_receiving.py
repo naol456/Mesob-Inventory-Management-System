@@ -204,6 +204,37 @@ class MesobInventoryReceiving(models.Model):
         else:
             self.is_no_payment = False
             self.department_id = False  # Clear department when switching to supplier
+
+    @api.onchange("purchase_order_ref")
+    def _onchange_purchase_order_ref(self):
+        """Auto-populate supplier and lines when selecting an approved Purchase Order."""
+        if self.purchase_order_ref:
+            # Query the approved PO in procurement
+            po = self.env["mesob.procurement.order"].search([
+                ("name", "=", self.purchase_order_ref),
+                ("state", "=", "approved")
+            ], limit=1)
+            if po:
+                self.supplier_id = po.supplier_id
+                self.inspection_type = po.inspection_type
+                
+                # Auto-generate receiving lines matching the PO lines
+                new_lines = []
+                for line in po.line_ids:
+                    line_vals = {
+                        "item_id": line.item_id.id if line.item_id else False,
+                        "major_classification_id": line.major_classification_id.id if line.major_classification_id else False,
+                        "sub_classification_id": line.sub_classification_id.id if line.sub_classification_id else False,
+                        "auto_generate_items": line.auto_generate_items,
+                        "description": line.description or (line.item_id.name if line.item_id else ""),
+                        "qty_expected": line.quantity,
+                        "qty_received": line.quantity,  # pre-fill received qty as same
+                        "unit_price": line.price_unit,
+                    }
+                    new_lines.append((0, 0, line_vals))
+                
+                # Assign the list to line_ids
+                self.line_ids = new_lines
     
     # ── Actions ────────────────────────────────────────────────────
 

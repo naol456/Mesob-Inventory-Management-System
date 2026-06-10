@@ -166,6 +166,7 @@
                                            domain="[('major_classification_id', '=', major_classification_id), ('active', '=', True)]"
                                            context="{'default_major_classification_id': major_classification_id}"
                                            class="fw-semibold text-muted"/>
+                                    <field name="description"/>
                                     <field name="qty_expected" class="text-end fw-bold font-monospace text-primary"/>
                                     <field name="qty_received" class="text-end fw-bold font-monospace text-info"/>
                                     <field name="qty_accepted" class="text-end fw-bold font-monospace text-success"/>

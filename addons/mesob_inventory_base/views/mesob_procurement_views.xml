@@ -22,6 +22,7 @@
         <field name="arch" type="xml">
             <form string="Annual Procurement Plan">
                 <header>
+                    <button name="action_auto_generate_lots" string="Auto Group Needs to Lots" type="object" class="oe_highlight" invisible="state != 'draft'"/>
                     <button name="action_puh_approve" string="PUH Approve" type="object" class="oe_highlight" invisible="state not in ['draft', 'rejected']" groups="mesob_inventory_base.group_mesob_pao"/>
                     <button name="action_pec_approve" string="PEC Approve" type="object" class="oe_highlight" invisible="state != 'puh_approved'" groups="mesob_inventory_base.group_mesob_pao"/>
                     <button name="action_hope_approve" string="HOPE Publish" type="object" class="oe_highlight" invisible="state != 'pec_approved'" groups="mesob_inventory_base.group_mesob_pao"/>
@@ -81,7 +82,8 @@
         <field name="arch" type="xml">
             <list string="Department Needs Requests">
                 <field name="department"/>
-                <field name="item_id"/>
+                <field name="major_classification_id"/>
+                <field name="sub_classification_id"/>
                 <field name="item_code"/>
                 <field name="quantity"/>
                 <field name="estimated_unit_price"/>
@@ -108,6 +110,8 @@
                         <group>
                             <field name="department" readonly="state != 'draft'"/>
                             <field name="item_id" readonly="state != 'draft'"/>
+                            <field name="major_classification_id" readonly="state != 'draft'" required="not item_id"/>
+                            <field name="sub_classification_id" readonly="state != 'draft'" required="not item_id" domain="[('major_classification_id', '=', major_classification_id)]"/>
                             <field name="item_code"/>
                         </group>
                         <group>
@@ -310,6 +314,10 @@
                             <field name="line_ids" readonly="state != 'draft'">
                                 <list editable="bottom">
                                     <field name="item_id"/>
+                                    <field name="major_classification_id"/>
+                                    <field name="sub_classification_id" domain="[('major_classification_id', '=', major_classification_id)]"/>
+                                    <field name="auto_generate_items"/>
+                                    <field name="description"/>
                                     <field name="quantity"/>
                                     <field name="qty_received" readonly="1"/>
                                     <field name="price_unit"/>

@@ -64,11 +64,12 @@ class MesobProcurementPlan(models.Model):
         tracking=True,
     )
 
-    @api.model
-    def create(self, vals):
-        if vals.get("name", "New") == "New":
-            vals["name"] = f"APP/{vals.get('fiscal_year', 'FY')}/{self.env['ir.sequence'].next_by_code('mesob.procurement.plan') or '001'}"
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("name", "New") == "New":
+                vals["name"] = f"APP/{vals.get('fiscal_year', 'FY')}/{self.env['ir.sequence'].next_by_code('mesob.procurement.plan') or '001'}"
+        return super().create(vals_list)
 
     def action_puh_approve(self):
         """Procurement Unit Head approves the APP."""
@@ -113,6 +114,62 @@ class MesobProcurementPlan(models.Model):
             })
         return True
 
+    def action_auto_generate_lots(self):
+        """Auto-Lotting by Sub-Classification.
+        Groups locked needs without lot_id by their sub-classification and generates Lots.
+        """
+        for plan in self:
+            # 1. Search for locked needs that do not have a lot assigned yet
+            needs = self.env["mesob.procurement.need"].search([
+                ("state", "=", "locked"),
+                ("lot_id", "=", False)
+            ])
+            if not needs:
+                raise UserError("No locked department needs available for automatic consolidation.")
+
+            # 2. Defensive fallback: Ensure all needs have sub_classification_id populated from item_id if empty
+            for need in needs:
+                if need.item_id and not need.sub_classification_id:
+                    need.write({
+                        "sub_classification_id": need.item_id.sub_classification_id.id,
+                        "major_classification_id": need.item_id.classification_id.id,
+                    })
+
+            # Re-fetch/re-filter needs that actually have sub_classification_id populated now
+            needs_with_sub = needs.filtered(lambda n: n.sub_classification_id)
+            if not needs_with_sub:
+                raise UserError("None of the selected locked needs have a Sub-Classification set.")
+
+            # 3. Group them by Sub-Classification
+            sub_classes = needs_with_sub.mapped("sub_classification_id")
+            lot_count = len(plan.lot_ids) + 1
+
+            for sub_class in sub_classes:
+                # Filter needs belonging to this specific sub-classification
+                sub_class_needs = needs_with_sub.filtered(lambda n: n.sub_classification_id == sub_class)
+                total_budget = sum(sub_class_needs.mapped("total_price"))
+
+                # 4. Check if there's already an existing lot in this APP for the same sub-classification
+                existing_lot = plan.lot_ids.filtered(lambda l: l.sub_classification_id == sub_class)
+                if existing_lot:
+                    # Update budget of the existing lot and link the needs to it
+                    existing_lot[0].write({
+                        "budget": existing_lot[0].budget + total_budget
+                    })
+                    sub_class_needs.write({"lot_id": existing_lot[0].id})
+                else:
+                    # Create a new Lot and assign it
+                    lot = self.env["mesob.procurement.plan.lot"].create({
+                        "plan_id": plan.id,
+                        "name": f"Lot {lot_count}: {sub_class.name}",
+                        "category": "equipment" if sub_class.is_fixed_asset else "supplies",
+                        "budget": total_budget,
+                        "sub_classification_id": sub_class.id,
+                    })
+                    sub_class_needs.write({"lot_id": lot.id})
+                    lot_count += 1
+        return True
+
 
 class MesobProcurementPlanLot(models.Model):
     """Procurement Lot inside APP - FR-PROC-004."""
@@ -137,6 +194,11 @@ class MesobProcurementPlanLot(models.Model):
         string="Category",
         default="supplies",
         required=True,
+    )
+    sub_classification_id = fields.Many2one(
+        "mesob.inventory.sub.classification",
+        string="Linked Sub Classification",
+        help="Linked sub-classification for automated stock integration.",
     )
     mechanism = fields.Selection(
         [
@@ -204,12 +266,23 @@ class MesobProcurementNeed(models.Model):
     item_id = fields.Many2one(
         "mesob.inventory.item",
         string="Catalogued Stock Item",
-        required=True,
-        help="Must be a catalogued item code ####-###-###.",
+        required=False,
+        help="Optional if item is not yet coded or will be auto-generated.",
+    )
+    major_classification_id = fields.Many2one(
+        "mesob.inventory.major.classification",
+        string="Major Classification",
+        help="Major classification code (e.g., 4402) for non-coded / auto-generated items.",
+    )
+    sub_classification_id = fields.Many2one(
+        "mesob.inventory.sub.classification",
+        string="Sub Classification",
+        help="Sub classification code (e.g., 001) for non-coded / auto-generated items.",
     )
     item_code = fields.Char(
-        related="item_id.item_code",
         string="Item Code",
+        compute="_compute_item_code",
+        store=True,
         readonly=True,
     )
     quantity = fields.Float(string="Quantity Requested", required=True, default=1.0)
@@ -242,6 +315,23 @@ class MesobProcurementNeed(models.Model):
         default="draft",
         required=True,
     )
+
+    @api.onchange("item_id")
+    def _onchange_item_id(self):
+        """Auto-populate classifications when selecting a catalogued item."""
+        if self.item_id:
+            self.major_classification_id = self.item_id.classification_id
+            self.sub_classification_id = self.item_id.sub_classification_id
+
+    @api.depends("item_id", "major_classification_id", "sub_classification_id")
+    def _compute_item_code(self):
+        for rec in self:
+            if rec.item_id:
+                rec.item_code = rec.item_id.item_code
+            elif rec.major_classification_id and rec.sub_classification_id:
+                rec.item_code = f"{rec.major_classification_id.code}-{rec.sub_classification_id.code}-XXX"
+            else:
+                rec.item_code = False
 
     @api.depends("quantity", "estimated_unit_price")
     def _compute_total_price(self):
@@ -329,11 +419,12 @@ class MesobProcurementTender(models.Model):
         required=True,
     )
 
-    @api.model
-    def create(self, vals):
-        if vals.get("name", "New") == "New":
-            vals["name"] = f"TEN/{self.env['ir.sequence'].next_by_code('mesob.procurement.tender') or '001'}"
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("name", "New") == "New":
+                vals["name"] = f"TEN/{self.env['ir.sequence'].next_by_code('mesob.procurement.tender') or '001'}"
+        return super().create(vals_list)
 
     def action_approve_spec(self):
         """Technical specifications sign-off status approved (FR-PROC-009)."""
@@ -564,11 +655,12 @@ class MesobProcurementOrder(models.Model):
         tracking=True,
     )
 
-    @api.model
-    def create(self, vals):
-        if vals.get("name", "New") == "New":
-            vals["name"] = f"PO/{self.env['ir.sequence'].next_by_code('mesob.procurement.order') or '001'}"
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("name", "New") == "New":
+                vals["name"] = f"PO/{self.env['ir.sequence'].next_by_code('mesob.procurement.order') or '001'}"
+        return super().create(vals_list)
 
     @api.constrains("supplier_id")
     def _check_supplier_validity(self):
@@ -606,7 +698,20 @@ class MesobProcurementOrderLine(models.Model):
     _description = "Purchase Order Line"
 
     order_id = fields.Many2one("mesob.procurement.order", string="Purchase Order", ondelete="cascade")
-    item_id = fields.Many2one("mesob.inventory.item", string="Catalogued Item", required=True)
+    item_id = fields.Many2one("mesob.inventory.item", string="Catalogued Item", required=False)
+    major_classification_id = fields.Many2one(
+        "mesob.inventory.major.classification",
+        string="Major Classification",
+    )
+    sub_classification_id = fields.Many2one(
+        "mesob.inventory.sub.classification",
+        string="Sub Classification",
+    )
+    auto_generate_items = fields.Boolean(
+        string="Auto-Generate Items",
+        default=False,
+    )
+    description = fields.Char(string="Description")
     quantity = fields.Float(string="Quantity", required=True, default=1.0)
     qty_received = fields.Float(string="Received Qty", compute="_compute_received_qty", store=True)
     price_unit = fields.Float(string="Unit Price (ETB)", required=True)
@@ -620,11 +725,14 @@ class MesobProcurementOrderLine(models.Model):
     @api.depends("order_id.name", "item_id")
     def _compute_received_qty(self):
         for line in self:
+            if not line.order_id or not line.order_id.name or not line.item_id:
+                line.qty_received = 0.0
+                continue
             # Query accepted Model 19 quantities received under this PO reference
             domain = [
-                ("receiving_id.purchase_order_ref", "=", line.order_id.name),
+                ("model19_id.receiving_id.purchase_order_ref", "=", line.order_id.name),
                 ("item_id", "=", line.item_id.id),
-                ("model19_id.state", "=", "done"),
+                ("model19_id.state", "in", ("confirmed", "distributed", "done")),
             ]
             receipt_lines = self.env["mesob.inventory.model19.line"].search(domain)
             line.qty_received = sum(receipt_lines.mapped("quantity"))
@@ -673,11 +781,12 @@ class MesobProcurementPaymentCertificate(models.Model):
         required=True,
     )
 
-    @api.model
-    def create(self, vals):
-        if vals.get("name", "New") == "New":
-            vals["name"] = f"PAY/{self.env['ir.sequence'].next_by_code('mesob.procurement.payment.certificate') or '001'}"
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("name", "New") == "New":
+                vals["name"] = f"PAY/{self.env['ir.sequence'].next_by_code('mesob.procurement.payment.certificate') or '001'}"
+        return super().create(vals_list)
 
     @api.depends("amount_gross", "days_delay", "penalty_rate")
     def _compute_liquidated_damages(self):
@@ -737,11 +846,12 @@ class MesobProcurementComplaint(models.Model):
         required=True,
     )
 
-    @api.model
-    def create(self, vals):
-        if vals.get("name", "New") == "New":
-            vals["name"] = f"COM/{self.env['ir.sequence'].next_by_code('mesob.procurement.complaint') or '001'}"
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("name", "New") == "New":
+                vals["name"] = f"COM/{self.env['ir.sequence'].next_by_code('mesob.procurement.complaint') or '001'}"
+        return super().create(vals_list)
 
     def action_resolve(self):
         for rec in self:
