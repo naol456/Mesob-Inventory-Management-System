@@ -119,11 +119,27 @@
                         </button>
                     </div>
                     
-                    <div class="oe_title mb-4">
-                        <span class="text-muted fw-bold text-uppercase fs-6">FDRE Store Requisition (Model 20)</span>
-                        <h1>
-                            <field name="name" readonly="True" class="fw-bold text-primary font-monospace"/>
-                        </h1>
+                    <!-- Premium Corporate Form Header -->
+                    <div class="d-flex align-items-center gap-3 border-bottom pb-3 mb-4 w-100">
+                        <div class="flex-shrink-0">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" 
+                                 alt="FDRE Mesob Center Logo" 
+                                 style="height: 70px; width: 70px; object-fit: contain; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1));"
+                                 class="rounded"/>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="text-muted small fw-bold text-uppercase tracking-wider" style="letter-spacing: 0.1em;">
+                                FDRE Mesob Center
+                            </div>
+                            <h2 class="fw-bold mb-1" style="font-family: 'Urbanist', sans-serif; letter-spacing: -0.01em;">
+                                Requisition (Model 20)
+                            </h2>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                <span class="badge bg-primary text-white font-monospace fs-6 px-2 py-1">
+                                    <field name="name" readonly="1"/>
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Primary Creation Fields: Symmetrical 2-Column Grid -->
