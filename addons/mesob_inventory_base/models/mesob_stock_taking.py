@@ -158,6 +158,30 @@ class MesobStockTaking(models.Model):
             })
         return True
 
+    # ── Role-Based Access Control (UI Level) ────────────────────────
+
+    @api.model
+    def get_view(self, view_id=None, view_type="form", **options):
+        """Apply role-based UI controls for Stock Taking.
+        
+        Both PAO and Stock Clerk can create stock taking events.
+        PAO supervises, Stock Clerk conducts counts.
+        """
+        result = super(MesobStockTaking, self).get_view(view_id, view_type, **options)
+        
+        # Import lxml for XML manipulation
+        from lxml import etree
+        
+        # Check user roles
+        is_pao = self.env.user.has_group("mesob_inventory_base.group_mesob_pao")
+        is_stock_clerk = self.env.user.has_group("mesob_inventory_base.group_mesob_stock_clerk")
+        
+        # Both roles have full access - no restrictions needed currently
+        # This method is here for future enhancements if needed
+        # (e.g., state-based field visibility based on role)
+        
+        return result
+
 
 class MesobStockTakingLine(models.Model):
     """Pre-numbered count sheet lines - FR-ST-002/006."""

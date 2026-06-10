@@ -215,3 +215,40 @@ class MesobStockReorderAlert(models.Model):
                     alerts_created += 1
         
         return alerts_created
+
+    # ── Role-Based Access Control (UI Level) ────────────────────────
+
+    @api.model
+    def get_view(self, view_id=None, view_type="form", **options):
+        """Hide New button for Stock Clerk on both list and form views.
+        
+        Stock Clerks can acknowledge alerts and create requisitions,
+        but cannot create new alerts (system/PAO only).
+        """
+        result = super(MesobStockReorderAlert, self).get_view(view_id, view_type, **options)
+        
+        # Import lxml for XML manipulation
+        from lxml import etree
+        
+        # Check if user is Stock Clerk
+        is_stock_clerk = self.env.user.has_group("mesob_inventory_base.group_mesob_stock_clerk")
+        
+        # Hide "New" button for Stock Clerk in list and form views
+        if is_stock_clerk and view_type in ("list", "form"):
+            doc = etree.XML(result["arch"])
+            
+            # For list view, hide create button
+            if view_type == "list":
+                # Set create="false" on tree/list element
+                for node in doc.xpath("//list | //tree"):
+                    node.set("create", "false")
+            
+            # For form view, hide create button in breadcrumb
+            elif view_type == "form":
+                # Set create="false" on form element
+                for node in doc.xpath("//form"):
+                    node.set("create", "false")
+            
+            result["arch"] = etree.tostring(doc, encoding="unicode")
+        
+        return result

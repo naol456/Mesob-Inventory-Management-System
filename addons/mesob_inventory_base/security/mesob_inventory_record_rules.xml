@@ -344,4 +344,88 @@
         <field name="perm_unlink">1</field>
     </record>
 
+    <!-- ══════════════════════════════════════════════════════════════
+         Reorder Alerts Record Rules
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- PAO: Full access to all Reorder Alerts -->
+    <record id="rule_reorder_alert_pao" model="ir.rule">
+        <field name="name">PAO: Full access to Reorder Alerts</field>
+        <field name="model_id" ref="model_mesob_stock_reorder_alert"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Stock Clerk: Read/write all alerts (acknowledge, create requisitions) -->
+    <record id="rule_reorder_alert_stock_clerk" model="ir.rule">
+        <field name="name">Stock Clerk: Read/write Reorder Alerts</field>
+        <field name="model_id" ref="model_mesob_stock_reorder_alert"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_stock_clerk')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         Stock Taking Record Rules
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- PAO: Full access - initiates and supervises stock taking -->
+    <record id="rule_stock_taking_pao" model="ir.rule">
+        <field name="name">PAO: Full access to Stock Taking</field>
+        <field name="model_id" ref="model_mesob_stock_taking"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Stock Clerk: Full access - conducts physical counts (no delete) -->
+    <record id="rule_stock_taking_stock_clerk" model="ir.rule">
+        <field name="name">Stock Clerk: Full access to Stock Taking</field>
+        <field name="model_id" ref="model_mesob_stock_taking"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_stock_clerk')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         Stock Handover Record Rules
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- PAO: Full access - acts as witness and oversees handovers -->
+    <record id="rule_stock_handover_pao" model="ir.rule">
+        <field name="name">PAO: Full access to Stock Handovers</field>
+        <field name="model_id" ref="model_mesob_stock_handover"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Storekeeper: Full access - initiates and participates in handovers (no delete) -->
+    <record id="rule_stock_handover_storekeeper" model="ir.rule">
+        <field name="name">Storekeeper: Full access to Stock Handovers</field>
+        <field name="model_id" ref="model_mesob_stock_handover"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_storekeeper')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
 </odoo>
