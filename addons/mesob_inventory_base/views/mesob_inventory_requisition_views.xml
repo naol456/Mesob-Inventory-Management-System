@@ -120,32 +120,21 @@
                     </div>
                     
                     <!-- Premium Corporate Form Header: Centered Letterhead with Symmetrical Split -->
-                    <div class="mb-4 w-100" style="background: #0B1B3D !important; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); border: none !important;">
+                    <div class="mesob_corporate_header">
                         <!-- Top Center: Logo & Company Name -->
-                        <div class="text-center mb-3">
-                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" 
-                                 alt="FDRE Mesob Center Logo" 
-                                 style="height: 85px; width: 80px; object-fit: contain; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.15));"
-                                 class="rounded mx-auto d-block mb-2"/>
-                            <div class="text-uppercase tracking-wider" style="letter-spacing: 0.12em; font-size: 2.2em !important; font-weight: 900 !important; color: #D4AF37 !important; margin-top: 10px;">
-                                FDRE Mesob Center
-                            </div>
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
                         </div>
                         
                         <!-- Bottom Row: Symmetrical Split (Left: Form ID, Right: Form Name) -->
-                        <div class="d-flex justify-content-between align-items-end mt-2 pt-2 border-top" style="border-top-color: rgba(212, 175, 55, 0.35) !important;">
+                        <div class="mesob_header_bottom_row">
                             <!-- Left Bottom: Form ID -->
-                            <div class="text-start">
-                                <span class="badge bg-warning text-dark font-monospace fs-5 px-3 py-2 rounded shadow-sm" style="background-color: #D4AF37 !important; color: #0B1B3D !important; font-weight: 700 !important;">
-                                    <field name="name" readonly="1"/>
-                                </span>
+                            <div class="mesob_header_id">
+                                <field name="name" readonly="1"/>
                             </div>
                             <!-- Right Bottom: Form Name -->
-                            <div class="text-end">
-                                <h3 class="fw-bold mb-0" style="font-family: 'Urbanist', sans-serif; letter-spacing: -0.01em; font-size: 1.6em; color: #D4AF37 !important;">
-                                    Requisition (Model 20)
-                                </h3>
-                            </div>
+                            <div class="mesob_header_title">Requisition (Model 20)</div>
                         </div>
                     </div>
 
