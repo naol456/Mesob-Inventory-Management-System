@@ -11,11 +11,11 @@
                   decoration-success="state in ('accepted', 'done')"
                   decoration-danger="state == 'rejected'"
                   decoration-muted="state == 'cancelled'">
-                <field name="name"/>
-                <field name="source_type"/>
-                <field name="supplier_id" optional="show"/>
-                <field name="received_by_id"/>
-                <field name="received_date"/>
+                <field name="name" class="fw-bold font-monospace text-primary"/>
+                <field name="source_type" class="fw-semibold"/>
+                <field name="supplier_id" optional="show" class="fw-semibold text-muted"/>
+                <field name="received_by_id" class="fw-semibold text-muted"/>
+                <field name="received_date" class="font-monospace text-muted"/>
                 <field name="inspection_type" optional="hide"/>
                 <field name="inspector_id" optional="hide"/>
                 <field name="state" widget="badge"
@@ -24,6 +24,55 @@
                        decoration-success="state in ('accepted', 'done')"
                        decoration-danger="state in ('rejected', 'cancelled')"/>
             </list>
+        </field>
+    </record>
+
+    <!-- ── Kanban View ────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_receiving_kanban" model="ir.ui.view">
+        <field name="name">mesob.inventory.receiving.kanban</field>
+        <field name="model">mesob.inventory.receiving</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" drag_drop="false" class="o_kanban_mobile">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="supplier_id"/>
+                <field name="received_date"/>
+                <field name="source_type"/>
+                <field name="received_by_id"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click card shadow-sm border-0 rounded p-3 mb-3 bg-white" style="min-height: 120px;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-primary text-white font-monospace fs-6 px-2 py-1">
+                                    <t t-esc="record.name.value"/>
+                                </span>
+                                <t t-if="record.source_type.raw_value == 'supplier'">
+                                    <span class="badge bg-success text-white px-2 py-1 small">
+                                        <i class="fa fa-truck me-1"/>Supplier
+                                    </span>
+                                </t>
+                                <t t-else="">
+                                    <span class="badge bg-info text-white px-2 py-1 small">
+                                        <i class="fa fa-refresh me-1"/>Return
+                                    </span>
+                                </t>
+                            </div>
+                            <h4 class="o_kanban_record_title fw-bold text-dark fs-5 mb-1 mt-1">
+                                <t t-esc="record.supplier_id.value or 'Department Return'"/>
+                            </h4>
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                                <span class="text-muted small">
+                                    <i class="fa fa-user-circle me-1"/> <t t-esc="record.received_by_id.value"/>
+                                </span>
+                                <span class="text-muted small font-monospace">
+                                    <i class="fa fa-calendar me-1"/> <t t-esc="record.received_date.value"/>
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
         </field>
     </record>
 
@@ -80,58 +129,49 @@
                         </button>
                     </div>
 
-                    <div class="oe_title">
-                        <label for="name"/>
+                    <div class="oe_title mb-4">
+                        <span class="text-muted fw-bold text-uppercase fs-6">FDRE Stock Receiving Order</span>
                         <h1>
-                            <field name="name"/>
+                            <field name="name" readonly="True" class="fw-bold text-primary font-monospace"/>
                         </h1>
                     </div>
 
-                    <group>
-                        <group string="Source Details">
-                            <field name="source_type"
-                                   readonly="state != 'draft'"/>
-                            <field name="supplier_id"
-                                   readonly="state != 'draft'"/>
-                            <field name="purchase_order_ref"
-                                   readonly="state != 'draft'"/>
-                            <field name="is_no_payment"
-                                   invisible="source_type != 'dept_return'"
-                                   readonly="state != 'draft'"/>
+                    <group class="mb-4">
+                        <group string="Source Details" col="1" class="glass-card p-3 rounded shadow-sm border">
+                            <field name="source_type" readonly="state != 'draft'" class="mb-2"/>
+                            <field name="supplier_id" readonly="state != 'draft'" class="mb-2"/>
+                            <field name="purchase_order_ref" readonly="state != 'draft'" class="mb-2 font-monospace"/>
+                            <field name="is_no_payment" invisible="source_type != 'dept_return'" readonly="state != 'draft'" class="mb-2"/>
                         </group>
-                        <group string="Receiving Details">
-                            <field name="received_by_id"
-                                   readonly="state != 'draft'"/>
-                            <field name="received_date"
-                                   readonly="state != 'draft'"/>
+                        <group string="Receiving details" col="1" class="glass-card p-3 rounded shadow-sm border">
+                            <field name="received_by_id" readonly="state != 'draft'" class="mb-2"/>
+                            <field name="received_date" readonly="state != 'draft'" class="mb-2 font-monospace"/>
                         </group>
                     </group>
 
-                    <group invisible="state == 'draft'">
-                        <group string="Inspection Details">
-                            <field name="inspection_type"
-                                   readonly="state not in ('received', 'inspecting')"/>
-                            <field name="inspector_id"
-                                   readonly="state not in ('received', 'inspecting')"/>
-                            <field name="inspection_date" readonly="1"/>
+                    <group invisible="state == 'draft'" class="mb-4">
+                        <group string="Quality Assurance Inspection" col="1" class="glass-card p-3 rounded shadow-sm border">
+                            <field name="inspection_type" readonly="state not in ('received', 'inspecting')" class="mb-2"/>
+                            <field name="inspector_id" readonly="state not in ('received', 'inspecting')" class="mb-2"/>
+                            <field name="inspection_date" readonly="1" class="mb-2 font-monospace"/>
                         </group>
                     </group>
 
-                    <notebook>
+                    <notebook class="mt-4">
                         <page string="Receiving Lines" name="lines">
-                            <field name="line_ids"
-                                   readonly="state in ('done', 'cancelled')">
-                                <list editable="bottom">
-                                    <field name="major_classification_id"/>
+                            <field name="line_ids" readonly="state in ('done', 'cancelled')">
+                                <list editable="bottom" class="glass-table border-0 rounded shadow-sm">
+                                    <field name="major_classification_id" class="fw-semibold"/>
                                     <field name="sub_classification_id"
                                            domain="[('major_classification_id', '=', major_classification_id), ('active', '=', True)]"
-                                           context="{'default_major_classification_id': major_classification_id}"/>
-                                    <field name="qty_expected"/>
-                                    <field name="qty_received"/>
-                                    <field name="qty_accepted"/>
-                                    <field name="qty_rejected"/>
-                                    <field name="unit_price"/>
-                                    <field name="total_price"/>
+                                           context="{'default_major_classification_id': major_classification_id}"
+                                           class="fw-semibold text-muted"/>
+                                    <field name="qty_expected" class="text-end fw-bold font-monospace text-primary"/>
+                                    <field name="qty_received" class="text-end fw-bold font-monospace text-info"/>
+                                    <field name="qty_accepted" class="text-end fw-bold font-monospace text-success"/>
+                                    <field name="qty_rejected" class="text-end fw-bold font-monospace text-danger"/>
+                                    <field name="unit_price" class="text-end font-monospace"/>
+                                    <field name="total_price" class="text-end fw-bold font-monospace text-primary"/>
                                     <field name="generated_item_count" string="Generated" optional="hide"/>
                                     <field name="rejection_reason" optional="hide"/>
                                     <field name="auto_generate_items" column_invisible="1"/>
@@ -140,13 +180,21 @@
                         </page>
                         <page string="Inspection Notes" name="inspection"
                               invisible="state == 'draft'">
-                            <field name="inspection_notes"
-                                   placeholder="Record inspection observations..."
-                                   readonly="state not in ('inspecting',)"/>
+                            <div class="p-3">
+                                <label for="inspection_notes" class="fw-semibold text-muted mb-2 d-block">Quality Audit &amp; Inspection Observations</label>
+                                <field name="inspection_notes"
+                                       placeholder="Record detailed structural, physical, or quantity check observations..."
+                                       readonly="state not in ('inspecting',)"
+                                       class="w-100 border p-3 rounded" style="min-height: 100px;"/>
+                            </div>
                         </page>
-                        <page string="Notes" name="notes">
-                            <field name="note"
-                                   placeholder="Internal notes..."/>
+                        <page string="Additional Notes" name="notes">
+                            <div class="p-3">
+                                <label for="note" class="fw-semibold text-muted mb-2 d-block">Internal Comments / Logistics Notes</label>
+                                <field name="note"
+                                       placeholder="Add any administrative remarks or supplier communication logs..."
+                                       class="w-100 border p-3 rounded" style="min-height: 100px;"/>
+                            </div>
                         </page>
                     </notebook>
 
@@ -191,7 +239,7 @@
     <record id="action_mesob_inventory_receiving" model="ir.actions.act_window">
         <field name="name">Receiving Orders</field>
         <field name="res_model">mesob.inventory.receiving</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="context">{'search_default_filter_mine': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

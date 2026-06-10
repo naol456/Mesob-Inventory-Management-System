@@ -79,9 +79,48 @@
                 <field name="item_count"/>
                 <templates>
                     <t t-name="card">
-                        <div class="oe_kanban_global_click" type="object" name="action_view_sub_classifications_bin_card" style="padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 12px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                        <div class="oe_kanban_global_click mesob_classification_card" type="object" name="action_view_sub_classifications_bin_card">
+                            <div class="mesob_card_header">
+                                <div class="mesob_card_icon">📦</div>
+                                <div class="mesob_card_content">
+                                    <div class="mesob_card_title">
+                                        <field name="name"/>
+                                    </div>
+                                    <div class="mesob_card_subtitle">
+                                        Major Code: <strong><field name="code"/></strong>
+                                    </div>
+                                </div>
+                                <div class="mesob_card_badge">
+                                    <field name="item_count"/> items
+                                </div>
+                            </div>
+                            <div class="mesob_card_footer">
+                                <button class="btn btn-primary btn-sm" type="object" name="action_view_sub_classifications_bin_card">
+                                    Open Sub Classifications
+                                </button>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ── Kanban View for Stock Card Navigation ────────────────────── -->
+    <record id="view_mesob_major_classification_kanban_stock_card" model="ir.ui.view">
+        <field name="name">mesob.inventory.major.classification.kanban.stock.card</field>
+        <field name="model">mesob.inventory.major.classification</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" create="false" edit="false" delete="false">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="item_count"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click" type="object" name="action_view_sub_classifications_stock_card" style="padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 12px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="font-size: 32px; min-width: 45px; text-align: center;">📦</div>
+                                <div style="font-size: 32px; min-width: 45px; text-align: center;">📊</div>
                                 <div style="flex: 1;">
                                     <div style="font-weight: 700; font-size: 16px; color: #1e293b;">
                                         <field name="name"/>
@@ -90,12 +129,12 @@
                                         Major Code: <span style="font-weight: 600;"><field name="code"/></span>
                                     </div>
                                 </div>
-                                <div style="background: #f1f5f9; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; color: #475569;">
+                                <div style="background: #e0f2fe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; color: #0369a1; border: 1px solid #bae6fd;">
                                     <field name="item_count"/> items
                                 </div>
                             </div>
                             <div style="margin-top: 14px; border-top: 1px dashed #e2e8f0; padding-top: 10px; display: flex; justify-content: flex-end;">
-                                <button class="btn btn-primary btn-sm" type="object" name="action_view_sub_classifications_bin_card" style="font-weight: 600; padding: 4px 12px; font-size: 11px; border-radius: 6px;">
+                                <button class="btn btn-primary btn-sm" type="object" name="action_view_sub_classifications_stock_card" style="font-weight: 600; padding: 4px 12px; font-size: 11px; border-radius: 6px;">
                                     Open Sub Classifications
                                 </button>
                             </div>

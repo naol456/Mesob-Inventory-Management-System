@@ -54,6 +54,11 @@ class MesobInventorySubClassification(models.Model):
         default=True,
         help="Inactive sub classifications are hidden from selection.",
     )
+    is_fixed_asset = fields.Boolean(
+        string="Fixed Asset",
+        default=False,
+        help="Check if this sub-classification represents fixed assets requiring individual item tracking.",
+    )
     item_count = fields.Integer(
         string="Items",
         compute="_compute_item_count",

@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- ── Root Menu ──────────────────────────────────────────────── -->
-    <menuitem id="menu_mesob_inventory_root" 
-              name="Mesob Inventory" 
-              groups="mesob_inventory_base.group_mesob_inventory_user,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_security_guard,mesob_inventory_base.group_mesob_auditor,mesob_inventory_base.group_mesob_dept_head,mesob_inventory_base.group_mesob_procurement"
-              sequence="10"/>
-
     <!-- ── Operations ─────────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_operations"
               name="Operations"
@@ -137,6 +131,55 @@
               parent="menu_mesob_inventory_stock_control"
               action="action_mesob_stock_reorder_alert"
               sequence="10"/>
+
+    <!-- ── Procurement (Section 4.13) ────────────────────────────── -->
+    <menuitem id="menu_mesob_procurement"
+              name="Procurement"
+              parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
+              sequence="18"/>
+
+    <menuitem id="menu_mesob_procurement_plan"
+              name="Annual Plans (APP)"
+              parent="menu_mesob_procurement"
+              action="action_mesob_procurement_plan"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_procurement_need"
+              name="Needs Collection"
+              parent="menu_mesob_procurement"
+              action="action_mesob_procurement_need"
+              sequence="20"/>
+
+    <menuitem id="menu_mesob_procurement_tender"
+              name="Bidding &amp; Tenders"
+              parent="menu_mesob_procurement"
+              action="action_mesob_procurement_tender"
+              sequence="30"/>
+
+    <menuitem id="menu_mesob_procurement_contract"
+              name="Contracts"
+              parent="menu_mesob_procurement"
+              action="action_mesob_procurement_contract"
+              sequence="40"/>
+
+    <menuitem id="menu_mesob_procurement_order"
+              name="Purchase Orders"
+              parent="menu_mesob_procurement"
+              action="action_mesob_procurement_order"
+              sequence="5"/>
+
+    <menuitem id="menu_mesob_procurement_payment"
+              name="Payment Certificates"
+              parent="menu_mesob_procurement"
+              action="action_mesob_procurement_payment"
+              sequence="50"/>
+
+    <menuitem id="menu_mesob_procurement_complaint"
+              name="Complaints &amp; Appeals"
+              parent="menu_mesob_procurement"
+              action="action_mesob_procurement_complaint"
+              sequence="60"/>
 
     <!-- ── Master Data ────────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_master_data"

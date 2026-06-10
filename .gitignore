@@ -21,6 +21,9 @@ docs/
 .env
 docs12
 
+# Third-party themes (not part of Mesob project)
+addons/theme_*/
+
 # Odoo runtime and data directories (DO NOT COMMIT)
 odoo-19/
 odoo-data/
@@ -49,3 +52,7 @@ nul
 *.md.backup
 temp_*.xml
 MESOB_LOGIN_IMPLEMENTATION.md
+
+# Agent Skills
+.agents/
+skills-lock.json
