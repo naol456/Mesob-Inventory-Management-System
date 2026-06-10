@@ -11,11 +11,11 @@
                   decoration-success="state == 'approved'"
                   decoration-danger="state == 'rejected'"
                   decoration-muted="state == 'cancelled'">
-                <field name="name"/>
-                <field name="issue_mode"/>
+                <field name="name" class="fw-bold font-monospace text-primary"/>
+                <field name="issue_mode" class="fw-semibold"/>
                 <field name="department" optional="show"/>
-                <field name="requested_by_id"/>
-                <field name="requested_on"/>
+                <field name="requested_by_id" class="fw-semibold text-muted"/>
+                <field name="requested_on" class="font-monospace text-muted"/>
                 <field name="approved_by_id" optional="show"/>
                 <field name="state" widget="badge"
                        decoration-info="state == 'draft'"
@@ -23,6 +23,55 @@
                        decoration-success="state == 'approved'"
                        decoration-danger="state in ('rejected', 'cancelled')"/>
             </list>
+        </field>
+    </record>
+
+    <!-- ── Kanban View ────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_requisition_kanban" model="ir.ui.view">
+        <field name="name">mesob.inventory.requisition.kanban</field>
+        <field name="model">mesob.inventory.requisition</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" drag_drop="false" class="o_kanban_mobile">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="requested_by_id"/>
+                <field name="requested_on"/>
+                <field name="department"/>
+                <field name="issue_mode"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click card shadow-sm border-0 rounded p-3 mb-3 bg-white" style="min-height: 120px;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-primary text-white font-monospace fs-6 px-2 py-1">
+                                    <t t-esc="record.name.value"/>
+                                </span>
+                                <t t-if="record.issue_mode.raw_value == 'loan'">
+                                    <span class="badge bg-warning text-dark px-2 py-1 small fw-bold">
+                                        <i class="fa fa-refresh me-1"/>Loan
+                                    </span>
+                                </t>
+                                <t t-else="">
+                                    <span class="badge bg-secondary text-white px-2 py-1 small">
+                                        <i class="fa fa-gift me-1"/>Permanent
+                                    </span>
+                                </t>
+                            </div>
+                            <h4 class="o_kanban_record_title fw-bold text-dark fs-5 mb-1 mt-1">
+                                <t t-esc="record.department.value or 'General Department'"/>
+                            </h4>
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                                <span class="text-muted small">
+                                    <i class="fa fa-user-circle me-1"/> <t t-esc="record.requested_by_id.value"/>
+                                </span>
+                                <span class="text-muted small font-monospace">
+                                    <i class="fa fa-calendar me-1"/> <t t-esc="record.requested_on.value"/>
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
         </field>
     </record>
 
@@ -69,48 +118,83 @@
                                    string="Issue Vouchers"/>
                         </button>
                     </div>
-                    <div class="oe_title">
-                        <label for="name"/>
-                        <h1>
-                            <field name="name"/>
-                        </h1>
+                    
+                    <!-- Premium Corporate Form Header: Official Centered Letterhead Structure -->
+                    <div class="border-bottom pb-3 mb-4 w-100">
+                        <!-- Top Center: Logo & Company Name -->
+                        <div class="text-center mb-3">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" 
+                                 alt="FDRE Mesob Center Logo" 
+                                 style="height: 80px; width: 80px; object-fit: contain; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1));"
+                                 class="rounded mx-auto d-block mb-2"/>
+                            <div class="text-muted small fw-bold text-uppercase tracking-wider" style="letter-spacing: 0.12em; font-size: 0.95em;">
+                                FDRE Mesob Center
+                            </div>
+                        </div>
+                        
+                        <!-- Bottom Row: Symmetrical Split (Left: Form ID, Right: Form Name) -->
+                        <div class="d-flex justify-content-between align-items-end mt-2 pt-2">
+                            <!-- Left Bottom: Form ID -->
+                            <div class="text-start">
+                                <span class="badge bg-primary text-white font-monospace fs-5 px-3 py-2 rounded shadow-sm">
+                                    <field name="name" readonly="1"/>
+                                </span>
+                            </div>
+                            <!-- Right Bottom: Form Name -->
+                            <div class="text-end">
+                                <h3 class="fw-bold mb-0 text-dark" style="font-family: 'Urbanist', sans-serif; letter-spacing: -0.01em; font-size: 1.6em;">
+                                    Requisition (Model 20)
+                                </h3>
+                            </div>
+                        </div>
                     </div>
 
-                    <group>
-                        <group string="Request Details">
-                            <field name="issue_mode"
-                                   readonly="state != 'draft'"/>
-                            <field name="department"
-                                   readonly="state != 'draft'"/>
-                            <field name="requested_by_id"
-                                   readonly="state != 'draft'"/>
-                            <field name="requested_on"
-                                   readonly="state != 'draft'"/>
-                        </group>
-                        <group string="Approval"
-                               invisible="state not in ('approved', 'rejected')">
-                            <field name="approved_by_id"/>
-                            <field name="approved_on"/>
-                            <field name="rejection_reason"
-                                   invisible="state != 'rejected'"/>
+                    <!-- Primary Creation Fields: Symmetrical 2-Column Grid -->
+                    <group class="mb-4" col="2">
+                        <group string="Requisition Information" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="issue_mode" widget="radio" options="{'horizontal': true}" readonly="state != 'draft'" class="mb-3"/>
+                            <field name="department" placeholder="e.g. IT Department, Finance, Logistics..." readonly="state != 'draft'" class="mb-3"/>
+                            <field name="requested_by_id" options="{'no_open': True, 'no_create': True}" readonly="state != 'draft'" class="mb-3"/>
+                            <field name="requested_on" readonly="state != 'draft'" class="mb-3"/>
+
+                            <!-- Dynamic Informational Tip Helper -->
+                            <div class="mt-2 text-muted small border-top pt-2 w-100" colspan="2" style="font-size: 0.9em; opacity: 0.85;">
+                                <i class="fa fa-info-circle me-1 text-primary" title="Info"/> 
+                                <span invisible="issue_mode != 'imprest'"><strong>Imprest Basis:</strong> Periodic top-up to maintain your department's standard cabinet stock (e.g. paper, pens).</span>
+                                <span invisible="issue_mode != 'replacement'"><strong>Replacement Issue:</strong> Requisition a new item by returning a consumed or broken item (e.g. empty ink cartridge, dead bulb).</span>
+                                <span invisible="issue_mode != 'non_stock'"><strong>Non-Stock Issue:</strong> A one-time, special requisition for items not regularly stocked.</span>
+                            </div>
                         </group>
                     </group>
 
-                    <notebook>
+                    <!-- Approvals Audit Card: Separated and Dynamically Displayed Direct Below Primary Card -->
+                    <group class="mb-4" invisible="state not in ('approved', 'rejected')">
+                        <group string="Approval &amp; Audit Logs" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="approved_by_id" readonly="True" class="mb-3"/>
+                            <field name="approved_on" readonly="True" class="mb-3"/>
+                            <field name="rejection_reason" invisible="state != 'rejected'" readonly="True" class="mb-3 text-danger fw-semibold" colspan="2"/>
+                        </group>
+                    </group>
+
+                    <notebook class="mt-4">
                         <page string="Requisition Lines" name="lines">
-                            <field name="line_ids"
-                                   readonly="state != 'draft'">
-                                <list editable="bottom">
-                                    <field name="major_classification_id"/>
-                                    <field name="sub_classification_id"
-                                           domain="[('major_classification_id', '=', major_classification_id), ('active', '=', True)]"/>
-                                    <field name="quantity"/>
-                                    <field name="note"/>
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom" class="glass-table border-0 rounded shadow-sm">
+                                    <field name="major_classification_id" class="fw-semibold" options="{'no_open': True, 'no_create': True}"/>
+                                    <field name="sub_classification_id" 
+                                           domain="[('major_classification_id', '=', major_classification_id), ('active', '=', True)]"
+                                           class="fw-semibold text-muted"
+                                           options="{'no_open': True, 'no_create': True}"/>
+                                    <field name="quantity" class="text-end fw-bold font-monospace text-primary" style="font-size: 1.1em;" placeholder="Quantity..."/>
+                                    <field name="note" placeholder="E.g. requested specifications, brand, size..."/>
                                 </list>
                             </field>
                         </page>
-                        <page string="Notes" name="notes">
-                            <field name="note" placeholder="Internal notes..."/>
+                        <page string="Additional Notes" name="notes">
+                            <div class="p-3">
+                                <label for="note" class="fw-semibold text-muted mb-2 d-block">Internal Comments / Special Instructions</label>
+                                <field name="note" placeholder="Add any storage logistics notes, courier details, or special administrative remarks..." class="w-100 border p-3 rounded" style="min-height: 100px;"/>
+                            </div>
                         </page>
                     </notebook>
                 </sheet>
@@ -142,11 +226,10 @@
     </record>
 
     <!-- ── Actions ─────────────────────────────────────────────────── -->
-    <!-- Main action - create button hidden by get_view() method for PAO/Storekeeper/Stock Clerk -->
     <record id="action_mesob_inventory_requisition" model="ir.actions.act_window">
         <field name="name">Stores Requisitions</field>
         <field name="res_model">mesob.inventory.requisition</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Create a stores requisition (Model 20)
