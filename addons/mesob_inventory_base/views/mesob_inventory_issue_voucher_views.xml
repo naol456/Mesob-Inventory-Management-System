@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ── List View ──────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_issue_voucher_list" model="ir.ui.view">
+        <field name="name">mesob.inventory.issue.voucher.list</field>
+        <field name="model">mesob.inventory.issue.voucher</field>
+        <field name="arch" type="xml">
+            <list string="Issue Vouchers (Model 22)" 
+                  default_order="issue_date desc, name desc"
+                  decoration-info="state == 'draft'"
+                  decoration-warning="state == 'issued'"
+                  decoration-success="state == 'received'"
+                  decoration-muted="state == 'cancelled'">
+                <field name="name" class="fw-bold font-monospace text-primary"/>
+                <field name="issue_date" class="font-monospace text-muted"/>
+                <field name="requisition_id" optional="show" class="font-monospace text-muted"/>
+                <field name="requesting_department" optional="show" class="fw-semibold"/>
+                <field name="issued_by_id" class="fw-semibold text-muted"/>
+                <field name="received_by_id" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'issued'"
+                       decoration-success="state == 'received'"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Kanban View ────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_issue_voucher_kanban" model="ir.ui.view">
+        <field name="name">mesob.inventory.issue.voucher.kanban</field>
+        <field name="model">mesob.inventory.issue.voucher</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" drag_drop="false" class="o_kanban_mobile">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="issue_date"/>
+                <field name="requisition_id"/>
+                <field name="requesting_department"/>
+                <field name="issued_by_id"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click card shadow-sm border-0 rounded p-3 mb-3 bg-white" style="min-height: 120px;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-primary text-white font-monospace fs-6 px-2 py-1">
+                                    <t t-esc="record.name.value"/>
+                                </span>
+                                <span class="badge bg-secondary text-white px-2 py-1 small">
+                                    <i class="fa fa-tag me-1"/>Model 22
+                                </span>
+                            </div>
+                            <h4 class="o_kanban_record_title fw-bold text-dark fs-5 mb-1 mt-1">
+                                <t t-esc="record.requesting_department.value or 'General Store'"/>
+                            </h4>
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                                <span class="text-muted small">
+                                    <i class="fa fa-user-circle me-1"/> <t t-esc="record.issued_by_id.value"/>
+                                </span>
+                                <span class="text-muted small font-monospace">
+                                    <i class="fa fa-calendar me-1"/> <t t-esc="record.issue_date.value"/>
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ── Form View ──────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_issue_voucher_form" model="ir.ui.view">
+        <field name="name">mesob.inventory.issue.voucher.form</field>
+        <field name="model">mesob.inventory.issue.voucher</field>
+        <field name="arch" type="xml">
+            <form string="Issue Voucher - Model 22" class="o_mesob_gov_doc">
+                <header>
+                    <button name="action_issue" string="✓ Issue Materials" type="object" 
+                            class="btn-primary" 
+                            invisible="state != 'draft'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <button name="action_confirm_receipt" string="✓ Confirm Receipt" type="object" 
+                            class="btn-success" 
+                            invisible="state != 'issued'"
+                            groups="!mesob_inventory_base.group_mesob_storekeeper,!mesob_inventory_base.group_mesob_pao,!mesob_inventory_base.group_mesob_stock_clerk"/>
+                    <button name="action_cancel" string="Cancel" type="object" 
+                            confirm="Are you sure you want to cancel this issue voucher?"
+                            invisible="state in ('received', 'cancelled')"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <button name="action_set_to_draft" string="Reset to Draft" type="object"
+                            invisible="state != 'cancelled'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="draft,issued,received"/>
+                </header>
+                <sheet>
+                    <!-- Premium Corporate Form Header: Centered Letterhead with Symmetrical Split -->
+                    <div class="mesob_corporate_header">
+                        <!-- Top Center: Logo & Company Name -->
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        
+                        <!-- Bottom Row: Symmetrical Split (Left: Form ID, Right: Form Name) -->
+                        <div class="mesob_header_bottom_row">
+                            <!-- Left Bottom: Form ID -->
+                            <div class="mesob_header_id">
+                                <field name="name" readonly="1"/>
+                            </div>
+                            <!-- Right Bottom: Form Name -->
+                            <div class="mesob_header_title">Issue Voucher (Model 22)</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Main Information: Symmetrical Groups -->
+                    <group class="mb-4">
+                        <group string="Issue details" class="glass-card p-3 rounded shadow-sm border">
+                            <field name="issue_date" readonly="state != 'draft'" required="1" class="mb-2 font-monospace"/>
+                            <field name="issued_by_id" readonly="1" class="mb-2"/>
+                            <field name="requisition_id" readonly="1" options="{'no_open': True, 'no_create': True}" class="mb-2"/>
+                        </group>
+                        <group string="Receiving details" class="glass-card p-3 rounded shadow-sm border">
+                            <field name="requesting_department" placeholder="e.g. IT Department, Logistics, Administration..." readonly="state != 'draft'" class="mb-2"/>
+                        </group>
+                    </group>
+                    
+                    <!-- Items Section -->
+                    <notebook class="mt-4">
+                        <page string="📦 Issued Items" name="items">
+                            <div class="alert alert-info d-flex align-items-center mb-3" role="alert" invisible="state != 'draft'">
+                                <i class="fa fa-info-circle me-2 text-info fs-5" title="Info"/>
+                                <div>
+                                    <strong>Draft:</strong> Review the items below. Click <strong>Issue Materials</strong> when ready to distribute.
+                                </div>
+                            </div>
+                            <div class="alert alert-warning d-flex align-items-center mb-3" role="alert" invisible="state != 'issued'">
+                                <i class="fa fa-exclamation-triangle me-2 text-warning fs-5" title="Warning"/>
+                                <div>
+                                    <strong>Issued:</strong> Materials have been issued. Waiting for department to confirm receipt.
+                                </div>
+                            </div>
+                            <div class="alert alert-success d-flex align-items-center mb-3" role="alert" invisible="state != 'received'">
+                                <i class="fa fa-check-circle me-2 text-success fs-5" title="Success"/>
+                                <div>
+                                    <strong>Completed:</strong> Department has confirmed receipt of all materials.
+                                </div>
+                            </div>
+                            
+                            <field name="line_ids" 
+                                   readonly="state != 'draft'"
+                                   context="{'default_quantity_issued': 1.0}">
+                                <list editable="bottom" create="state == 'draft'" delete="state == 'draft'" class="glass-table border-0 rounded shadow-sm">
+                                    <field name="item_id" required="1" options="{'no_open': True, 'no_create': True}" class="fw-semibold"/>
+                                    <field name="quantity_issued" string="Qty Issued" class="text-end fw-bold font-monospace text-primary" style="font-size: 1.1em;"/>
+                                    <field name="uom_id" optional="hide"/>
+                                    <field name="note" placeholder="E.g. brand, quality specs..." optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        
+                        <page string="📄 Copy Distribution" name="distribution" invisible="state == 'draft'">
+                            <group class="p-3">
+                                <group string="Document Copies">
+                                    <div class="alert alert-info d-flex align-items-start" role="alert">
+                                        <i class="fa fa-files-o me-2 text-info fs-5 mt-1" title="Copies"/>
+                                        <div>
+                                            <p class="mb-2"><strong>Copy Distribution (as per Federal Regulations):</strong></p>
+                                            <ul class="mb-0 ps-3">
+                                                <li><strong>Original:</strong> Goes to Stock Clerk for records</li>
+                                                <li><strong>Duplicate:</strong> Given to Requesting Department</li>
+                                                <li><strong>Triplicate:</strong> Retained by Storekeeper</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </group>
+                                <group string="Distribution Status" class="glass-card p-3 rounded shadow-sm border">
+                                    <field name="original_to_stock_clerk" readonly="1" widget="boolean_toggle" class="mb-2"/>
+                                    <field name="duplicate_to_department" readonly="1" widget="boolean_toggle" class="mb-2"/>
+                                    <field name="triplicate_retained" readonly="1" widget="boolean_toggle" class="mb-2"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="✓ Receipt Confirmation" name="receipt" invisible="state not in ('issued', 'received')">
+                            <group class="p-3">
+                                <group string="Received By">
+                                    <field name="received_by_id" readonly="1" class="mb-2"/>
+                                    <field name="received_on" readonly="1" class="mb-2 font-monospace"/>
+                                </group>
+                                <group string="Verification Checklist" class="glass-card p-3 rounded shadow-sm border">
+                                    <field name="quantity_verified" readonly="1" widget="boolean_toggle" string="✓ Quantities Verified" class="mb-2"/>
+                                    <field name="inspection_confirmed" readonly="1" widget="boolean_toggle" string="✓ Condition Inspected" class="mb-2"/>
+                                    <field name="approval_verified" readonly="1" widget="boolean_toggle" string="✓ Authorization Verified" class="mb-2"/>
+                                </group>
+                            </group>
+                            <group string="Receipt Notes" class="p-3">
+                                <field name="receipt_notes" readonly="1" nolabel="1" placeholder="Department's notes upon receiving materials..." class="w-100 border p-3 rounded"/>
+                            </group>
+                        </page>
+                        
+                        <page string="📝 Notes" name="notes">
+                            <div class="p-3">
+                                <label for="note" class="fw-semibold text-muted mb-2 d-block">Additional Comments</label>
+                                <field name="note" placeholder="Additional notes, special instructions, or remarks..." nolabel="1" class="w-100 border p-3 rounded" style="min-height: 100px;"/>
+                            </div>
+                        </page>
+                    </notebook>
+                    
+                    <!-- Hidden technical field -->
+                    <field name="picking_id" invisible="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_mesob_inventory_issue_voucher_search" model="ir.ui.view">
+        <field name="name">mesob.inventory.issue.voucher.search</field>
+        <field name="model">mesob.inventory.issue.voucher</field>
+        <field name="arch" type="xml">
+            <search string="Issue Vouchers">
+                <field name="name"/>
+                <field name="requisition_id"/>
+                <field name="issued_by_id"/>
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Issued" name="issued" domain="[('state', '=', 'issued')]"/>
+                <filter string="Received" name="received" domain="[('state', '=', 'received')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_mesob_inventory_issue_voucher" model="ir.actions.act_window">
+        <field name="name">Issue Vouchers</field>
+        <field name="res_model">mesob.inventory.issue.voucher</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════════════
+         RECEIVING ORDERS - ENHANCED PREMIUM VIEW
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- Receiving Line Form View - Vertical Layout -->
+    <record id="view_mesob_inventory_receiving_line_form" model="ir.ui.view">
+        <field name="name">mesob.inventory.receiving.line.form</field>
+        <field name="model">mesob.inventory.receiving.line</field>
+        <field name="arch" type="xml">
+            <form string="Add Receiving Item">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="item_id" 
+                                   string="📦 Item"
+                                   placeholder="Select inventory item..."
+                                   options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="description" 
+                                   string="📝 Description"
+                                   placeholder="Item description..."/>
+                        </group>
+                        <group>
+                            <field name="qty_expected" 
+                                   string="📋 Expected Quantity"
+                                   placeholder="Expected qty"/>
+                        </group>
+                        <group>
+                            <field name="qty_received" 
+                                   string="📥 Received Quantity"
+                                   placeholder="Actual received qty"/>
+                        </group>
+                        <group>
+                            <field name="uom_id" 
+                                   string="📏 Unit of Measure"
+                                   placeholder="Select unit"
+                                   options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="unit_price" 
+                                   string="💰 Unit Price"
+                                   placeholder="0.00"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Enhanced Form View -->
+    <record id="view_mesob_inventory_receiving_form_enhanced" model="ir.ui.view">
+        <field name="name">mesob.inventory.receiving.form.enhanced</field>
+        <field name="model">mesob.inventory.receiving</field>
+        <field name="inherit_id" ref="view_mesob_inventory_receiving_form"/>
+        <field name="arch" type="xml">
+            
+            <!-- Status Workflow at top -->
+            <xpath expr="//div[@class='oe_title']" position="after">
+                <div invisible="state not in ('received', 'inspecting', 'accepted', 'rejected', 'done')"
+                     style="margin: 20px 0; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); padding: 24px; border-radius: 16px; border: 2px solid #93c5fd; box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="display: inline-flex; align-items: center; gap: 12px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 12px 28px; border-radius: 12px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);">
+                            <i class="fa fa-truck" style="color: white; font-size: 22px;"/>
+                            <span style="color: white; font-size: 17px; font-weight: 700; letter-spacing: 0.5px;">RECEIVING WORKFLOW</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap;">
+                        <div style="text-align: center; flex: 1; min-width: 120px;">
+                            <div style="background: white; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); border: 4px solid #3b82f6;">
+                                <i class="fa fa-inbox fa-2x" style="color: #3b82f6;"/>
+                            </div>
+                            <div style="font-weight: 700; color: #1e40af; font-size: 13px;">Received</div>
+                            <div style="font-size: 11px; color: #6b7280;"><field name="received_date" readonly="1"/></div>
+                        </div>
+                        <i class="fa fa-arrow-right fa-2x" style="color: #3b82f6;"/>
+                        <div style="text-align: center; flex: 1; min-width: 120px;">
+                            <div style="background: white; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); border: 4px solid #3b82f6;">
+                                <i class="fa fa-search fa-2x" style="color: #3b82f6;"/>
+                            </div>
+                            <div style="font-weight: 700; color: #1e40af; font-size: 13px;">Inspecting</div>
+                            <div style="font-size: 11px; color: #6b7280;"><field name="inspection_date" readonly="1"/></div>
+                        </div>
+                        <i class="fa fa-arrow-right fa-2x" style="color: #3b82f6;" invisible="state not in ('accepted', 'rejected', 'done')"/>
+                        <div style="text-align: center; flex: 1; min-width: 120px;" invisible="state not in ('accepted', 'rejected', 'done')">
+                            <div style="background: white; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); border: 4px solid #10b981;" invisible="state != 'accepted'">
+                                <i class="fa fa-check-circle fa-2x" style="color: #10b981;"/>
+                            </div>
+                            <div style="background: white; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); border: 4px solid #ef4444;" invisible="state != 'rejected'">
+                                <i class="fa fa-times-circle fa-2x" style="color: #ef4444;"/>
+                            </div>
+                            <div style="font-weight: 700; color: #065f46; font-size: 13px;" invisible="state != 'accepted'">Accepted</div>
+                            <div style="font-weight: 700; color: #991b1b; font-size: 13px;" invisible="state != 'rejected'">Rejected</div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+
+            <!-- Hide original groups -->
+            <xpath expr="//group[1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group[2]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Replace notebook with modern card layout -->
+            <xpath expr="//notebook" position="replace">
+                <div class="row mesob_responsive_row" style="margin: 20px 0;">
+                    <!-- Source Details Card (Left) -->
+                    <div class="col-12 col-lg-6 mesob_responsive_col" style="padding: 0 10px; margin-bottom: 20px;">
+                        <div class="mesob_info_card" style="background: linear-gradient(135deg, #ffffff 0%, #fef3c7 100%); border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(245, 158, 11, 0.15); border: 2px solid #fef3c7; height: 100%;">
+                            <h3 style="color: #f59e0b; font-size: 18px; font-weight: 700; margin: 0 0 20px 0; padding-bottom: 16px; border-bottom: 3px solid #f59e0b; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+                                    <i class="fa fa-truck" style="color: white; font-size: 18px;"/>
+                                </div>
+                                <span>🚚 Source Details</span>
+                            </h3>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 16px;">
+                                <div style="background: white; padding: 16px; border-radius: 12px; border-left: 4px solid #f59e0b; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fa fa-tag" style="color: white; font-size: 14px;"/>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Source Type</div>
+                                            <field name="source_type" readonly="state != 'draft'" style="font-size: 15px; font-weight: 600; color: #1f2937;"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="background: white; padding: 16px; border-radius: 12px; border-left: 4px solid #d97706; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="background: linear-gradient(135deg, #d97706 0%, #b45309 100%); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fa fa-building" style="color: white; font-size: 14px;"/>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Supplier / Source</div>
+                                            <field name="supplier_id" readonly="state != 'draft'" placeholder="Select supplier..." style="font-size: 15px; font-weight: 600; color: #1f2937;"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="background: white; padding: 16px; border-radius: 12px; border-left: 4px solid #f59e0b; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fa fa-file-text-o" style="color: white; font-size: 14px;"/>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">PO / Packing Slip Ref</div>
+                                            <field name="purchase_order_ref" readonly="state != 'draft'" placeholder="Reference number..." style="font-size: 15px; font-weight: 600; color: #1f2937;"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div invisible="source_type != 'dept_return'" style="background: white; padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <field name="is_no_payment" readonly="state != 'draft'" widget="boolean_toggle"/>
+                                        <span style="font-weight: 600; color: #374151;">💳 No Payment (Dept Return)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Authority & Receiving Card (Right) -->
+                    <div class="col-12 col-lg-6 mesob_responsive_col" style="padding: 0 10px; margin-bottom: 20px;">
+                        <div class="mesob_info_card" style="background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%); border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15); border: 2px solid #dbeafe; height: 100%;">
+                            <h3 style="color: #3b82f6; font-size: 18px; font-weight: 700; margin: 0 0 20px 0; padding-bottom: 16px; border-bottom: 3px solid #3b82f6; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                                    <i class="fa fa-shield" style="color: white; font-size: 18px;"/>
+                                </div>
+                                <span>🛡️ Authority &amp; Receiving</span>
+                            </h3>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 16px;">
+                                <div style="background: white; padding: 16px; border-radius: 12px; border-left: 4px solid #3b82f6; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fa fa-hashtag" style="color: white; font-size: 14px;"/>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Authority Reference</div>
+                                            <field name="authority_ref" readonly="state not in ('draft', 'received')" placeholder="Authority ref..." style="font-size: 15px; font-weight: 600; color: #1f2937;"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="background: white; padding: 16px; border-radius: 12px; border-left: 4px solid #2563eb; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fa fa-calendar" style="color: white; font-size: 14px;"/>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Authority Date</div>
+                                            <field name="authority_date" readonly="state not in ('draft', 'received')" style="font-size: 15px; font-weight: 600; color: #1f2937;"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="background: white; padding: 16px; border-radius: 12px; border-left: 4px solid #3b82f6; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fa fa-user" style="color: white; font-size: 14px;"/>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Received By</div>
+                                            <field name="received_by_id" readonly="state != 'draft'" style="font-size: 15px; font-weight: 600; color: #1f2937;"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="background: white; padding: 16px; border-radius: 12px; border-left: 4px solid #2563eb; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fa fa-calendar-check-o" style="color: white; font-size: 14px;"/>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Received Date</div>
+                                            <field name="received_date" readonly="state != 'draft'" style="font-size: 15px; font-weight: 600; color: #1f2937;"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inspection Details (when inspecting) -->
+                <div invisible="state == 'draft'" style="margin: 20px 0; background: linear-gradient(135deg, #fef3ff 0%, #fae8ff 100%); padding: 24px; border-radius: 16px; border: 2px solid #f3e8ff; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.1);">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="display: inline-flex; align-items: center; gap: 12px; background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%); padding: 12px 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);">
+                            <i class="fa fa-search" style="color: white; font-size: 20px;"/>
+                            <span style="color: white; font-size: 16px; font-weight: 700; letter-spacing: 0.5px;">🔍 INSPECTION DETAILS</span>
+                        </div>
+                    </div>
+                    <div class="row mesob_responsive_row">
+                        <div class="col-12 col-md-4 mesob_responsive_col" style="margin-bottom: 16px;">
+                            <div style="background: white; padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                <div style="color: #6b7280; font-size: 12px; font-weight: 600; display: block; margin-bottom: 8px;">Inspection Type</div>
+                                <field name="inspection_type" readonly="state not in ('received', 'inspecting')" style="width: 100%;"/>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4 mesob_responsive_col" style="margin-bottom: 16px;">
+                            <div style="background: white; padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                <div style="color: #6b7280; font-size: 12px; font-weight: 600; display: block; margin-bottom: 8px;">Inspector</div>
+                                <field name="inspector_id" readonly="state not in ('received', 'inspecting')" style="width: 100%;"/>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4 mesob_responsive_col">
+                            <div style="background: white; padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                <div style="color: #6b7280; font-size: 12px; font-weight: 600; display: block; margin-bottom: 8px;">Inspection Date</div>
+                                <field name="inspection_date" readonly="1" style="width: 100%;"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 16px; background: white; padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <div style="color: #6b7280; font-size: 12px; font-weight: 600; display: block; margin-bottom: 8px;">Inspection Notes</div>
+                        <field name="inspection_notes" placeholder="Record inspection observations..." readonly="state not in ('inspecting',)" style="min-height: 100px;"/>
+                    </div>
+                </div>
+
+                <!-- Receiving Lines Section (Full Width) -->
+                <div style="margin: 20px 0; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 24px; border-radius: 16px; border: 2px solid #86efac; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="display: inline-flex; align-items: center; gap: 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 12px 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                            <i class="fa fa-list" style="color: white; font-size: 20px;"/>
+                            <span style="color: white; font-size: 16px; font-weight: 700; letter-spacing: 0.5px;">📦 RECEIVING LINES</span>
+                        </div>
+                    </div>
+                    <field name="line_ids" readonly="state in ('done', 'cancelled')" class="mesob_receiving_lines" nolabel="1"/>
+                </div>
+
+                <!-- Notes Section (Full Width) -->
+                <div style="margin: 20px 0; background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%); padding: 24px; border-radius: 16px; border: 2px solid #fef3c7; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="display: inline-flex; align-items: center; gap: 12px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 12px 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+                            <i class="fa fa-sticky-note-o" style="color: white; font-size: 20px;"/>
+                            <span style="color: white; font-size: 16px; font-weight: 700; letter-spacing: 0.5px;">📝 INTERNAL NOTES</span>
+                        </div>
+                    </div>
+                    <field name="note" 
+                           placeholder="Add internal notes, special instructions, or additional information here..."
+                           style="min-height: 120px; background: white; border: 2px solid #fef3c7; border-radius: 12px; padding: 16px; font-size: 14px; color: #374151;"/>
+                </div>
+
+                <!-- Hidden fields -->
+                <field name="model19_id" invisible="1"/>
+                <field name="dsr_id" invisible="1"/>
+                <field name="has_accepted_lines" invisible="1"/>
+                <field name="has_rejected_lines" invisible="1"/>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

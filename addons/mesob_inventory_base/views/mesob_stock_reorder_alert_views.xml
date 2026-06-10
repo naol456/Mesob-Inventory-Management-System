@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Stock Reorder Alert List View -->
+    <record id="view_mesob_stock_reorder_alert_list" model="ir.ui.view">
+        <field name="name">mesob.stock.reorder.alert.list</field>
+        <field name="model">mesob.stock.reorder.alert</field>
+        <field name="arch" type="xml">
+            <list string="Stock Reorder Alerts" create="false" 
+                  decoration-danger="alert_type == 'minimum'" 
+                  decoration-warning="alert_type == 'reorder'">
+                <field name="name" class="fw-bold font-monospace text-primary"/>
+                <field name="alert_date" class="font-monospace text-muted"/>
+                <field name="item_id" class="fw-semibold"/>
+                <field name="alert_type" class="fw-bold"/>
+                <field name="current_stock" class="text-end fw-bold font-monospace text-danger"/>
+                <field name="reorder_level" class="text-end font-monospace text-muted"/>
+                <field name="outstanding_qty" class="text-end font-monospace text-muted"/>
+                <field name="recommended_order_qty" class="text-end fw-bold font-monospace text-primary"/>
+                <field name="state" widget="badge" 
+                       decoration-info="state == 'new'" 
+                       decoration-success="state == 'resolved'" 
+                       decoration-muted="state == 'dismissed'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Kanban View ────────────────────────────────────────────── -->
+    <record id="view_mesob_stock_reorder_alert_kanban" model="ir.ui.view">
+        <field name="name">mesob.stock.reorder.alert.kanban</field>
+        <field name="model">mesob.stock.reorder.alert</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" drag_drop="false" class="o_kanban_mobile">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="alert_date"/>
+                <field name="item_id"/>
+                <field name="alert_type"/>
+                <field name="current_stock"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click card shadow-sm border-0 rounded p-3 mb-3 bg-white" style="min-height: 125px;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-primary text-white font-monospace fs-6 px-2 py-1">
+                                    <t t-esc="record.name.value"/>
+                                </span>
+                                <t t-if="record.alert_type.raw_value == 'minimum'">
+                                    <span class="badge bg-danger text-white px-2 py-1 small">
+                                        <i class="fa fa-exclamation-triangle me-1"/>Minimum Limit
+                                    </span>
+                                </t>
+                                <t t-else="">
+                                    <span class="badge bg-warning text-dark px-2 py-1 small fw-bold">
+                                        <i class="fa fa-refresh me-1"/>Reorder Point
+                                    </span>
+                                </t>
+                            </div>
+                            <h4 class="o_kanban_record_title fw-bold text-dark fs-5 mb-1 mt-1">
+                                <t t-esc="record.item_id.value"/>
+                            </h4>
+                            <p class="text-muted small mb-0 mt-2">
+                                Stock: <t t-esc="record.current_stock.value"/>
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                                <span class="text-muted small font-monospace">
+                                    <i class="fa fa-calendar me-1"/> <t t-esc="record.alert_date.value"/>
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Stock Reorder Alert Form View -->
+    <record id="view_mesob_stock_reorder_alert_form" model="ir.ui.view">
+        <field name="name">mesob.stock.reorder.alert.form</field>
+        <field name="model">mesob.stock.reorder.alert</field>
+        <field name="arch" type="xml">
+            <form string="Stock Reorder Alert" class="o_mesob_gov_doc">
+                <header>
+                    <button name="action_acknowledge" string="Acknowledge" type="object" 
+                            invisible="state != 'new'" class="btn-primary"/>
+                    <button name="action_create_requisition" string="Create Requisition" type="object" 
+                            invisible="state not in ['new', 'acknowledged']" class="btn-primary"/>
+                    <button name="action_resolve" string="Resolve" type="object" 
+                            invisible="state not in ['new', 'acknowledged', 'ordered']" class="btn-success"/>
+                    <button name="action_dismiss" string="Dismiss" type="object" 
+                            invisible="state not in ['new', 'acknowledged']"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,acknowledged,ordered,resolved"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(action_mesob_inventory_requisition)d" type="action" 
+                                class="oe_stat_button" icon="fa-file-text-o"
+                                invisible="not requisition_id"
+                                context="{'search_default_id': requisition_id}">
+                            <field name="requisition_id" widget="statinfo" string="Requisition"/>
+                        </button>
+                    </div>
+                    
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="name" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Stock Reorder Alert</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Symmetrical Information: Multi-Column layout w/ No-Clutter Dropdowns -->
+                    <group class="mb-4" col="2">
+                        <group string="Alert details" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="alert_date" class="mb-3 font-monospace"/>
+                            <field name="alert_type" widget="badge" class="mb-3"/>
+                            <field name="item_id" options="{'no_open': True, 'no_create': True}" class="mb-3"/>
+                        </group>
+                        <group string="Stock levels" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="current_stock" class="text-end fw-bold font-monospace text-danger mb-3"/>
+                            <field name="minimum_level" class="text-end font-monospace mb-3"/>
+                            <field name="reorder_level" class="text-end font-monospace text-warning mb-3"/>
+                            <field name="maximum_level" class="text-end font-monospace mb-3"/>
+                        </group>
+                    </group>
+
+                    <group class="mb-4" col="2">
+                        <group string="Outstanding deliveries" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="outstanding_qty" class="text-end font-monospace text-info mb-3"/>
+                            <field name="outstanding_order_ids" widget="many2many_tags" class="mb-3"/>
+                        </group>
+                        <group string="Recommended action" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="recommended_order_qty" class="text-end fw-bold font-monospace text-primary mb-3"/>
+                        </group>
+                    </group>
+                    
+                    <group class="mb-4" col="2">
+                        <group string="Verification &amp; audits" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="acknowledged_by_id" class="mb-3"/>
+                            <field name="acknowledged_date" class="mb-3 font-monospace"/>
+                            <field name="resolved_by_id" class="mb-3"/>
+                            <field name="resolved_date" class="mb-3 font-monospace"/>
+                        </group>
+                    </group>
+                    
+                    <notebook class="mt-4">
+                        <page string="📝 Alert Notes" name="notes_tab">
+                            <div class="p-3">
+                                <label for="notes" class="fw-semibold text-muted mb-2 d-block">Logistics Observations &amp; Action Notes</label>
+                                <field name="notes" placeholder="Write any supplier communications logs, reorder notes, or administrative remarks..." class="w-100 border p-3 rounded" style="min-height: 100px;"/>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                
+                <!-- Native Odoo Social Chatter Feed -->
+                <chatter>
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </chatter>
+            </form>
+        </field>
+    </record>
+
+    <!-- Stock Reorder Alert Action -->
+    <record id="action_mesob_stock_reorder_alert" model="ir.actions.act_window">
+        <field name="name">Stock Reorder Alerts</field>
+        <field name="res_model">mesob.stock.reorder.alert</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No reorder alerts yet
+            </p>
+            <p>
+                Reorder alerts are automatically created when stock levels fall below reorder points.
+                The system checks stock levels daily and creates alerts for items requiring replenishment.
+            </p>
+        </field>
+    </record>
+
+    <!-- Scheduled Action for Stock Level Checking -->
+    <record id="ir_cron_check_stock_levels" model="ir.cron">
+        <field name="name">Check Stock Levels and Create Reorder Alerts</field>
+        <field name="model_id" ref="model_mesob_stock_reorder_alert"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_check_stock_levels()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+
+</odoo>

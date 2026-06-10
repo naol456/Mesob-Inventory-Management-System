@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Inspection-focused Line Form (for inline editing) -->
+    <record id="view_mesob_inventory_receiving_line_form_inspection" model="ir.ui.view">
+        <field name="name">mesob.inventory.receiving.line.form.inspection</field>
+        <field name="model">mesob.inventory.receiving.line</field>
+        <field name="arch" type="xml">
+            <form string="Inspection">
+                <group>
+                    <group>
+                        <field name="item_id" readonly="1"/>
+                        <field name="description" readonly="1"/>
+                        <field name="qty_expected" readonly="1"/>
+                        <field name="qty_received" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="qty_accepted" class="oe_inline" 
+                               decoration-success="qty_accepted > 0"/>
+                        <field name="qty_rejected" class="oe_inline"
+                               decoration-danger="qty_rejected > 0"/>
+                        <field name="rejection_reason" 
+                               invisible="qty_rejected == 0"/>
+                    </group>
+                </group>
+                <group string="Notes" invisible="qty_rejected == 0">
+                    <field name="rejection_notes" nolabel="1" 
+                           placeholder="Describe the issue with this item..."/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <!-- Simplified Receiving Form View -->
+    <record id="view_mesob_inventory_receiving_form_simplified" model="ir.ui.view">
+        <field name="name">mesob.inventory.receiving.form.simplified</field>
+        <field name="model">mesob.inventory.receiving</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <form string="Receiving Order" class="o_form_receiving_simplified">
+                <header>
+                    <button name="action_receive" type="object" string="✓ Mark as Received"
+                            class="btn-primary"
+                            invisible="state != 'draft'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <button name="action_start_inspection" type="object"
+                            string="🔍 Start Inspection"
+                            class="btn-primary"
+                            invisible="state != 'received'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <button name="action_accept" type="object" string="✓ Accept Items"
+                            class="btn-success"
+                            invisible="state != 'inspecting'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <button name="action_reject" type="object" string="✗ Reject Items"
+                            class="btn-danger"
+                            invisible="state != 'inspecting'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <button name="action_done" type="object" string="Finalize"
+                            class="btn-primary"
+                            invisible="state not in ('accepted', 'rejected')"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,received,inspecting,accepted,done"/>
+                </header>
+                <sheet>
+                    <!-- Smart Buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_model19" type="object"
+                                class="oe_stat_button" icon="fa-check-circle"
+                                invisible="not model19_id">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Receipt</span>
+                                <span class="o_stat_value">Model 19</span>
+                            </div>
+                        </button>
+                        <button name="action_view_dsr" type="object"
+                                class="oe_stat_button" icon="fa-exclamation-triangle"
+                                invisible="not dsr_id">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Rejection</span>
+                                <span class="o_stat_value">DSR</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="name" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Receiving Order (Simplified)</div>
+                        </div>
+                    </div>
+
+                    <!-- Main Information -->
+                    <group>
+                        <group string="📦 Source Information">
+                            <field name="source_type" widget="radio" options="{'horizontal': true}"
+                                   readonly="state != 'draft'"/>
+                            <field name="supplier_id" 
+                                   string="Supplier"
+                                   placeholder="Type supplier name and press Enter to create..."
+                                   readonly="state != 'draft'"
+                                   invisible="source_type != 'supplier'"
+                                   context="{'default_is_company': True, 'default_supplier_rank': 1, 'default_company_type': 'company'}"/>
+                            <field name="department_id" 
+                                   string="Returning Department"
+                                   placeholder="Select the department returning goods..."
+                                   readonly="state != 'draft'"
+                                   invisible="source_type != 'dept_return'"
+                                   required="source_type == 'dept_return'"/>
+                            <field name="purchase_order_ref" 
+                                   placeholder="e.g., PO-2026-001 or Packing Slip #123"
+                                   readonly="state != 'draft'"/>
+                        </group>
+                        <group string="📋 Receiving Details">
+                            <field name="received_date" readonly="state != 'draft'"/>
+                            <field name="received_by_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Inspection Section (only visible after receiving) -->
+                    <group invisible="state == 'draft'">
+                        <group string="🔍 Inspection">
+                            <field name="inspection_type" widget="radio"
+                                   readonly="state not in ('received', 'inspecting')"/>
+                            <field name="inspector_id" 
+                                   placeholder="Assign inspector..."
+                                   readonly="state not in ('received', 'inspecting')"
+                                   required="state in ('received', 'inspecting')"/>
+                            <field name="inspection_date" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Items Section -->
+                    <notebook>
+                        <page string="📦 Items" name="lines">
+                            <div class="alert alert-info" role="alert" invisible="state != 'draft'">
+                                <strong>Step 1:</strong> Add items you're receiving below. Fill in expected quantities.
+                            </div>
+                            <div class="alert alert-warning" role="alert" invisible="state not in ('received', 'inspecting')">
+                                <strong>Inspection:</strong> Your items are listed below. Click on the <strong>✓ Accepted</strong> column to enter quantities.
+                                <br/>• Accepted items will generate a <strong>Model 19 Receipt</strong>
+                                <br/>• Rejected items will generate a <strong>DSR Report</strong>
+                            </div>
+                            
+                            <field name="line_ids" context="{}">
+                                <list editable="bottom" 
+                                      create="state == 'draft'" 
+                                      delete="state == 'draft'"
+                                      decoration-success="qty_accepted > 0"
+                                      decoration-danger="qty_rejected > 0">
+                                    <!-- Hidden state field for readonly conditions -->
+                                    <field name="state" column_invisible="1"/>
+                                    <field name="auto_generate_items" column_invisible="1"/>
+                                    
+                                    <!-- Classification fields for auto-generation -->
+                                    <field name="major_classification_id"
+                                           readonly="state != 'draft'"/>
+                                    <field name="sub_classification_id"
+                                           readonly="state != 'draft'"
+                                           domain="[('major_classification_id', '=', major_classification_id), ('active', '=', True)]"
+                                           context="{'default_major_classification_id': major_classification_id}"/>
+                                    <field name="generated_item_count" 
+                                           string="Generated"
+                                           optional="hide"/>
+                                    
+                                    <!-- Expected Qty - only editable in draft -->
+                                    <field name="qty_expected" 
+                                           string="Expected" 
+                                           required="1"
+                                           readonly="state != 'draft'"
+                                           force_save="1"/>
+                                    
+                                    <!-- Received Qty - editable in draft and received -->
+                                    <field name="qty_received" 
+                                           string="Received" 
+                                           readonly="state not in ('draft', 'received')"
+                                           optional="show"
+                                           force_save="1"/>
+                                    
+                                    <!-- INSPECTION FIELDS - Only editable during inspecting -->
+                                    <field name="qty_accepted" 
+                                           string="✓ Accepted"
+                                           readonly="state != 'inspecting'"
+                                           decoration-success="qty_accepted > 0"
+                                           class="fw-bold"/>
+                                    
+                                    <field name="qty_rejected" 
+                                           string="✗ Rejected" 
+                                           readonly="state != 'inspecting'"
+                                           decoration-danger="qty_rejected > 0"
+                                           optional="show"/>
+                                    
+                                    <field name="rejection_reason" 
+                                           optional="hide"
+                                           readonly="state not in ('received', 'inspecting')"/>
+                                    
+                                    <!-- Price -->
+                                    <field name="unit_price" 
+                                           optional="hide"
+                                           readonly="state != 'draft'"/>
+                                    <field name="total_price" 
+                                           optional="hide" 
+                                           sum="Total"
+                                           readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        
+                        <page string="📝 Notes" name="notes">
+                            <group>
+                                <field name="inspection_notes" 
+                                       placeholder="Record inspection observations, quality checks, or any issues found..."
+                                       nolabel="1"
+                                       invisible="state == 'draft'"/>
+                                <field name="note" 
+                                       placeholder="Internal notes, special instructions, or additional information..."
+                                       nolabel="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+
+                    <!-- Hidden fields -->
+                    <field name="model19_id" invisible="1"/>
+                    <field name="dsr_id" invisible="1"/>
+                    <field name="has_accepted_lines" invisible="1"/>
+                    <field name="has_rejected_lines" invisible="1"/>
+                    <field name="is_no_payment" invisible="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

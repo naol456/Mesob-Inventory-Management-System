@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ── List View ──────────────────────────────────────────────── -->
+    <record id="view_mesob_major_classification_list" model="ir.ui.view">
+        <field name="name">mesob.inventory.major.classification.list</field>
+        <field name="model">mesob.inventory.major.classification</field>
+        <field name="arch" type="xml">
+            <list string="Major Classifications">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="name_am"/>
+                <field name="item_count" string="Items"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Form View ──────────────────────────────────────────────── -->
+    <record id="view_mesob_major_classification_form" model="ir.ui.view">
+        <field name="name">mesob.inventory.major.classification.form</field>
+        <field name="model">mesob.inventory.major.classification</field>
+        <field name="arch" type="xml">
+            <form string="Major Classification">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_items"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-cubes">
+                            <field name="item_count" widget="statinfo" string="Items"/>
+                        </button>
+                        <button name="action_view_sub_classifications"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-tags">
+                            <field name="sub_classification_count" widget="statinfo" string="Sub Classifications"/>
+                        </button>
+                    </div>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="code" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Major Classification</div>
+                        </div>
+                    </div>
+                    <group>
+                        <group string="Identification">
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="name_am"/>
+                        </group>
+                        <group string="Status">
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Search View ────────────────────────────────────────────── -->
+    <record id="view_mesob_major_classification_search" model="ir.ui.view">
+        <field name="name">mesob.inventory.major.classification.search</field>
+        <field name="model">mesob.inventory.major.classification</field>
+        <field name="arch" type="xml">
+            <search string="Classifications">
+                <field name="code"/>
+                <field name="name"/>
+                <filter string="Archived" name="filter_archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Kanban View for Bin Card Navigation ────────────────────── -->
+    <record id="view_mesob_major_classification_kanban_bin_card" model="ir.ui.view">
+        <field name="name">mesob.inventory.major.classification.kanban.bin.card</field>
+        <field name="model">mesob.inventory.major.classification</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" create="false" edit="false" delete="false">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="item_count"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click mesob_classification_card" type="object" name="action_view_sub_classifications_bin_card">
+                            <div class="mesob_card_header">
+                                <div class="mesob_card_icon">📦</div>
+                                <div class="mesob_card_content">
+                                    <div class="mesob_card_title">
+                                        <field name="name"/>
+                                    </div>
+                                    <div class="mesob_card_subtitle">
+                                        Major Code: <strong><field name="code"/></strong>
+                                    </div>
+                                </div>
+                                <div class="mesob_card_badge">
+                                    <field name="item_count"/> items
+                                </div>
+                            </div>
+                            <div class="mesob_card_footer">
+                                <button class="btn btn-primary btn-sm" type="object" name="action_view_sub_classifications_bin_card">
+                                    Open Sub Classifications
+                                </button>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ── Kanban View for Stock Card Navigation ────────────────────── -->
+    <record id="view_mesob_major_classification_kanban_stock_card" model="ir.ui.view">
+        <field name="name">mesob.inventory.major.classification.kanban.stock.card</field>
+        <field name="model">mesob.inventory.major.classification</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" create="false" edit="false" delete="false">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="item_count"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click" type="object" name="action_view_sub_classifications_stock_card" style="padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 12px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="font-size: 32px; min-width: 45px; text-align: center;">📊</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 700; font-size: 16px; color: #1e293b;">
+                                        <field name="name"/>
+                                    </div>
+                                    <div style="font-size: 13px; color: #64748b; margin-top: 4px;">
+                                        Major Code: <span style="font-weight: 600;"><field name="code"/></span>
+                                    </div>
+                                </div>
+                                <div style="background: #e0f2fe; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; color: #0369a1; border: 1px solid #bae6fd;">
+                                    <field name="item_count"/> items
+                                </div>
+                            </div>
+                            <div style="margin-top: 14px; border-top: 1px dashed #e2e8f0; padding-top: 10px; display: flex; justify-content: flex-end;">
+                                <button class="btn btn-primary btn-sm" type="object" name="action_view_sub_classifications_stock_card" style="font-weight: 600; padding: 4px 12px; font-size: 11px; border-radius: 6px;">
+                                    Open Sub Classifications
+                                </button>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ── Action ─────────────────────────────────────────────────── -->
+    <record id="action_mesob_major_classification" model="ir.actions.act_window">
+        <field name="name">Major Classifications</field>
+        <field name="res_model">mesob.inventory.major.classification</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Define a major stock classification
+            </p>
+            <p>
+                Classifications align to chart-of-accounts codes 4401–4418
+                and group items for valuation, reporting, and stock control.
+            </p>
+        </field>
+    </record>
+</odoo>

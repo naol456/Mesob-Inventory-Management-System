@@ -1,11 +1,202 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <menuitem id="menu_mesob_inventory_root" name="Mesob Inventory" groups="mesob_inventory_base.group_mesob_inventory_user">
-        <menuitem id="menu_mesob_inventory_operations" name="Operations">
-            <menuitem id="menu_mesob_inventory_requisitions" action="action_mesob_inventory_requisition"/>
-        </menuitem>
-        <menuitem id="menu_mesob_inventory_master_data" name="Master Data">
-            <menuitem id="menu_mesob_inventory_items" action="action_mesob_inventory_item"/>
-        </menuitem>
-    </menuitem>
+    <!-- ── Operations ─────────────────────────────────────────────── -->
+    <menuitem id="menu_mesob_inventory_operations"
+              name="Operations"
+              parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_inventory_user,mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_inventory_receiving"
+              name="Receiving Orders"
+              parent="menu_mesob_inventory_operations"
+              action="action_mesob_inventory_receiving"
+              groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_pao"
+              sequence="5"/>
+
+    <!-- ONE menu for requisitions - create button hidden by get_view() method in model -->
+    <menuitem id="menu_mesob_inventory_requisitions" 
+              name="Requisitions (Model 20)"
+              parent="menu_mesob_inventory_operations"
+              action="action_mesob_inventory_requisition"
+              groups="mesob_inventory_base.group_mesob_inventory_user,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_inventory_issue_vouchers" 
+              name="Issue Vouchers (Model 22)"
+              parent="menu_mesob_inventory_operations"
+              action="action_mesob_inventory_issue_voucher"
+              groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao"
+              sequence="20"/>
+
+    <!-- ── Dispatch ───────────────────────────────────────────────── -->
+    <menuitem id="menu_mesob_inventory_dispatch"
+              name="Dispatch"
+              parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_security_guard"
+              sequence="12"/>
+
+    <menuitem id="menu_mesob_gate_pass_all"
+              name="All Gate Passes"
+              parent="menu_mesob_inventory_dispatch"
+              action="action_mesob_gate_pass_v2"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_gate_pass_pending_authorization"
+              name="Pending Authorization"
+              parent="menu_mesob_inventory_dispatch"
+              action="action_mesob_gate_pass_pending_authorization_v2"
+              groups="mesob_inventory_base.group_mesob_pao"
+              sequence="20"/>
+
+    <menuitem id="menu_mesob_gate_pass_pending_dispatch"
+              name="Pending Dispatch"
+              parent="menu_mesob_inventory_dispatch"
+              action="action_mesob_gate_pass_pending_dispatch_v2"
+              groups="mesob_inventory_base.group_mesob_security_guard"
+              sequence="30"/>
+
+    <!-- ── Documents ──────────────────────────────────────────────── -->
+    <menuitem id="menu_mesob_inventory_documents"
+              name="Documents"
+              parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_pao"
+              sequence="15"/>
+
+    <menuitem id="menu_mesob_inventory_model19"
+              name="Receipts (Model 19)"
+              parent="menu_mesob_inventory_documents"
+              action="action_mesob_inventory_model19"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_inventory_dsr"
+              name="Damage/Shortage Reports (DSR)"
+              parent="menu_mesob_inventory_documents"
+              action="action_mesob_inventory_dsr"
+              sequence="20"/>
+
+    <!-- Stock Records and Valuation -->
+    <menuitem id="menu_mesob_inventory_stock_records"
+              name="Stock Records &amp; Valuation"
+              parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao"
+              sequence="16"/>
+
+    <menuitem id="menu_mesob_bin_cards"
+              name="Bin Cards"
+              parent="menu_mesob_inventory_stock_records"
+              action="action_mesob_bin_card"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_bin_cards_raw"
+              name="All Bin Card Ledger Lines"
+              parent="menu_mesob_inventory_stock_records"
+              action="action_mesob_bin_card_raw"
+              sequence="12"/>
+
+    <menuitem id="menu_mesob_stock_record_cards"
+              name="Stock Record Cards"
+              parent="menu_mesob_inventory_stock_records"
+              action="action_mesob_stock_record_card"
+              sequence="20"/>
+
+    <menuitem id="menu_mesob_stock_record_cards_raw"
+              name="All Stock Record Ledger Lines"
+              parent="menu_mesob_inventory_stock_records"
+              action="action_mesob_stock_record_card_raw"
+              sequence="22"/>
+
+    <menuitem id="menu_mesob_fifo_layers"
+              name="FIFO Cost Layers"
+              parent="menu_mesob_inventory_stock_records"
+              action="action_mesob_stock_fifo_layer"
+              sequence="30"/>
+
+    <menuitem id="menu_mesob_valuation_config"
+              name="Valuation Configuration"
+              parent="menu_mesob_inventory_stock_records"
+              action="action_mesob_stock_valuation_config"
+              groups="mesob_inventory_base.group_mesob_pao"
+              sequence="40"/>
+
+    <!-- ── Stock Control ──────────────────────────────────────────── -->
+    <menuitem id="menu_mesob_inventory_stock_control"
+              name="Stock Control"
+              parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao"
+              sequence="17"/>
+
+    <menuitem id="menu_mesob_stock_reorder_alerts"
+              name="Reorder Alerts"
+              parent="menu_mesob_inventory_stock_control"
+              action="action_mesob_stock_reorder_alert"
+              sequence="10"/>
+
+    <!-- ── Procurement (Section 4.13) ────────────────────────────── -->
+    <menuitem id="menu_mesob_procurement"
+              name="Procurement"
+              parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
+              sequence="18"/>
+
+    <menuitem id="menu_mesob_procurement_plan"
+              name="Annual Plans (APP)"
+              parent="menu_mesob_procurement"
+              action="action_mesob_procurement_plan"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_procurement_need"
+              name="Needs Collection"
+              parent="menu_mesob_procurement"
+              action="action_mesob_procurement_need"
+              sequence="20"/>
+
+    <menuitem id="menu_mesob_procurement_tender"
+              name="Bidding &amp; Tenders"
+              parent="menu_mesob_procurement"
+              action="action_mesob_procurement_tender"
+              sequence="30"/>
+
+    <menuitem id="menu_mesob_procurement_contract"
+              name="Contracts"
+              parent="menu_mesob_procurement"
+              action="action_mesob_procurement_contract"
+              sequence="40"/>
+
+    <menuitem id="menu_mesob_procurement_order"
+              name="Purchase Orders"
+              parent="menu_mesob_procurement"
+              action="action_mesob_procurement_order"
+              sequence="5"/>
+
+    <menuitem id="menu_mesob_procurement_payment"
+              name="Payment Certificates"
+              parent="menu_mesob_procurement"
+              action="action_mesob_procurement_payment"
+              sequence="50"/>
+
+    <menuitem id="menu_mesob_procurement_complaint"
+              name="Complaints &amp; Appeals"
+              parent="menu_mesob_procurement"
+              action="action_mesob_procurement_complaint"
+              sequence="60"/>
+
+    <!-- ── Master Data ────────────────────────────────────────────── -->
+    <menuitem id="menu_mesob_inventory_master_data"
+              name="Master Data"
+              parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper"
+              sequence="20"/>
+
+    <menuitem id="menu_mesob_inventory_classifications"
+              name="Major Classifications"
+              parent="menu_mesob_inventory_master_data"
+              action="action_mesob_major_classification"
+              sequence="20"/>
+
+    <menuitem id="menu_mesob_sub_classification"
+              name="Sub Classifications"
+              parent="menu_mesob_inventory_master_data"
+              action="action_mesob_sub_classification"
+              sequence="30"/>
 </odoo>

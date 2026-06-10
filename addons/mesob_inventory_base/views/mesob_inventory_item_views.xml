@@ -1,39 +1,141 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <!-- ── List View ──────────────────────────────────────────────── -->
     <record id="view_mesob_inventory_item_list" model="ir.ui.view">
         <field name="name">mesob.inventory.item.list</field>
         <field name="model">mesob.inventory.item</field>
         <field name="arch" type="xml">
-            <list string="Items">
-                <field name="item_code"/>
-                <field name="major_code"/>
-                <field name="name"/>
-                <field name="active"/>
+            <list string="Inventory Items" default_order="item_code">
+                <field name="item_code" class="fw-bold text-primary font-monospace"/>
+                <field name="name" class="fw-semibold"/>
+                <field name="name_am" optional="show"/>
+                <field name="classification_id" optional="show"/>
+                <field name="sub_classification_id" optional="show"/>
+                <field name="is_controlled" widget="boolean_toggle" optional="hide"/>
+                <field name="reorder_level" optional="show"/>
+                <field name="active" column_invisible="True"/>
             </list>
         </field>
     </record>
 
+    <!-- ── Kanban View ────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_item_kanban" model="ir.ui.view">
+        <field name="name">mesob.inventory.item.kanban</field>
+        <field name="model">mesob.inventory.item</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="classification_id" class="o_kanban_mobile">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="item_code"/>
+                <field name="classification_id"/>
+                <field name="sub_classification_id"/>
+                <field name="is_controlled"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click card shadow-sm border-0 rounded p-3 mb-3 bg-white" style="min-height: 140px;">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-primary text-white font-monospace fs-6 px-2 py-1">
+                                    <t t-esc="record.item_code.value"/>
+                                </span>
+                                <t t-if="record.is_controlled.raw_value">
+                                    <span class="badge bg-danger text-white px-2 py-1 small">
+                                        <i class="fa fa-shield me-1"/>Controlled
+                                    </span>
+                                </t>
+                            </div>
+                            <h4 class="o_kanban_record_title fw-bold text-dark fs-5 mb-1 mt-1">
+                                <t t-esc="record.name.value"/>
+                            </h4>
+                            <p class="text-muted small mb-0 mt-2">
+                                <i class="fa fa-folder-open me-1"/> 
+                                <t t-esc="record.sub_classification_id.value or 'No Sub-Classification'"/>
+                            </p>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ── Form View ──────────────────────────────────────────────── -->
     <record id="view_mesob_inventory_item_form" model="ir.ui.view">
         <field name="name">mesob.inventory.item.form</field>
         <field name="model">mesob.inventory.item</field>
         <field name="arch" type="xml">
-            <form string="Item">
+            <form string="Inventory Item">
                 <sheet>
-                    <group>
-                        <group>
-                            <field name="item_code"/>
-                            <field name="name"/>
+                    <div class="oe_title mb-4">
+                        <span class="text-muted fw-bold text-uppercase fs-6">FDRE Stock Item</span>
+                        <h1>
+                            <field name="item_code" placeholder="e.g. 4401-001-001" class="fw-bold mb-2 text-primary d-block"/>
+                        </h1>
+                        <div class="d-flex flex-wrap align-items-center gap-3">
+                            <div class="flex-grow-1" style="min-width: 250px;">
+                                <label for="name" class="fw-semibold small text-muted mb-1 d-block">English Name</label>
+                                <field name="name" placeholder="Item name (English)..." class="fs-4 fw-semibold w-100"/>
+                            </div>
+                            <div class="flex-grow-1" style="min-width: 250px;">
+                                <label for="name_am" class="fw-semibold small text-muted mb-1 d-block">Amharic Name (ስም በአማርኛ)</label>
+                                <field name="name_am" placeholder="ስም በአማርኛ..." class="fs-4 fw-semibold w-100"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <group class="mb-4">
+                        <group string="Classification Details" col="1" class="glass-card p-3 rounded shadow-sm border">
+                            <field name="classification_id" class="w-100 mb-2"/>
+                            <field name="sub_classification_id" class="w-100 mb-2"/>
+                            <div class="d-flex gap-2 w-100 mt-2">
+                                <div class="flex-fill">
+                                    <label for="major_code" class="small text-muted mb-1">Major Code</label>
+                                    <field name="major_code" readonly="1" class="text-center font-monospace w-100 bg-100 p-2 rounded"/>
+                                </div>
+                                <div class="flex-fill">
+                                    <label for="sub_code" class="small text-muted mb-1">Sub Code</label>
+                                    <field name="sub_code" readonly="1" class="text-center font-monospace w-100 bg-100 p-2 rounded"/>
+                                </div>
+                                <div class="flex-fill">
+                                    <label for="specific_code" class="small text-muted mb-1">Specific</label>
+                                    <field name="specific_code" readonly="1" class="text-center font-monospace w-100 bg-100 p-2 rounded"/>
+                                </div>
+                            </div>
                         </group>
-                        <group>
-                            <field name="major_code"/>
-                            <field name="sub_code"/>
-                            <field name="specific_code"/>
-                            <field name="active"/>
+                        <group string="System &amp; Regulatory Settings" col="1" class="glass-card p-3 rounded shadow-sm border">
+                            <field name="is_controlled" widget="boolean_toggle" class="mb-2"/>
+                            <field name="exclude_from_catalog" widget="boolean_toggle" class="mb-2"/>
+                            <field name="active" widget="boolean_toggle" class="mb-2"/>
                         </group>
                     </group>
-                    <notebook>
-                        <page string="Description">
-                            <field name="description"/>
+
+                    <notebook class="mt-4">
+                        <page string="Stock Level Constraints" name="stock_control">
+                            <group class="p-3">
+                                <group string="Reorder Guidelines" class="pe-3">
+                                    <field name="reorder_level" class="fw-bold text-warning"/>
+                                    <field name="safety_stock"/>
+                                    <field name="hastening_level" class="text-danger"/>
+                                </group>
+                                <group string="Capacity Boundaries">
+                                    <field name="minimum_level"/>
+                                    <field name="maximum_level"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Logistics &amp; Lead Times" name="logistics">
+                            <group class="p-3">
+                                <group string="Internal Processing">
+                                    <field name="admin_lead_time" string="Admin Lead Time (Days)"/>
+                                </group>
+                                <group string="External Supplier">
+                                    <field name="supplier_lead_time" string="Supplier Lead Time (Days)"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Item Description" name="description">
+                            <div class="p-3">
+                                <label for="description" class="fw-semibold text-muted mb-2 d-block">Technical Specifications &amp; Notes</label>
+                                <field name="description" placeholder="Add detailed physical specifications, warehouse storage requirements, or catalog notes..." class="w-100 border p-3 rounded" style="min-height: 120px;"/>
+                            </div>
                         </page>
                     </notebook>
                 </sheet>
@@ -41,22 +143,35 @@
         </field>
     </record>
 
+    <!-- ── Search View ────────────────────────────────────────────── -->
     <record id="view_mesob_inventory_item_search" model="ir.ui.view">
         <field name="name">mesob.inventory.item.search</field>
         <field name="model">mesob.inventory.item</field>
         <field name="arch" type="xml">
-            <search string="Items">
+            <search string="Inventory Items">
                 <field name="item_code"/>
                 <field name="name"/>
-                <field name="major_code"/>
-                <filter string="Group by Major Code" context="{'group_by': 'major_code'}"/>
+                <field name="classification_id"/>
+                <field name="sub_classification_id"/>
+                <filter string="Controlled" name="filter_controlled"
+                        domain="[('is_controlled', '=', True)]"/>
             </search>
         </field>
     </record>
 
+    <!-- ── Action ─────────────────────────────────────────────────── -->
     <record id="action_mesob_inventory_item" model="ir.actions.act_window">
-        <field name="name">Items</field>
+        <field name="name">Inventory Items</field>
         <field name="res_model">mesob.inventory.item</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create an inventory item
+            </p>
+            <p>
+                Items use the FDRE coding format ####-###-### and are linked
+                to a major classification (4401–4418) for stock accounting.
+            </p>
+        </field>
     </record>
 </odoo>

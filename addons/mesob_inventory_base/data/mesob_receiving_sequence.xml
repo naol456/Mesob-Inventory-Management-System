@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <!-- Auto-numbering sequence for Receiving Orders -->
+    <record id="seq_mesob_inventory_receiving" model="ir.sequence">
+        <field name="name">Mesob Receiving Order</field>
+        <field name="code">mesob.inventory.receiving</field>
+        <field name="prefix">RCV-%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <!-- Auto-numbering sequence for Model 19 (Receipt for Articles) -->
+    <record id="seq_mesob_inventory_model19" model="ir.sequence">
+        <field name="name">Mesob Model 19 Receipt</field>
+        <field name="code">mesob.inventory.model19</field>
+        <field name="prefix">M19-%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+
+    <!-- Auto-numbering sequence for DSR (Damage/Shortage Report) -->
+    <record id="seq_mesob_inventory_dsr" model="ir.sequence">
+        <field name="name">Mesob Damage/Shortage Report</field>
+        <field name="code">mesob.inventory.dsr</field>
+        <field name="prefix">DSR-%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>
