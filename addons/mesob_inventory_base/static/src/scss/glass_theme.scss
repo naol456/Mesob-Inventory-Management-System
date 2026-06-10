@@ -820,3 +820,78 @@ select {
         }
     }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PREMIUM NAVY BLUE & GOLD BUSINESS INTELLIGENCE DASHBOARD OVERRIDES
+   ═══════════════════════════════════════════════════════════════════════ */
+:root {
+    --chart-1: #D4AF37 !important;
+    --chart-2: #ECC844 !important;
+    --chart-3: #F9E060 !important;
+    --chart-4: #C59B27 !important;
+    --chart-5: #B28816 !important;
+    --chart-color-1: #D4AF37 !important;
+    --chart-color-2: #ECC844 !important;
+    --chart-color-3: #F9E060 !important;
+    --chart-color-4: #C59B27 !important;
+    --chart-color-5: #B28816 !important;
+}
+
+.o_graph_view, .o_pivot_view {
+    background-color: #0B1B3D !important;
+    background-image: radial-gradient(circle at 20% 20%, #152A56 0%, #0B1B3D 100%) !important;
+    color: #FFFFFF !important;
+    padding: 30px !important;
+    border-radius: 8px !important;
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5) !important;
+}
+
+.o_graph_renderer {
+    background-color: transparent !important;
+    
+    canvas {
+        filter: drop-shadow(0px 4px 15px rgba(212, 175, 55, 0.3)) !important;
+    }
+}
+
+.o_pivot_view {
+    table {
+        background-color: #0B1B3D !important;
+        color: #FFFFFF !important;
+        border-color: rgba(212, 175, 55, 0.3) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        border-radius: 6px !important;
+        overflow: hidden !important;
+        
+        th, td {
+            background-color: #11254C !important;
+            color: #FFFFFF !important;
+            border: 1px solid rgba(212, 175, 55, 0.2) !important;
+            padding: 12px 18px !important;
+        }
+        
+        thead th, .o_pivot_header_cell_opened, .o_pivot_header_cell_closed, .o_pivot_measure_row {
+            background-color: #173263 !important;
+            color: #D4AF37 !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+        }
+        
+        .o_pivot_cell_value {
+            font-family: 'JetBrains Mono', monospace !important;
+            font-weight: 600 !important;
+            color: #FFFFFF !important;
+            
+            &.o_empty {
+                color: rgba(255, 255, 255, 0.1) !important;
+            }
+        }
+    }
+}
+
+.o_control_panel {
+    border-bottom: 1px solid rgba(212, 175, 55, 0.15) !important;
+}
