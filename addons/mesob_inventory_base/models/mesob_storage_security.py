@@ -43,11 +43,12 @@ class MesobStorageKeyRegister(models.Model):
     deposited_at = fields.Datetime(string="Deposited Timestamp")
     notes = fields.Text(string="Remarks")
 
-    @api.model
-    def create(self, vals):
-        if vals.get("name", "New") == "New":
-            vals["name"] = self.env["ir.sequence"].next_by_code("mesob.storage.key.register") or "New"
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("name", "New") == "New":
+                vals["name"] = self.env["ir.sequence"].next_by_code("mesob.storage.key.register") or "New"
+        return super().create(vals_list)
 
     def action_deposit_keys(self):
         for rec in self:
@@ -69,11 +70,12 @@ class MesobStorageVisitorLog(models.Model):
     exit_time = fields.Datetime(string="Exit Timestamp")
     security_escort_id = fields.Many2one("res.users", string="Security Officer / Escort")
 
-    @api.model
-    def create(self, vals):
-        if vals.get("name", "New") == "New":
-            vals["name"] = self.env["ir.sequence"].next_by_code("mesob.storage.visitor.log") or "New"
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("name", "New") == "New":
+                vals["name"] = self.env["ir.sequence"].next_by_code("mesob.storage.visitor.log") or "New"
+        return super().create(vals_list)
 
     def action_exit(self):
         for rec in self:
@@ -98,8 +100,9 @@ class MesobStorageSafetyChecklist(models.Model):
     
     remarks = fields.Text(string="Inspection Observations")
 
-    @api.model
-    def create(self, vals):
-        if vals.get("name", "New") == "New":
-            vals["name"] = self.env["ir.sequence"].next_by_code("mesob.storage.safety.checklist") or "New"
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("name", "New") == "New":
+                vals["name"] = self.env["ir.sequence"].next_by_code("mesob.storage.safety.checklist") or "New"
+        return super().create(vals_list)

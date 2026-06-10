@@ -27,7 +27,7 @@ class ResPartner(models.Model):
         string="Registration Expiry Date",
         help="Expiry date of trade registration/license.",
     )
-    is_blacklisted = fields.Boolean(
+    fppa_blacklisted = fields.Boolean(
         string="Blacklisted / Suspended",
         default=False,
         help="Whether the supplier is blacklisted or suspended by FPPA.",
@@ -48,12 +48,12 @@ class ResPartner(models.Model):
             if partner.tin and (not partner.tin.isdigit() or len(partner.tin) != 9):
                 raise ValidationError("TIN must be exactly 9 digits.")
 
-    @api.depends("is_blacklisted", "registration_expiry_date")
+    @api.depends("fppa_blacklisted", "registration_expiry_date")
     def _compute_performance_score(self):
         for partner in self:
             # Simple aggregate score calculation for demonstration/mocking
             # In a real system, this aggregates delivery on-time rates and rejection rates.
-            if partner.is_blacklisted:
+            if partner.fppa_blacklisted:
                 partner.performance_score = 0.0
             else:
                 partner.performance_score = 85.0

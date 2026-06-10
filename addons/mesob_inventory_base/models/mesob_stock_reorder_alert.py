@@ -61,11 +61,12 @@ class MesobStockReorderAlert(models.Model):
     resolved_by_id = fields.Many2one('res.users', 'Resolved By')
     resolved_date = fields.Datetime('Resolved Date')
     
-    @api.model
-    def create(self, vals):
-        if vals.get('name', 'New') == 'New':
-            vals['name'] = self.env['ir.sequence'].next_by_code('mesob.stock.reorder.alert') or 'New'
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('name', 'New') == 'New':
+                vals['name'] = self.env['ir.sequence'].next_by_code('mesob.stock.reorder.alert') or 'New'
+        return super().create(vals_list)
     
     @api.depends('item_id', 'current_stock', 'outstanding_qty', 'maximum_level', 'reorder_level')
     def _compute_recommended_qty(self):
@@ -165,7 +166,7 @@ class MesobStockReorderAlert(models.Model):
         for item in items:
             # Get current stock
             bin_card = self.env['mesob.bin.card'].search([
-                ('item_id', '=', item.id)
+                ('sub_classification_id', '=', item.sub_classification_id.id)
             ], limit=1, order='date desc, id desc')
             current_stock = bin_card.balance if bin_card else 0.0
             

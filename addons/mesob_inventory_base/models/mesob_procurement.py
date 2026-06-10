@@ -64,11 +64,12 @@ class MesobProcurementPlan(models.Model):
         tracking=True,
     )
 
-    @api.model
-    def create(self, vals):
-        if vals.get("name", "New") == "New":
-            vals["name"] = f"APP/{vals.get('fiscal_year', 'FY')}/{self.env['ir.sequence'].next_by_code('mesob.procurement.plan') or '001'}"
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("name", "New") == "New":
+                vals["name"] = f"APP/{vals.get('fiscal_year', 'FY')}/{self.env['ir.sequence'].next_by_code('mesob.procurement.plan') or '001'}"
+        return super().create(vals_list)
 
     def action_puh_approve(self):
         """Procurement Unit Head approves the APP."""
@@ -329,11 +330,12 @@ class MesobProcurementTender(models.Model):
         required=True,
     )
 
-    @api.model
-    def create(self, vals):
-        if vals.get("name", "New") == "New":
-            vals["name"] = f"TEN/{self.env['ir.sequence'].next_by_code('mesob.procurement.tender') or '001'}"
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("name", "New") == "New":
+                vals["name"] = f"TEN/{self.env['ir.sequence'].next_by_code('mesob.procurement.tender') or '001'}"
+        return super().create(vals_list)
 
     def action_approve_spec(self):
         """Technical specifications sign-off status approved (FR-PROC-009)."""
@@ -402,7 +404,7 @@ class MesobProcurementBid(models.Model):
         "res.partner",
         string="Supplier",
         required=True,
-        domain=[("is_blacklisted", "=", False)],
+        domain=[("fppa_blacklisted", "=", False)],
     )
     bid_price = fields.Float(string="Original Bid Price (ETB)", required=True)
     local_content = fields.Float(
@@ -427,7 +429,7 @@ class MesobProcurementBid(models.Model):
     @api.constrains("supplier_id")
     def _check_supplier_status(self):
         for rec in self:
-            if rec.supplier_id.is_blacklisted:
+            if rec.supplier_id.fppa_blacklisted:
                 raise ValidationError(f"Supplier {rec.supplier_id.name} is blacklisted and cannot participate (FR-PROC-012).")
 
 
@@ -443,7 +445,7 @@ class MesobProcurementContract(models.Model):
         "res.partner",
         string="Supplier",
         required=True,
-        domain=[("is_blacklisted", "=", False)],
+        domain=[("fppa_blacklisted", "=", False)],
     )
     lot_id = fields.Many2one("mesob.procurement.plan.lot", string="APP Lot Reference", required=True)
     total_value = fields.Float(string="Total Contract Value (ETB)", required=True)
@@ -564,16 +566,18 @@ class MesobProcurementOrder(models.Model):
         tracking=True,
     )
 
-    @api.model
-    def create(self, vals):
-        if vals.get("name", "New") == "New":
-            vals["name"] = f"PO/{self.env['ir.sequence'].next_by_code('mesob.procurement.order') or '001'}"
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("name", "New") == "New":
+                vals["name"] = f"PO/{self.env['ir.sequence'].next_by_code('mesob.procurement.order') or '001'}"
+        return super().create(vals_list)
 
     @api.constrains("supplier_id")
     def _check_supplier_validity(self):
         for rec in self:
-            if rec.supplier_id.is_blacklisted:
+            print(f"\n\nDEBUG: Checking supplier {rec.supplier_id.name}, fppa_blacklisted: {rec.supplier_id.fppa_blacklisted}\n\n")
+            if rec.supplier_id.fppa_blacklisted:
                 raise ValidationError(f"Hard-Stop: Supplier '{rec.supplier_id.name}' is currently blacklisted! (FR-PROC-012)")
             if rec.supplier_id.registration_expiry_date and rec.supplier_id.registration_expiry_date < fields.Date.today():
                 raise ValidationError(f"Hard-Stop: Supplier '{rec.supplier_id.name}' registration license has expired! (FR-PROC-012)")
@@ -622,7 +626,7 @@ class MesobProcurementOrderLine(models.Model):
         for line in self:
             # Query accepted Model 19 quantities received under this PO reference
             domain = [
-                ("receiving_id.purchase_order_ref", "=", line.order_id.name),
+                ("model19_id.receiving_id.purchase_order_ref", "=", line.order_id.name),
                 ("item_id", "=", line.item_id.id),
                 ("model19_id.state", "=", "done"),
             ]
@@ -673,11 +677,12 @@ class MesobProcurementPaymentCertificate(models.Model):
         required=True,
     )
 
-    @api.model
-    def create(self, vals):
-        if vals.get("name", "New") == "New":
-            vals["name"] = f"PAY/{self.env['ir.sequence'].next_by_code('mesob.procurement.payment.certificate') or '001'}"
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("name", "New") == "New":
+                vals["name"] = f"PAY/{self.env['ir.sequence'].next_by_code('mesob.procurement.payment.certificate') or '001'}"
+        return super().create(vals_list)
 
     @api.depends("amount_gross", "days_delay", "penalty_rate")
     def _compute_liquidated_damages(self):
@@ -737,11 +742,12 @@ class MesobProcurementComplaint(models.Model):
         required=True,
     )
 
-    @api.model
-    def create(self, vals):
-        if vals.get("name", "New") == "New":
-            vals["name"] = f"COM/{self.env['ir.sequence'].next_by_code('mesob.procurement.complaint') or '001'}"
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("name", "New") == "New":
+                vals["name"] = f"COM/{self.env['ir.sequence'].next_by_code('mesob.procurement.complaint') or '001'}"
+        return super().create(vals_list)
 
     def action_resolve(self):
         for rec in self:
