@@ -108,17 +108,17 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="department" readonly="state != 'draft'"/>
-                            <field name="item_id" readonly="state != 'draft'"/>
-                            <field name="major_classification_id" readonly="state != 'draft'"/>
-                            <field name="sub_classification_id" readonly="state != 'draft'" domain="[('major_classification_id', '=', major_classification_id)]"/>
+                            <field name="department" readonly="state == 'locked'"/>
+                            <field name="item_id" readonly="state == 'locked'"/>
+                            <field name="major_classification_id" readonly="state == 'locked'"/>
+                            <field name="sub_classification_id" readonly="state == 'locked'" domain="[('major_classification_id', '=', major_classification_id)]"/>
                             <field name="item_code"/>
                         </group>
                         <group>
-                            <field name="quantity" readonly="state != 'draft'"/>
-                            <field name="estimated_unit_price" readonly="state != 'draft'"/>
+                            <field name="quantity" readonly="state == 'locked'"/>
+                            <field name="estimated_unit_price" readonly="state == 'locked'"/>
                             <field name="total_price"/>
-                            <field name="expected_delivery_period" readonly="state != 'draft'"/>
+                            <field name="expected_delivery_period" readonly="state == 'locked'"/>
                         </group>
                     </group>
                     <group string="SPO Consolidated Lot Mapping">
