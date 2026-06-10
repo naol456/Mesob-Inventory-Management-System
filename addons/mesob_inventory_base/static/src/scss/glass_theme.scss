@@ -718,8 +718,51 @@ select {
     background: $glass-dropdown !important;
 }
 
-.o_nocontent_help p {
-    color: black !important;
+/* Style Odoo's No-Content Help Placeholders to match our prestigious Navy & Gold aesthetic */
+.o_view_nocontent_helper, .o_nocontent_help, .o_nocontent_help p {
+    background: rgba(212, 175, 55, 0.06) !important;
+    border: 1px dashed rgba(212, 175, 55, 0.35) !important;
+    border-radius: 12px !important;
+    padding: 30px !important;
+    max-width: 550px !important;
+    margin: 40px auto !important;
+    text-align: center !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
+    backdrop-filter: blur(10px) !important;
+    color: #FFFFFF !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    
+    // Style the cute paper/smiling face illustration icon
+    &::before, .o_view_nocontent_smiling_face::before, .o_view_nocontent_smiling_face::after {
+        filter: sepia(1) saturate(5) hue-rotate(5deg) brightness(1.25) !important; // Gold glowing cartoon icon!
+    }
+    
+    img, .fa {
+        color: #D4AF37 !important;
+        filter: drop-shadow(0 2px 8px rgba(212, 175, 55, 0.4)) !important;
+    }
+    
+    p {
+        color: #FFFFFF !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        
+        b, strong, &.o_view_nocontent_smiling_face, &:first-of-type {
+            color: #D4AF37 !important; // High-impact gold heading!
+            font-size: 18px !important;
+            font-weight: 700 !important;
+            letter-spacing: -0.01em !important;
+            margin-bottom: 12px !important;
+            display: block !important;
+            background: transparent !important;
+            border: none !important;
+        }
+    }
 }
 
 .popover {
@@ -817,6 +860,99 @@ select {
             color: #D4AF37 !important;
             font-weight: 700 !important;
             margin: 0 !important;
+        }
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PREMIUM NAVY BLUE & GOLD BUSINESS INTELLIGENCE DASHBOARD OVERRIDES
+   ═══════════════════════════════════════════════════════════════════════ */
+:root {
+    --chart-1: #D4AF37 !important;
+    --chart-2: #ECC844 !important;
+    --chart-3: #F9E060 !important;
+    --chart-4: #C59B27 !important;
+    --chart-5: #B28816 !important;
+    --chart-color-1: #D4AF37 !important;
+    --chart-color-2: #ECC844 !important;
+    --chart-color-3: #F9E060 !important;
+    --chart-color-4: #C59B27 !important;
+    --chart-color-5: #B28816 !important;
+}
+
+/* Enforce absolute solid, opaque Navy Blue background on the parent content manager and control panel when a graph/pivot is loaded */
+.o_content:has(.o_graph_view), 
+.o_content:has(.o_pivot_view) {
+    background: #0B1B3D !important;
+    opacity: 1 !important;
+    z-index: 1 !important;
+}
+
+.o_control_panel:has(+ .o_content .o_graph_view), 
+.o_control_panel:has(+ .o_content .o_pivot_view) {
+    background: #0B1B3D !important;
+    opacity: 1 !important;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.25) !important;
+    z-index: 2 !important;
+}
+
+/* Style the graph and pivot views to be completely solid navy blue, removing any glass transparency or liquid wave overlaps */
+.o_graph_view, .o_pivot_view {
+    background: #0B1B3D !important;
+    color: #FFFFFF !important;
+    padding: 30px !important;
+    border-radius: 0px !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
+}
+
+.o_graph_renderer {
+    background: #0B1B3D !important;
+    opacity: 1 !important;
+    
+    canvas {
+        filter: drop-shadow(0px 4px 15px rgba(212, 175, 55, 0.3)) !important;
+    }
+}
+
+.o_pivot_view {
+    background: #0B1B3D !important;
+    opacity: 1 !important;
+
+    table {
+        background-color: #0B1B3D !important;
+        color: #FFFFFF !important;
+        border-color: rgba(212, 175, 55, 0.3) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        border-radius: 6px !important;
+        overflow: hidden !important;
+        opacity: 1 !important;
+        
+        th, td {
+            background-color: #11254C !important;
+            color: #FFFFFF !important;
+            border: 1px solid rgba(212, 175, 55, 0.2) !important;
+            padding: 12px 18px !important;
+        }
+        
+        thead th, .o_pivot_header_cell_opened, .o_pivot_header_cell_closed, .o_pivot_measure_row {
+            background-color: #173263 !important;
+            color: #D4AF37 !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+        }
+        
+        .o_pivot_cell_value {
+            font-family: 'JetBrains Mono', monospace !important;
+            font-weight: 600 !important;
+            color: #FFFFFF !important;
+            
+            &.o_empty {
+                color: rgba(255, 255, 255, 0.1) !important;
+            }
         }
     }
 }

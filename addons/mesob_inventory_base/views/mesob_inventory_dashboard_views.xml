@@ -56,11 +56,14 @@
         <field name="view_id" ref="view_mesob_inventory_requisition_graph"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Requisition Budget Chart
+                No requisitions found!
             </p>
             <p>
-                Visualize and analyze department requisition counts and budget allocation trends over time.
+                We need requisition data to draw this budget chart.
             </p>
+            <a type="action" name="%(mesob_inventory_base.action_mesob_inventory_requisition)d" class="btn btn-primary btn-sm mt-3" style="font-weight: bold; background-color: #D4AF37 !important; border-color: #D4AF37 !important; color: #0B1B3D !important; padding: 10px 20px; border-radius: 6px;">
+                <i class="fa fa-plus me-1"/> Create a Requisition
+            </a>
         </field>
     </record>
 
@@ -72,11 +75,14 @@
         <field name="view_id" ref="view_mesob_stock_record_card_pivot"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Inventory Valuation Pivot Analyzer
+                No inventory assets found!
             </p>
             <p>
-                Interactive GAAP FIFO asset valuation analyzer. Drag and drop rows, select metrics, and export reports to Excel dynamically.
+                We need stock records to compute asset values.
             </p>
+            <a type="action" name="%(mesob_inventory_base.action_mesob_inventory_receiving)d" class="btn btn-primary btn-sm mt-3" style="font-weight: bold; background-color: #D4AF37 !important; border-color: #D4AF37 !important; color: #0B1B3D !important; padding: 10px 20px; border-radius: 6px;">
+                <i class="fa fa-download me-1"/> Create a Receiving Order
+            </a>
         </field>
     </record>
 
@@ -88,11 +94,14 @@
         <field name="view_id" ref="view_mesob_stock_reorder_alert_graph"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Stockout Risk Chart
+                No stockout risks detected!
             </p>
             <p>
-                Visualize active stock reorder alert types (minimum limit vs reorder point) to prevent potential warehouse stockouts.
+                All your stock levels are healthy.
             </p>
+            <a type="action" name="%(mesob_inventory_base.action_mesob_inventory_item)d" class="btn btn-primary btn-sm mt-3" style="font-weight: bold; background-color: #D4AF37 !important; border-color: #D4AF37 !important; color: #0B1B3D !important; padding: 10px 20px; border-radius: 6px;">
+                <i class="fa fa-cubes me-1"/> Browse Inventory Items
+            </a>
         </field>
     </record>
 
@@ -105,24 +114,24 @@
               name="Analytics &amp; BI"
               parent="menu_mesob_inventory_root"
               groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper"
-              sequence="50"/>
+              sequence="1"/>
 
     <menuitem id="menu_mesob_valuation_pivot"
               name="Asset Valuation Analyzer"
               parent="menu_mesob_inventory_analytics"
               action="action_mesob_valuation_pivot"
-              sequence="10"/>
+              sequence="1"/>
 
     <menuitem id="menu_mesob_requisition_graph"
               name="Budget Consumption Chart"
               parent="menu_mesob_inventory_analytics"
               action="action_mesob_requisition_graph"
-              sequence="20"/>
+              sequence="2"/>
 
     <menuitem id="menu_mesob_reorder_risk_graph"
               name="Stockout Risk Analyzer"
               parent="menu_mesob_inventory_analytics"
               action="action_mesob_reorder_alert_graph"
-              sequence="30"/>
+              sequence="3"/>
 
 </odoo>
