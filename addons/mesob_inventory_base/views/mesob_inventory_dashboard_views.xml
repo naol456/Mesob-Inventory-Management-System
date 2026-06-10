@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         1. REQUISITION BUDGET GRAPH VIEW
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_mesob_inventory_requisition_graph" model="ir.ui.view">
+        <field name="name">mesob.inventory.requisition.graph</field>
+        <field name="model">mesob.inventory.requisition</field>
+        <field name="arch" type="xml">
+            <graph string="Requisition Budget Analysis" type="bar" sample="1">
+                <field name="department" type="row"/>
+                <field name="state" type="col"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         2. ASSET VALUATION PIVOT VIEW
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_mesob_stock_record_card_pivot" model="ir.ui.view">
+        <field name="name">mesob.stock.record.card.pivot</field>
+        <field name="model">mesob.stock.record.card</field>
+        <field name="arch" type="xml">
+            <pivot string="Inventory Asset Valuation Pivot" sample="1">
+                <field name="item_id" type="row"/>
+                <field name="transaction_type" type="col"/>
+                <field name="quantity_balance" type="measure"/>
+                <field name="balance_value" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         3. REORDER RISK GRAPH (PIE) VIEW
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_mesob_stock_reorder_alert_graph" model="ir.ui.view">
+        <field name="name">mesob.stock.reorder.alert.graph</field>
+        <field name="model">mesob.stock.reorder.alert</field>
+        <field name="arch" type="xml">
+            <graph string="Stockout Risk Analysis" type="pie" sample="1">
+                <field name="alert_type" type="row"/>
+            </graph>
+        </field>
+    </record>
+
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         WINDOW ACTIONS
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Action: Requisition Budget Chart -->
+    <record id="action_mesob_requisition_graph" model="ir.actions.act_window">
+        <field name="name">Requisition Budget Analysis</field>
+        <field name="res_model">mesob.inventory.requisition</field>
+        <field name="view_mode">graph,list</field>
+        <field name="view_id" ref="view_mesob_inventory_requisition_graph"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Requisition Budget Chart
+            </p>
+            <p>
+                Visualize and analyze department requisition counts and budget allocation trends over time.
+            </p>
+        </field>
+    </record>
+
+    <!-- Action: Asset Valuation Pivot -->
+    <record id="action_mesob_valuation_pivot" model="ir.actions.act_window">
+        <field name="name">Inventory Asset Valuation Pivot</field>
+        <field name="res_model">mesob.stock.record.card</field>
+        <field name="view_mode">pivot,list</field>
+        <field name="view_id" ref="view_mesob_stock_record_card_pivot"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Inventory Valuation Pivot Analyzer
+            </p>
+            <p>
+                Interactive GAAP FIFO asset valuation analyzer. Drag and drop rows, select metrics, and export reports to Excel dynamically.
+            </p>
+        </field>
+    </record>
+
+    <!-- Action: Reorder Risk Chart -->
+    <record id="action_mesob_reorder_alert_graph" model="ir.actions.act_window">
+        <field name="name">Stockout Risk Analysis</field>
+        <field name="res_model">mesob.stock.reorder.alert</field>
+        <field name="view_mode">graph,list</field>
+        <field name="view_id" ref="view_mesob_stock_reorder_alert_graph"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Stockout Risk Chart
+            </p>
+            <p>
+                Visualize active stock reorder alert types (minimum limit vs reorder point) to prevent potential warehouse stockouts.
+            </p>
+        </field>
+    </record>
+
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         MENU ITEMS (Analytics Category)
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    <menuitem id="menu_mesob_inventory_analytics"
+              name="Analytics &amp; BI"
+              parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper"
+              sequence="50"/>
+
+    <menuitem id="menu_mesob_valuation_pivot"
+              name="Asset Valuation Analyzer"
+              parent="menu_mesob_inventory_analytics"
+              action="action_mesob_valuation_pivot"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_requisition_graph"
+              name="Budget Consumption Chart"
+              parent="menu_mesob_inventory_analytics"
+              action="action_mesob_requisition_graph"
+              sequence="20"/>
+
+    <menuitem id="menu_mesob_reorder_risk_graph"
+              name="Stockout Risk Analyzer"
+              parent="menu_mesob_inventory_analytics"
+              action="action_mesob_reorder_alert_graph"
+              sequence="30"/>
+
+</odoo>
