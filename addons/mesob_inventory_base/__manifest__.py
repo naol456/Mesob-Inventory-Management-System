@@ -66,6 +66,7 @@
         "views/mesob_procurement_views.xml",
         "views/mesob_stock_taking_handover_views.xml",
         "views/mesob_storage_security_views.xml",
+        "views/mesob_inventory_dashboard_views.xml",
         # Login customization
         "views/mesob_login_template.xml",
         # Menus
