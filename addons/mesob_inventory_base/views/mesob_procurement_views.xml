@@ -104,6 +104,19 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,submitted,reviewed,locked"/>
                 </header>
                 <sheet>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="item_id" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Department Need Request</div>
+                        </div>
+                    </div>
                     <group>
                         <group>
                             <field name="department" readonly="state != 'draft'"/>
@@ -289,10 +302,18 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,pending,approved,sent,partially_received,fully_received,closed"/>
                 </header>
                 <sheet>
-                    <div class="oe_title">
-                        <h1>
-                            <field name="name" readonly="1"/>
-                        </h1>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="name" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Purchase Order (PO)</div>
+                        </div>
                     </div>
                     <group>
                         <group>
@@ -352,10 +373,18 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,approved"/>
                 </header>
                 <sheet>
-                    <div class="oe_title">
-                        <h1>
-                            <field name="name" readonly="1"/>
-                        </h1>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="name" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Payment Certificate</div>
+                        </div>
                     </div>
                     <group>
                         <group string="3-Way Match Verification (FR-PROC-034)">

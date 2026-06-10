@@ -83,14 +83,18 @@
                         </button>
                     </div>
 
-                    <!-- Title -->
-                    <div class="oe_title">
-                        <h1>
-                            <field name="name" readonly="1" class="text-break"/>
-                        </h1>
-                        <h3 class="text-muted">
-                            <field name="source_type" widget="badge" readonly="state != 'draft'"/>
-                        </h3>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="name" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Receiving Order (Simplified)</div>
+                        </div>
                     </div>
 
                     <!-- Main Information -->
