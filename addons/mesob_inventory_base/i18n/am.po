@@ -303,3 +303,19 @@ msgstr "ውስጥ ኦዲተር"
 #: model:res.groups,name:mesob_inventory_base.group_mesob_security_guard
 msgid "Security Guard"
 msgstr "የጥበቃ ሠራተኛ"
+
+#. module: mesob_inventory_base
+msgid "Analytics & BI"
+msgstr "ትንታኔ እና ቢአይ"
+
+#. module: mesob_inventory_base
+msgid "Asset Valuation Analyzer"
+msgstr "የንብረት ግምት ትንታኔ"
+
+#. module: mesob_inventory_base
+msgid "Budget Consumption Chart"
+msgstr "የበጀት አጠቃቀም ገበታ"
+
+#. module: mesob_inventory_base
+msgid "Stockout Risk Analyzer"
+msgstr "የክምችት እጥረት ስጋት ትንታኔ"
