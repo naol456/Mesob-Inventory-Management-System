@@ -24,6 +24,19 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,approved"/>
                 </header>
                 <sheet>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="name" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Storage Plan &amp; Layout</div>
+                        </div>
+                    </div>
                     <group>
                         <group>
                             <field name="name" readonly="state == 'approved'"/>
@@ -66,6 +79,19 @@
                     <button name="action_deposit_keys" string="Deposit Keys Back" type="object" class="oe_highlight" invisible="deposited_at != False"/>
                 </header>
                 <sheet>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="name" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Key Custody Transaction</div>
+                        </div>
+                    </div>
                     <group>
                         <group>
                             <field name="key_id"/>
@@ -109,6 +135,19 @@
                     <button name="action_exit" string="Log Visitor Exit" type="object" class="oe_highlight" invisible="exit_time != False"/>
                 </header>
                 <sheet>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="name" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Visitor Entry Record</div>
+                        </div>
+                    </div>
                     <group>
                         <group>
                             <field name="visitor_name"/>
@@ -151,6 +190,19 @@
         <field name="arch" type="xml">
             <form string="Safety Inspection Checklist">
                 <sheet>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="name" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Safety Inspection Checklist</div>
+                        </div>
+                    </div>
                     <group>
                         <group>
                             <field name="inspector_id"/>
