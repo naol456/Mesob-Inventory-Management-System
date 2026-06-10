@@ -108,21 +108,16 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,authorized,dispatched"/>
                 </header>
                 <sheet>
-                    <!-- Premium Corporate Form Header: Centered Letterhead with Symmetrical Split -->
+                    <!-- Premium Reusable Corporate Form Header -->
                     <div class="mesob_corporate_header">
-                        <!-- Top Center: Logo & Company Name -->
                         <div class="mesob_header_logo_container">
                             <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
                             <div class="mesob_header_company_name">FDRE Mesob Center</div>
                         </div>
-                        
-                        <!-- Bottom Row: Symmetrical Split (Left: Form ID, Right: Form Name) -->
                         <div class="mesob_header_bottom_row">
-                            <!-- Left Bottom: Form ID -->
                             <div class="mesob_header_id">
                                 <field name="name" readonly="1"/>
                             </div>
-                            <!-- Right Bottom: Form Name -->
                             <div class="mesob_header_title">Gate Pass (Dispatch)</div>
                         </div>
                     </div>
@@ -138,39 +133,41 @@
                         </button>
                     </div>
                     
-                    <!-- Main Authorization Details -->
-                    <group class="mb-4">
-                        <group string="Authorization details" class="glass-card p-3 rounded shadow-sm border">
+                    <!-- Symmetrical Information: Multi-Column layout w/ No-Clutter Dropdowns -->
+                    <group class="mb-4" col="2">
+                        <group string="Authorization details" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
                             <field name="issue_voucher_id" 
                                    options="{'no_create': True, 'no_open': True}"
-                                   readonly="state != 'draft'" class="mb-2 font-monospace"/>
+                                   readonly="state != 'draft'" class="mb-3 font-monospace"/>
                             <field name="written_authorization" 
                                    placeholder="e.g. Memo Ref: PAO/2026/045"
-                                   readonly="state != 'draft'" class="mb-2"/>
+                                   readonly="state != 'draft'" class="mb-3"/>
                         </group>
-                        <group string="Dispatch logs" class="glass-card p-3 rounded shadow-sm border">
-                            <field name="dispatch_date" readonly="state != 'draft'" class="mb-2 font-monospace"/>
-                            <field name="created_by_id" readonly="1" class="mb-2"/>
-                            <field name="authorized_by_id" readonly="1" class="mb-2"/>
-                            <field name="authorized_on" readonly="1" class="mb-2 font-monospace"/>
+                    </group>
+
+                    <group class="mb-4" col="2">
+                        <group string="Receiver details" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="destination" placeholder="e.g. Finance Hub, Branch office..." readonly="state != 'draft'" class="mb-3"/>
+                            <field name="receiver_name" placeholder="Full name of receiver..." readonly="state != 'draft'" class="mb-3"/>
+                            <field name="receiver_organization" placeholder="Receiver company/department..." readonly="state != 'draft'" class="mb-3"/>
+                        </group>
+                        <group string="Transport details" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="vehicle_plate" placeholder="e.g. Code 3 - AA 45678" readonly="state != 'draft'" class="mb-3 font-monospace"/>
+                            <field name="driver_name" placeholder="Driver's full name..." readonly="state != 'draft'" class="mb-3"/>
+                            <field name="driver_license" placeholder="Driver's license number..." readonly="state != 'draft'" class="mb-3 font-monospace"/>
+                        </group>
+                    </group>
+
+                    <group class="mb-4" col="2">
+                        <group string="Dispatch logs" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <field name="dispatch_date" readonly="state != 'draft'" class="mb-3 font-monospace"/>
+                            <field name="created_by_id" readonly="1" class="mb-3"/>
+                            <field name="authorized_by_id" readonly="1" class="mb-3"/>
+                            <field name="authorized_on" readonly="1" class="mb-3 font-monospace"/>
                         </group>
                     </group>
                     
-                    <!-- Transit Information -->
-                    <group class="mb-4">
-                        <group string="Receiver details" class="glass-card p-3 rounded shadow-sm border">
-                            <field name="destination" placeholder="e.g. Finance Hub, Branch office..." readonly="state != 'draft'" class="mb-2"/>
-                            <field name="receiver_name" placeholder="Full name of receiver..." readonly="state != 'draft'" class="mb-2"/>
-                            <field name="receiver_organization" placeholder="Receiver company/department..." readonly="state != 'draft'" class="mb-2"/>
-                        </group>
-                        <group string="Transport details" class="glass-card p-3 rounded shadow-sm border">
-                            <field name="vehicle_plate" placeholder="e.g. Code 3 - AA 45678" readonly="state != 'draft'" class="mb-2 font-monospace"/>
-                            <field name="driver_name" placeholder="Driver's full name..." readonly="state != 'draft'" class="mb-2"/>
-                            <field name="driver_license" placeholder="Driver's license number..." readonly="state != 'draft'" class="mb-2 font-monospace"/>
-                        </group>
-                    </group>
-                    
-                    <!-- Sub-tables & Documents -->
+                    <!-- Notebook and sub-tables -->
                     <notebook class="mt-4">
                         <page string="📦 Dispatched Items" name="line_items">
                             <field name="line_ids" readonly="state != 'draft'">
@@ -187,15 +184,15 @@
                         
                         <page string="📄 Copy Distribution" name="copy_distribution" 
                               invisible="state != 'dispatched'">
-                            <group class="p-3">
-                                <group string="Security Verification" class="glass-card p-3 rounded shadow-sm border">
-                                    <field name="security_verified_by_id" readonly="1" class="mb-2"/>
-                                    <field name="security_verified_on" readonly="1" class="mb-2 font-monospace"/>
+                            <group class="p-3" col="2">
+                                <group string="Security Verification" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                                    <field name="security_verified_by_id" readonly="1" class="mb-3"/>
+                                    <field name="security_verified_on" readonly="1" class="mb-3 font-monospace"/>
                                 </group>
-                                <group string="Distribution Status" class="glass-card p-3 rounded shadow-sm border">
-                                    <field name="original_to_receiver" readonly="1" widget="boolean_toggle" string="✓ Original to Receiver" class="mb-2"/>
-                                    <field name="duplicate_to_storekeeper" readonly="1" widget="boolean_toggle" string="✓ Duplicate to Storekeeper" class="mb-2"/>
-                                    <field name="triplicate_to_security" readonly="1" widget="boolean_toggle" string="✓ Triplicate to Security" class="mb-2"/>
+                                <group string="Distribution Status" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
+                                    <field name="original_to_receiver" readonly="1" widget="boolean_toggle" string="✓ Original to Receiver" class="mb-3"/>
+                                    <field name="duplicate_to_storekeeper" readonly="1" widget="boolean_toggle" string="✓ Duplicate to Storekeeper" class="mb-3"/>
+                                    <field name="triplicate_to_security" readonly="1" widget="boolean_toggle" string="✓ Triplicate to Security" class="mb-3"/>
                                 </group>
                             </group>
                         </page>
@@ -208,11 +205,13 @@
                         </page>
                     </notebook>
                 </sheet>
-                <div class="oe_chatter">
-                    <field name="message_follower_ids"/>
-                    <field name="activity_ids"/>
-                    <field name="message_ids"/>
-                </div>
+                
+                <!-- Native Odoo Social Chatter Feed (Sleek Bottom Sidebar) -->
+                <chatter>
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </chatter>
             </form>
         </field>
     </record>
