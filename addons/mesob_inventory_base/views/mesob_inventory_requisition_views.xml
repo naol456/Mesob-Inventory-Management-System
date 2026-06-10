@@ -133,6 +133,14 @@
                             <field name="department" placeholder="e.g. IT Department, Finance, Logistics..." readonly="state != 'draft'" class="mb-3"/>
                             <field name="requested_by_id" options="{'no_open': True, 'no_create': True}" readonly="state != 'draft'" class="mb-3"/>
                             <field name="requested_on" readonly="state != 'draft'" class="mb-3"/>
+
+                            <!-- Dynamic Informational Tip Helper -->
+                            <div class="mt-2 text-muted small border-top pt-2 w-100" colspan="2" style="font-size: 0.9em; opacity: 0.85;">
+                                <i class="fa fa-info-circle me-1 text-primary" title="Info"/> 
+                                <span invisible="issue_mode != 'imprest'"><strong>Imprest Basis:</strong> Periodic top-up to maintain your department's standard cabinet stock (e.g. paper, pens).</span>
+                                <span invisible="issue_mode != 'replacement'"><strong>Replacement Issue:</strong> Requisition a new item by returning a consumed or broken item (e.g. empty ink cartridge, dead bulb).</span>
+                                <span invisible="issue_mode != 'non_stock'"><strong>Non-Stock Issue:</strong> A one-time, special requisition for items not regularly stocked.</span>
+                            </div>
                         </group>
                     </group>
 
