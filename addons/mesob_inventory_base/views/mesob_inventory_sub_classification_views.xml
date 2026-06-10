@@ -96,11 +96,18 @@
         <field name="arch" type="xml">
             <form string="Stock Card Details" class="o_mesob_gov_doc">
                 <sheet>
-                    <div class="mesob_gov_header">
-                        <div class="mesob_gov_logo">M</div>
-                        <h1 class="mesob_gov_title">Federal Democratic Republic of Ethiopia</h1>
-                        <h3 class="mesob_gov_subtitle">Stock Record Card Ledger (Model 19)</h3>
-                        <div class="mesob_gov_underline"></div>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="code" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Stock Record Card Ledger (Model 19)</div>
+                        </div>
                     </div>
 
                     <group>
@@ -197,12 +204,18 @@
         <field name="arch" type="xml">
             <form string="Sub Classification &amp; Bin Card Details" class="o_mesob_gov_doc" create="false" edit="false">
                 <sheet>
-                    <div class="mesob_gov_header">
-                        <div class="mesob_gov_logo"></div>
-                        <h1 class="mesob_gov_title">Federal Democratic Republic of Ethiopia</h1>
-                        <h2 class="mesob_gov_org">FDRE Mesob Center</h2>
-                        <h3 class="mesob_gov_subtitle">Sub Classification &amp; Bin Card Ledger</h3>
-                        <div class="mesob_gov_underline"></div>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="code" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Sub Classification &amp; Bin Card Ledger</div>
+                        </div>
                     </div>
 
                     <group>

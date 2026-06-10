@@ -36,6 +36,19 @@
                             <field name="sub_classification_count" widget="statinfo" string="Sub Classifications"/>
                         </button>
                     </div>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="code" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Major Classification</div>
+                        </div>
+                    </div>
                     <group>
                         <group string="Identification">
                             <field name="code"/>
