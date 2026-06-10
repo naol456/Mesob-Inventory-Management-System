@@ -83,7 +83,8 @@
                             <field name="department"
                                    readonly="state != 'draft'"/>
                             <field name="requested_by_id"
-                                   readonly="state != 'draft'"/>
+                                   readonly="1"
+                                   options="{'no_open': True, 'no_create': True}"/>
                             <field name="requested_on"
                                    readonly="state != 'draft'"/>
                         </group>

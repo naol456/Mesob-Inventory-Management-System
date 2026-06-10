@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
+from lxml import etree
 
 
 class MesobBinCard(models.Model):
@@ -125,6 +126,38 @@ class MesobBinCard(models.Model):
             
             previous_balance = previous_records[0].balance if previous_records else 0.0
             record.balance = previous_balance + record.quantity_received - record.quantity_distributed
+    
+    # ── View Customization ──────────────────────────────────────────
+    
+    @api.model
+    def get_view(self, view_id=None, view_type="form", **options):
+        """Hide New button for Stock Clerk and PAO on both tree and form views.
+        
+        Bin Cards are maintained by Storekeeper only.
+        Stock Clerk and PAO have read-only oversight.
+        """
+        result = super().get_view(view_id, view_type, **options)
+        
+        if view_type in ("tree", "form"):
+            user = self.env.user
+            is_pao = user.has_group("mesob_inventory_base.group_mesob_pao")
+            is_stock_clerk = user.has_group("mesob_inventory_base.group_mesob_stock_clerk")
+            is_storekeeper = user.has_group("mesob_inventory_base.group_mesob_storekeeper")
+            
+            # Stock Clerk and PAO: completely read-only (cannot create/edit/delete)
+            if (is_pao or is_stock_clerk) and not is_storekeeper:
+                arch = result.get("arch", "")
+                if isinstance(arch, str):
+                    arch = arch.encode("utf-8")
+                root = etree.fromstring(arch)
+                root.set("create", "0")
+                root.set("edit", "0")
+                root.set("delete", "0")
+                result["arch"] = etree.tostring(root, encoding="unicode", pretty_print=False)
+        
+        return result
+    
+    # ── CRUD Operations ────────────────────────────────────────────
     
     @api.model_create_multi
     def create(self, vals_list):
