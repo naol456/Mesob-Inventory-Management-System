@@ -110,8 +110,8 @@
                         <group>
                             <field name="department" readonly="state != 'draft'"/>
                             <field name="item_id" readonly="state != 'draft'"/>
-                            <field name="major_classification_id" readonly="state != 'draft'" required="not item_id"/>
-                            <field name="sub_classification_id" readonly="state != 'draft'" required="not item_id" domain="[('major_classification_id', '=', major_classification_id)]"/>
+                            <field name="major_classification_id" readonly="state != 'draft'"/>
+                            <field name="sub_classification_id" readonly="state != 'draft'" domain="[('major_classification_id', '=', major_classification_id)]"/>
                             <field name="item_code"/>
                         </group>
                         <group>

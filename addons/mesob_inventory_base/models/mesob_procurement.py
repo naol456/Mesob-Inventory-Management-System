@@ -323,6 +323,30 @@ class MesobProcurementNeed(models.Model):
             self.major_classification_id = self.item_id.classification_id
             self.sub_classification_id = self.item_id.sub_classification_id
 
+    @api.constrains("item_id", "major_classification_id", "sub_classification_id")
+    def _check_required_classifications(self):
+        for rec in self:
+            if not rec.item_id and (not rec.major_classification_id or not rec.sub_classification_id):
+                raise ValidationError("You must either select a Catalogued Item or specify both Major and Sub Classifications.")
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("item_id"):
+                item = self.env["mesob.inventory.item"].browse(vals["item_id"])
+                if item:
+                    vals["major_classification_id"] = item.classification_id.id
+                    vals["sub_classification_id"] = item.sub_classification_id.id
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if vals.get("item_id"):
+            item = self.env["mesob.inventory.item"].browse(vals["item_id"])
+            if item:
+                vals["major_classification_id"] = item.classification_id.id
+                vals["sub_classification_id"] = item.sub_classification_id.id
+        return super().write(vals)
+
     @api.depends("item_id", "major_classification_id", "sub_classification_id")
     def _compute_item_code(self):
         for rec in self:
