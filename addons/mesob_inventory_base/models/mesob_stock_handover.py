@@ -139,6 +139,30 @@ class MesobStockHandover(models.Model):
             rec.state = "done"
         return True
 
+    # ── Role-Based Access Control (UI Level) ────────────────────────
+
+    @api.model
+    def get_view(self, view_id=None, view_type="form", **options):
+        """Apply role-based UI controls for Stock Handovers.
+        
+        Both PAO and Storekeepers can create and manage handovers.
+        PAO acts as witness, Storekeepers transfer custody.
+        """
+        result = super(MesobStockHandover, self).get_view(view_id, view_type, **options)
+        
+        # Import lxml for XML manipulation
+        from lxml import etree
+        
+        # Check user roles
+        is_pao = self.env.user.has_group("mesob_inventory_base.group_mesob_pao")
+        is_storekeeper = self.env.user.has_group("mesob_inventory_base.group_mesob_storekeeper")
+        
+        # Both roles have full access - no restrictions needed currently
+        # This method is here for future enhancements if needed
+        # (e.g., restrict editing based on user's role in the handover)
+        
+        return result
+
 
 class MesobStockHandoverLine(models.Model):
     """Line item in Handover custody count sheet - FR-HO-002."""
