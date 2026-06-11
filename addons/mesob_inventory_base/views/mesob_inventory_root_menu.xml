@@ -2,8 +2,18 @@
 <odoo>
     <!-- ── Root Menu ──────────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_root" 
-              name="Mesob Inventory"
+              name="Mesob Inventory Management System"
               web_icon="mesob_inventory_base,static/description/icon.png"
               groups="mesob_inventory_base.group_mesob_inventory_user,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_security_guard,mesob_inventory_base.group_mesob_auditor,mesob_inventory_base.group_mesob_dept_head,mesob_inventory_base.group_mesob_procurement"
               sequence="10"/>
+
+    <!-- ── Hide Default Unused Odoo Menus from Applications Sidebar ── -->
+    <!-- Assign standard Discuss & Inventory menus to Extra Rights/Technical group so they are hidden from normal users -->
+    <record id="mail.menu_root_discuss" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [ref('base.group_no_one')])]"/>
+    </record>
+
+    <record id="stock.menu_stock_root" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [ref('base.group_no_one')])]"/>
+    </record>
 </odoo>
