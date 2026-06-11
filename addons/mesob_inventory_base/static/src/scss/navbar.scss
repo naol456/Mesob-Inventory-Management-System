@@ -1,3 +1,11 @@
+@font-face {
+    font-family: 'GraceFont';
+    src: url('/mesob_inventory_base/static/gracefont.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 // Custom variables for Gold & Navy luxury theme
 $navy-dark: rgba(11, 27, 61, 0.85);
 $gold-glow: #D4AF37;
