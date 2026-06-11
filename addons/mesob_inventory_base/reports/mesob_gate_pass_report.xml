@@ -85,12 +85,12 @@
          ═══════════════════════════════════════════════════════════════════════ -->
 
     <template id="mesob_report_header_snippet">
-        <div style="background-color: #0B1B3D; padding: 15px; border-radius: 4px; text-align: center; margin-bottom: 10px;">
-            <img src="/mesob_inventory_base/static/img/mesob_logo.png" style="max-height: 70px; margin-bottom: 5px; display: inline-block;" alt="FDRE Logo"/>
-            <div style="font-size: 22px; font-weight: bold; color: #D4AF37; letter-spacing: 1px; font-family: 'Plus Jakarta Sans', sans-serif;">FDRE Mesob Center</div>
-            <div style="font-size: 13px; color: #FFFFFF; font-style: italic; font-family: 'Plus Jakarta Sans', sans-serif;">Federal Democratic Republic of Ethiopia</div>
+        <div style="background-color: #0B1B3D; padding: 11px; border-radius: 4px; text-align: center; margin-bottom: 8px;">
+            <img src="/mesob_inventory_base/static/img/mesob_logo.png" style="max-height: 52px; margin-bottom: 4px; display: inline-block;" alt="FDRE Logo"/>
+            <div style="font-size: 16px; font-weight: bold; color: #D4AF37; letter-spacing: 0.75px; font-family: 'Plus Jakarta Sans', sans-serif;">FDRE Mesob Center</div>
+            <div style="font-size: 10px; color: #FFFFFF; font-style: italic; font-family: 'Plus Jakarta Sans', sans-serif;">Federal Democratic Republic of Ethiopia</div>
         </div>
-        <div style="border-bottom: 2px solid #D4AF37; padding-bottom: 8px; margin-bottom: 25px; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: bold; color: #0B1B3D;">
+        <div style="border-bottom: 2px solid #D4AF37; padding-bottom: 6px; margin-bottom: 18px; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10px; font-weight: bold; color: #0B1B3D;">
             <div style="float: left; width: 50%;">Ref No: <span t-esc="doc_no"/></div>
             <div style="float: right; width: 50%; text-align: right;"><span t-esc="title"/></div>
         </div>
