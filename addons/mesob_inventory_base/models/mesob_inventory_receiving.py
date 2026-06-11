@@ -207,12 +207,12 @@ class MesobInventoryReceiving(models.Model):
 
     @api.onchange("purchase_order_ref")
     def _onchange_purchase_order_ref(self):
-        """Auto-populate supplier and lines when selecting an approved Purchase Order."""
+        """Auto-populate supplier and lines when selecting an approved/sent Purchase Order."""
         if self.purchase_order_ref:
-            # Query the approved PO in procurement
+            # Query the approved/sent PO in procurement (FR-PROC-027/FR-PROC-030)
             po = self.env["mesob.procurement.order"].search([
                 ("name", "=", self.purchase_order_ref),
-                ("state", "=", "approved")
+                ("state", "in", ("approved", "sent", "partially_received"))
             ], limit=1)
             if po:
                 self.supplier_id = po.supplier_id
@@ -221,10 +221,22 @@ class MesobInventoryReceiving(models.Model):
                 # Auto-generate receiving lines matching the PO lines
                 new_lines = []
                 for line in po.line_ids:
+                    # Robust fallback to APP Lot classification if empty in legacy PO records
+                    major_id = line.major_classification_id.id if line.major_classification_id else False
+                    sub_id = line.sub_classification_id.id if line.sub_classification_id else False
+                    
+                    if not major_id or not sub_id:
+                        lot = po.plan_lot_id
+                        if lot and lot.sub_classification_id:
+                            if not sub_id:
+                                sub_id = lot.sub_classification_id.id
+                            if not major_id and lot.sub_classification_id.major_classification_id:
+                                major_id = lot.sub_classification_id.major_classification_id.id
+
                     line_vals = {
                         "item_id": line.item_id.id if line.item_id else False,
-                        "major_classification_id": line.major_classification_id.id if line.major_classification_id else False,
-                        "sub_classification_id": line.sub_classification_id.id if line.sub_classification_id else False,
+                        "major_classification_id": major_id,
+                        "sub_classification_id": sub_id,
                         "auto_generate_items": line.auto_generate_items,
                         "description": line.description or (line.item_id.name if line.item_id else ""),
                         "qty_expected": line.quantity,

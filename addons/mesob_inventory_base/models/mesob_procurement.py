@@ -119,13 +119,16 @@ class MesobProcurementPlan(models.Model):
         Groups locked needs without lot_id by their sub-classification and generates Lots.
         """
         for plan in self:
-            # 1. Search for locked needs that do not have a lot assigned yet
+            # 1. Search for locked needs that do not have a lot assigned yet and are valid (have item_id or sub_classification_id)
             needs = self.env["mesob.procurement.need"].search([
                 ("state", "=", "locked"),
-                ("lot_id", "=", False)
+                ("lot_id", "=", False),
+                "|",
+                ("item_id", "!=", False),
+                ("sub_classification_id", "!=", False)
             ])
             if not needs:
-                raise UserError("No locked department needs available for automatic consolidation.")
+                raise UserError("No valid locked department needs available for automatic consolidation. Please make sure you have submitted, reviewed, and locked some valid Need Requests first.")
 
             # 2. Defensive fallback: Ensure all needs have sub_classification_id populated from item_id if empty
             for need in needs:
@@ -138,7 +141,7 @@ class MesobProcurementPlan(models.Model):
             # Re-fetch/re-filter needs that actually have sub_classification_id populated now
             needs_with_sub = needs.filtered(lambda n: n.sub_classification_id)
             if not needs_with_sub:
-                raise UserError("None of the selected locked needs have a Sub-Classification set.")
+                raise UserError("No locked department needs with a valid Sub-Classification are available for automatic consolidation.")
 
             # 3. Group them by Sub-Classification
             sub_classes = needs_with_sub.mapped("sub_classification_id")
@@ -646,6 +649,23 @@ class MesobProcurementOrder(models.Model):
         tracking=True,
     )
     date_order = fields.Date(string="Order Date", default=fields.Date.today, required=True)
+
+    @api.onchange("plan_lot_id")
+    def _onchange_plan_lot_id(self):
+        """Auto-populate PO lines from the consolidated needs of the selected APP Lot (Section 4.13.G)."""
+        if self.plan_lot_id:
+            new_lines = []
+            for need in self.plan_lot_id.need_ids:
+                line_vals = {
+                    "item_id": need.item_id.id if need.item_id else False,
+                    "major_classification_id": need.major_classification_id.id if need.major_classification_id else False,
+                    "sub_classification_id": need.sub_classification_id.id if need.sub_classification_id else False,
+                    "quantity": need.quantity,
+                    "price_unit": need.estimated_unit_price,
+                    "description": need.item_id.name if need.item_id else f"{need.major_classification_id.name or ''} {need.sub_classification_id.name or ''}",
+                }
+                new_lines.append((0, 0, line_vals))
+            self.line_ids = new_lines
     inspection_type = fields.Selection(
         [
             ("storekeeper", "Storekeeper (Simple Items)"),
@@ -741,6 +761,13 @@ class MesobProcurementOrderLine(models.Model):
     qty_received = fields.Float(string="Received Qty", compute="_compute_received_qty", store=True)
     price_unit = fields.Float(string="Unit Price (ETB)", required=True)
     price_subtotal = fields.Float(string="Subtotal", compute="_compute_subtotal", store=True)
+
+    @api.onchange("item_id")
+    def _onchange_item_id(self):
+        """Auto-populate classifications when selecting a catalogued item on PO line."""
+        if self.item_id:
+            self.major_classification_id = self.item_id.classification_id
+            self.sub_classification_id = self.item_id.sub_classification_id
 
     @api.depends("quantity", "price_unit")
     def _compute_subtotal(self):
