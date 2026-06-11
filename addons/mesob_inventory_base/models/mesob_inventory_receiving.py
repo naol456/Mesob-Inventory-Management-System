@@ -207,12 +207,12 @@ class MesobInventoryReceiving(models.Model):
 
     @api.onchange("purchase_order_ref")
     def _onchange_purchase_order_ref(self):
-        """Auto-populate supplier and lines when selecting an approved Purchase Order."""
+        """Auto-populate supplier and lines when selecting an approved/sent Purchase Order."""
         if self.purchase_order_ref:
-            # Query the approved PO in procurement
+            # Query the approved/sent PO in procurement (FR-PROC-027/FR-PROC-030)
             po = self.env["mesob.procurement.order"].search([
                 ("name", "=", self.purchase_order_ref),
-                ("state", "=", "approved")
+                ("state", "in", ("approved", "sent", "partially_received"))
             ], limit=1)
             if po:
                 self.supplier_id = po.supplier_id
