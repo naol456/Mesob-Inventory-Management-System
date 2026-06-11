@@ -956,3 +956,21 @@ select {
         }
     }
 }
+
+/* Hide Odoo's standard automatic company headers and logo placeholders on report print formats globally */
+@media print {
+    div.header, div.footer,
+    .header, .footer,
+    .o_company_header, .o_company_footer,
+    .o_boxed_header, .o_boxed_footer,
+    .o_clean_header, .o_clean_footer,
+    .o_standard_header, .o_standard_footer,
+    .o_background_header, .o_background_footer {
+        display: none !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+    }
+}
