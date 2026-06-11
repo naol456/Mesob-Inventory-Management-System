@@ -10,7 +10,7 @@
         <field name="default" eval="False"/>
         <field name="format">A4</field>
         <field name="orientation">Portrait</field>
-        <field name="margin_top">7</field> <!-- Custom top margin of 7mm as requested -->
+        <field name="margin_top">11</field> <!-- Custom top margin of 11mm (2.2 times 5mm) as requested -->
         <field name="margin_bottom">15</field>
         <field name="margin_left">15</field>
         <field name="margin_right">15</field>
