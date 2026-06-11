@@ -191,8 +191,15 @@ $gold-hover: rgba(212, 175, 55, 0.14);
         gap: 12px;
         flex-shrink: 0 !important;
 
+        // Forcefully hide messaging, activities, and company switcher options
         .o_messaging_menu, 
         .o_mail_systray_item,
+        .o_switch_company_menu,
+        .o_company_menu,
+        .o_activity_menu {
+            display: none !important;
+        }
+
         .o_user_menu,
         .o_debug_manager {
             color: rgba(255, 255, 255, 0.88) !important;
