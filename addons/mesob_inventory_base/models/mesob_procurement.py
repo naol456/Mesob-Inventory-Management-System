@@ -649,6 +649,23 @@ class MesobProcurementOrder(models.Model):
         tracking=True,
     )
     date_order = fields.Date(string="Order Date", default=fields.Date.today, required=True)
+
+    @api.onchange("plan_lot_id")
+    def _onchange_plan_lot_id(self):
+        """Auto-populate PO lines from the consolidated needs of the selected APP Lot (Section 4.13.G)."""
+        if self.plan_lot_id:
+            new_lines = []
+            for need in self.plan_lot_id.need_ids:
+                line_vals = {
+                    "item_id": need.item_id.id if need.item_id else False,
+                    "major_classification_id": need.major_classification_id.id if need.major_classification_id else False,
+                    "sub_classification_id": need.sub_classification_id.id if need.sub_classification_id else False,
+                    "quantity": need.quantity,
+                    "price_unit": need.estimated_unit_price,
+                    "description": need.item_id.name if need.item_id else f"{need.major_classification_id.name or ''} {need.sub_classification_id.name or ''}",
+                }
+                new_lines.append((0, 0, line_vals))
+            self.line_ids = new_lines
     inspection_type = fields.Selection(
         [
             ("storekeeper", "Storekeeper (Simple Items)"),
