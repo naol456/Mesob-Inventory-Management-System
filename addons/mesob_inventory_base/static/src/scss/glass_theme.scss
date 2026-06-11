@@ -499,10 +499,10 @@ a.text-primary:hover,
     }
 }
 
-/* Fullscreen Loading Block UI Overlay */
+/* Fullscreen Loading Block UI Overlay - Clean Minimalist Transparent Blur */
 .o_block_ui {
-    background: rgba(11, 27, 61, 0.85) !important; /* Dark Translucent Navy */
-    backdrop-filter: blur(25px) !important; /* Heavy backdrop blur */
+    background: rgba(0, 0, 0, 0) !important; /* Fully transparent background as requested */
+    backdrop-filter: blur(15px) !important; /* Soft, prestigious backdrop blur of the active page */
     opacity: 1 !important;
     transition: all 0.4s ease !important;
     z-index: 10000 !important;
@@ -524,7 +524,7 @@ a.text-primary:hover,
             box-sizing: border-box !important;
         }
 
-        /* Outer ring: Glowing Gold */
+        /* Outer ring: Elegant Gold (No glowing shadows) */
         &::before {
             top: 0 !important;
             left: 0 !important;
@@ -533,11 +533,10 @@ a.text-primary:hover,
             border: 4px solid transparent !important;
             border-top-color: #D4AF37 !important;
             border-bottom-color: #D4AF37 !important;
-            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.65)) !important;
             animation: o_spin_clockwise 1.2s cubic-bezier(0.77, 0, 0.175, 1) infinite !important;
         }
 
-        /* Inner ring: Accent Gold */
+        /* Inner ring: Accent Gold (No glowing shadows) */
         &::after {
             top: 10px !important;
             left: 10px !important;
@@ -550,7 +549,7 @@ a.text-primary:hover,
         }
     }
 
-    /* Style the loading message text */
+    /* Style the loading message text (No glowing shadows) */
     span, div, p {
         color: #FFFFFF !important;
         font-family: 'Urbanist', sans-serif !important;
@@ -559,7 +558,6 @@ a.text-primary:hover,
         letter-spacing: 1px !important;
         margin-top: 25px !important;
         text-transform: uppercase !important;
-        text-shadow: 0 0 10px rgba(212, 175, 55, 0.35) !important;
     }
 }
 
