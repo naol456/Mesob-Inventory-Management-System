@@ -41,6 +41,7 @@ $gold-hover: rgba(212, 175, 55, 0.14);
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0 !important;
 
         &:hover {
             background: $gold-hover !important;
@@ -51,12 +52,78 @@ $gold-hover: rgba(212, 175, 55, 0.14);
         }
     }
 
-    // App/Menu Sections
+    // Brand / Logo section - Highly responsive & adaptive!
+    .o_menu_brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: $gold-glow !important;
+        font-family: $font-display;
+        font-weight: 800;
+        font-size: 16px;
+        letter-spacing: 0.5px;
+        padding-right: 18px;
+        margin-right: 15px;
+        border-right: 1px solid rgba(212, 175, 55, 0.25) !important;
+        flex-shrink: 0 !important;
+        transition: all 0.3s ease;
+
+        span {
+            transition: all 0.3s ease;
+            @media (max-width: 1400px) {
+                font-size: 13px !important;
+            }
+            @media (max-width: 1200px) {
+                display: none !important; // Hide text completely, leaving strictly the gold logo icon!
+            }
+        }
+
+        @media (max-width: 1200px) {
+            border-right: none !important;
+            padding-right: 0 !important;
+            margin-right: 10px !important;
+        }
+    }
+
+    // App/Menu Sections - Scrollable horizontally with premium fade masking!
     .o_menu_sections {
         display: flex;
         align-items: center;
         gap: 8px;
         padding-left: 15px;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        white-space: nowrap !important;
+        flex-wrap: nowrap !important;
+        flex-grow: 1;
+        max-width: 55%; // Dynamic restriction to prevent overlap with systray
+        transition: all 0.3s ease;
+
+        // Hide clunky standard browser scrollbars
+        &::-webkit-scrollbar {
+            display: none !important;
+            height: 0 !important;
+        }
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+
+        // Apple-style horizontal linear gradient alpha transparency mask!
+        mask-image: linear-gradient(to right, 
+            transparent 0%, 
+            #000000 20px, 
+            #000000 calc(100% - 20px), 
+            transparent 100%
+        );
+        -webkit-mask-image: linear-gradient(to right, 
+            transparent 0%, 
+            #000000 20px, 
+            #000000 calc(100% - 20px), 
+            transparent 100%
+        );
+
+        @media (max-width: 1200px) {
+            max-width: 70%; // Grant wider menu space once the brand text is hidden!
+        }
 
         .o_nav_entry, 
         .o-dropdown {
@@ -69,6 +136,7 @@ $gold-hover: rgba(212, 175, 55, 0.14);
             border-radius: 10px;
             position: relative;
             overflow: hidden;
+            flex-shrink: 0 !important; // STRICTLY block flexbox from squeezing items!
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 
             a, button, span {
@@ -115,27 +183,13 @@ $gold-hover: rgba(212, 175, 55, 0.14);
         }
     }
 
-    // Brand / Logo section if present
-    .o_menu_brand {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: $gold-glow !important;
-        font-family: $font-display;
-        font-weight: 800;
-        font-size: 16px;
-        letter-spacing: 0.5px;
-        padding-right: 18px;
-        margin-right: 15px;
-        border-right: 1px solid rgba(212, 175, 55, 0.25) !important;
-    }
-
     // Right-side system tray controls (Systray)
     .o_menu_systray {
         margin-left: auto;
         display: flex;
         align-items: center;
         gap: 12px;
+        flex-shrink: 0 !important;
 
         .o_messaging_menu, 
         .o_mail_systray_item,
@@ -149,6 +203,7 @@ $gold-hover: rgba(212, 175, 55, 0.14);
             height: 40px;
             padding: 0 12px !important;
             border-radius: 10px;
+            flex-shrink: 0 !important;
 
             &:hover {
                 background: $gold-hover !important;
