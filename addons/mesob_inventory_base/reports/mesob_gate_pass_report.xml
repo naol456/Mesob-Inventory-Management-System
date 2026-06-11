@@ -4,6 +4,21 @@
          REPORT ACTIONS (QWeb PDF)
          ═══════════════════════════════════════════════════════════════════════ -->
 
+    <!-- Clean, Headerless, Borderless Paper Format for Mesob Corporate Documents -->
+    <record id="paperformat_mesob_corporate" model="report.paperformat">
+        <field name="name">Mesob Corporate Paper Format</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">10</field> <!-- Clean margin, no room for default headers! -->
+        <field name="margin_bottom">15</field>
+        <field name="margin_left">15</field>
+        <field name="margin_right">15</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field> <!-- Forcefully set header spacing to 0 to disable Odoo headers! -->
+        <field name="dpi">96</field>
+    </record>
+
     <!-- Gate Pass Report Action -->
     <record id="action_report_mesob_gate_pass" model="ir.actions.report">
         <field name="name">Gate Pass</field>
@@ -13,6 +28,7 @@
         <field name="report_file">mesob_inventory_base.report_mesob_gate_pass_document</field>
         <field name="binding_model_id" ref="model_mesob_gate_pass"/>
         <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="mesob_inventory_base.paperformat_mesob_corporate"/>
     </record>
 
     <!-- Model 19 (Goods Receiving Note) Report Action -->
@@ -24,6 +40,7 @@
         <field name="report_file">mesob_inventory_base.report_mesob_model19_document</field>
         <field name="binding_model_id" ref="model_mesob_inventory_model19"/>
         <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="mesob_inventory_base.paperformat_mesob_corporate"/>
     </record>
 
     <!-- Model 20 (Stores Requisition) Report Action -->
@@ -35,6 +52,7 @@
         <field name="report_file">mesob_inventory_base.report_mesob_model20_document</field>
         <field name="binding_model_id" ref="model_mesob_inventory_requisition"/>
         <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="mesob_inventory_base.paperformat_mesob_corporate"/>
     </record>
 
     <!-- Model 22 (Issue Voucher) Report Action -->
@@ -46,6 +64,7 @@
         <field name="report_file">mesob_inventory_base.report_mesob_model22_document</field>
         <field name="binding_model_id" ref="model_mesob_inventory_issue_voucher"/>
         <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="mesob_inventory_base.paperformat_mesob_corporate"/>
     </record>
 
     <!-- DSR (Damage/Shortage Report) Report Action -->
@@ -57,6 +76,7 @@
         <field name="report_file">mesob_inventory_base.report_mesob_dsr_document</field>
         <field name="binding_model_id" ref="model_mesob_inventory_dsr"/>
         <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="mesob_inventory_base.paperformat_mesob_corporate"/>
     </record>
 
 
@@ -85,7 +105,7 @@
     <template id="report_mesob_gate_pass_document">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
-                <t t-call="web.external_layout">
+                <t t-call="web.basic_layout">
                     <div class="page" style="font-family: 'Plus Jakarta Sans', sans-serif;">
                         <t t-call="mesob_inventory_base.mesob_report_header_snippet">
                             <t t-set="doc_no" t-value="o.name"/>
@@ -173,7 +193,7 @@
     <template id="report_mesob_model19_document">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
-                <t t-call="web.external_layout">
+                <t t-call="web.basic_layout">
                     <div class="page" style="font-family: 'Plus Jakarta Sans', sans-serif;">
                         <t t-call="mesob_inventory_base.mesob_report_header_snippet">
                             <t t-set="doc_no" t-value="o.name"/>
@@ -257,7 +277,7 @@
     <template id="report_mesob_model20_document">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
-                <t t-call="web.external_layout">
+                <t t-call="web.basic_layout">
                     <div class="page" style="font-family: 'Plus Jakarta Sans', sans-serif;">
                         <t t-call="mesob_inventory_base.mesob_report_header_snippet">
                             <t t-set="doc_no" t-value="o.name"/>
@@ -338,7 +358,7 @@
     <template id="report_mesob_model22_document">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
-                <t t-call="web.external_layout">
+                <t t-call="web.basic_layout">
                     <div class="page" style="font-family: 'Plus Jakarta Sans', sans-serif;">
                         <t t-call="mesob_inventory_base.mesob_report_header_snippet">
                             <t t-set="doc_no" t-value="o.name"/>
@@ -421,7 +441,7 @@
     <template id="report_mesob_dsr_document">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
-                <t t-call="web.external_layout">
+                <t t-call="web.basic_layout">
                     <div class="page" style="font-family: 'Plus Jakarta Sans', sans-serif;">
                         <t t-call="mesob_inventory_base.mesob_report_header_snippet">
                             <t t-set="doc_no" t-value="o.name"/>
