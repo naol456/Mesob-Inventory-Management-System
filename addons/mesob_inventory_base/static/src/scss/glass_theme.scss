@@ -793,10 +793,10 @@ select {
 .mesob_corporate_header {
     background: #0B1B3D !important;
     border-radius: 12px !important;
-    padding: 25px !important;
+    padding: 18px !important; /* Scaled down 0.75x from 25px */
     box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
     border: none !important;
-    margin-bottom: 25px !important;
+    margin-bottom: 18px !important; /* Scaled down 0.75x from 25px */
     width: 100% !important;
     display: block !important;
     box-sizing: border-box !important;
@@ -805,25 +805,25 @@ select {
 
     .mesob_header_logo_container {
         text-align: center !important;
-        margin-bottom: 15px !important;
+        margin-bottom: 11px !important; /* Scaled down 0.75x from 15px */
 
         img {
-            height: 160px !important;  /* 2x bigger logo (original was ~80px) */
-            width: 160px !important;
+            height: 120px !important;  /* Scaled down 0.75x from 160px */
+            width: 120px !important;   /* Scaled down 0.75x from 160px */
             object-fit: contain !important;
             filter: drop-shadow(0px 3px 6px rgba(0,0,0,0.25)) !important;
             border-radius: 8px !important;
-            margin: 0 auto 10px auto !important;
+            margin: 0 auto 8px auto !important; /* Scaled down 0.75x from 10px */
             display: block !important;
         }
 
         .mesob_header_company_name {
             text-transform: uppercase !important;
             letter-spacing: 0.12em !important;
-            font-size: 2.2em !important; /* 3x larger size */
+            font-size: 1.65em !important; /* Scaled down 0.75x from 2.2em */
             font-weight: 900 !important;
             color: #D4AF37 !important;
-            margin-top: 12px !important;
+            margin-top: 9px !important; /* Scaled down 0.75x from 12px */
             font-family: 'Urbanist', sans-serif !important;
         }
     }
@@ -832,8 +832,8 @@ select {
         display: flex !important;
         justify-content: space-between !important;
         align-items: end !important;
-        margin-top: 15px !important;
-        padding-top: 15px !important;
+        margin-top: 11px !important; /* Scaled down 0.75x from 15px */
+        padding-top: 11px !important; /* Scaled down 0.75x from 15px */
         border-top: 1px solid rgba(212, 175, 55, 0.35) !important;
 
         .mesob_header_id {
@@ -844,8 +844,8 @@ select {
                 color: #0B1B3D !important;
                 font-weight: 700 !important;
                 font-family: 'JetBrains Mono', monospace !important;
-                font-size: 1.15em !important;
-                padding: 10px 18px !important;
+                font-size: 0.86em !important; /* Scaled down 0.75x from 1.15em */
+                padding: 7px 14px !important; /* Scaled down 0.75x from 10px 18px */
                 border-radius: 6px !important;
                 box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
                 display: inline-block !important;
@@ -856,7 +856,7 @@ select {
             text-align: right !important;
             font-family: 'Urbanist', sans-serif !important;
             letter-spacing: -0.01em !important;
-            font-size: 1.6em !important;
+            font-size: 1.2em !important; /* Scaled down 0.75x from 1.6em */
             color: #D4AF37 !important;
             font-weight: 700 !important;
             margin: 0 !important;
