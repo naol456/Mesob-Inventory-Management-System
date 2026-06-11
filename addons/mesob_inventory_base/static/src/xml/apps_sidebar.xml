@@ -2,6 +2,23 @@
 <templates xml:space="preserve">
 
     <t t-inherit="web.NavBar" t-inherit-mode="extension">
+        <!-- Replace default dynamic brand with prestigious stacked two-line Mesob Logo and corporate title -->
+        <xpath expr="//*[contains(@class, 'o_menu_brand')]" position="replace">
+            <div class="o_menu_brand d-flex align-items-center gap-2" style="border-right: 1px solid rgba(212, 175, 55, 0.25); padding-right: 18px; margin-right: 15px; flex-shrink: 0 !important;">
+                <img src="/mesob_inventory_base/static/img/mesob_logo.png" 
+                     style="height: 32px; width: 32px; object-fit: contain; filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.45));" 
+                     alt="Mesob Logo"/>
+                <div class="d-flex flex-column justify-content-center" style="line-height: 1.2;">
+                    <span style="font-family: 'Urbanist', sans-serif; font-weight: 800; font-size: 13px; color: #D4AF37; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(212, 175, 55, 0.25); white-space: nowrap;">
+                        Mesob Inventory
+                    </span>
+                    <span style="font-family: 'Urbanist', sans-serif; font-weight: 600; font-size: 10px; color: rgba(255, 255, 255, 0.65); letter-spacing: 0.5px; white-space: nowrap;">
+                        Management System
+                    </span>
+                </div>
+            </div>
+        </xpath>
+
         <!-- Append the sidebar structure after the header -->
         <xpath expr="//header" position="after">
             <div class="o_apps_sidebar" t-att-class="{ 'o_sidebar_open': sidebarState.isOpen }">
