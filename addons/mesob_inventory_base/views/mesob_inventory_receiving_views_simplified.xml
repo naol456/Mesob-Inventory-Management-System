@@ -166,6 +166,7 @@
                                            readonly="state != 'draft'"
                                            domain="[('major_classification_id', '=', major_classification_id), ('active', '=', True)]"
                                            context="{'default_major_classification_id': major_classification_id}"/>
+                                    <field name="description"/>
                                     <field name="generated_item_count" 
                                            string="Generated"
                                            optional="hide"/>
