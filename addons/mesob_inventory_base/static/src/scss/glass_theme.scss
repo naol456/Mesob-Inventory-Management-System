@@ -585,17 +585,6 @@ a.text-primary:hover,
         filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.8)) !important;
     }
 }
-        content: '' !important;
-        width: 14px !important;
-        height: 14px !important;
-        border: 2px solid transparent !important;
-        border-top-color: #D4AF37 !important;
-        border-radius: 50% !important;
-        animation: o_mini_spin 0.8s linear infinite !important;
-        display: inline-block !important;
-        filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.6)) !important;
-    }
-}
 
 @keyframes o_mini_spin {
     0% { transform: rotate(0deg); }
