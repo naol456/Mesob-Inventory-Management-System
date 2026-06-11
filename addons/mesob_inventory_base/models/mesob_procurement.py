@@ -761,6 +761,13 @@ class MesobProcurementOrderLine(models.Model):
     price_unit = fields.Float(string="Unit Price (ETB)", required=True)
     price_subtotal = fields.Float(string="Subtotal", compute="_compute_subtotal", store=True)
 
+    @api.onchange("item_id")
+    def _onchange_item_id(self):
+        """Auto-populate classifications when selecting a catalogued item on PO line."""
+        if self.item_id:
+            self.major_classification_id = self.item_id.classification_id
+            self.sub_classification_id = self.item_id.sub_classification_id
+
     @api.depends("quantity", "price_unit")
     def _compute_subtotal(self):
         for line in self:

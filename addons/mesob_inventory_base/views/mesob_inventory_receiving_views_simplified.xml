@@ -8,7 +8,6 @@
             <form string="Inspection">
                 <group>
                     <group>
-                        <field name="item_id" readonly="1"/>
                         <field name="description" readonly="1"/>
                         <field name="qty_expected" readonly="1"/>
                         <field name="qty_received" readonly="1"/>

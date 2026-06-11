@@ -221,10 +221,22 @@ class MesobInventoryReceiving(models.Model):
                 # Auto-generate receiving lines matching the PO lines
                 new_lines = []
                 for line in po.line_ids:
+                    # Robust fallback to APP Lot classification if empty in legacy PO records
+                    major_id = line.major_classification_id.id if line.major_classification_id else False
+                    sub_id = line.sub_classification_id.id if line.sub_classification_id else False
+                    
+                    if not major_id or not sub_id:
+                        lot = po.plan_lot_id
+                        if lot and lot.sub_classification_id:
+                            if not sub_id:
+                                sub_id = lot.sub_classification_id.id
+                            if not major_id and lot.sub_classification_id.major_classification_id:
+                                major_id = lot.sub_classification_id.major_classification_id.id
+
                     line_vals = {
                         "item_id": line.item_id.id if line.item_id else False,
-                        "major_classification_id": line.major_classification_id.id if line.major_classification_id else False,
-                        "sub_classification_id": line.sub_classification_id.id if line.sub_classification_id else False,
+                        "major_classification_id": major_id,
+                        "sub_classification_id": sub_id,
                         "auto_generate_items": line.auto_generate_items,
                         "description": line.description or (line.item_id.name if line.item_id else ""),
                         "qty_expected": line.quantity,
