@@ -119,13 +119,16 @@ class MesobProcurementPlan(models.Model):
         Groups locked needs without lot_id by their sub-classification and generates Lots.
         """
         for plan in self:
-            # 1. Search for locked needs that do not have a lot assigned yet
+            # 1. Search for locked needs that do not have a lot assigned yet and are valid (have item_id or sub_classification_id)
             needs = self.env["mesob.procurement.need"].search([
                 ("state", "=", "locked"),
-                ("lot_id", "=", False)
+                ("lot_id", "=", False),
+                "|",
+                ("item_id", "!=", False),
+                ("sub_classification_id", "!=", False)
             ])
             if not needs:
-                raise UserError("No locked department needs available for automatic consolidation.")
+                raise UserError("No valid locked department needs available for automatic consolidation. Please make sure you have submitted, reviewed, and locked some valid Need Requests first.")
 
             # 2. Defensive fallback: Ensure all needs have sub_classification_id populated from item_id if empty
             for need in needs:
@@ -138,7 +141,7 @@ class MesobProcurementPlan(models.Model):
             # Re-fetch/re-filter needs that actually have sub_classification_id populated now
             needs_with_sub = needs.filtered(lambda n: n.sub_classification_id)
             if not needs_with_sub:
-                raise UserError("None of the selected locked needs have a Sub-Classification set.")
+                raise UserError("No locked department needs with a valid Sub-Classification are available for automatic consolidation.")
 
             # 3. Group them by Sub-Classification
             sub_classes = needs_with_sub.mapped("sub_classification_id")
