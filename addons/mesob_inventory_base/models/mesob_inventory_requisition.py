@@ -449,7 +449,17 @@ class MesobInventoryRequisition(models.Model):
         return True
 
     def action_create_issue_voucher(self):
-        """Create Issue Voucher (Model 22) from approved requisition."""
+        """AUTO-044: Enhanced Model 22 auto-generation from approved requisition.
+        
+        Creates Issue Voucher (Model 22) with:
+        - Auto-populates items from approved requisition
+        - Three-copy digital distribution (FR-ISSUE-005):
+          * Original + Requisition → Stock Clerk (for bin card posting)
+          * Duplicate → Requesting Department
+          * Triplicate → Storekeeper (retained)
+        - Auto-sends notifications to all recipients
+        - Tracks acknowledgment status per recipient
+        """
         self.ensure_one()
 
         if self.state != "approved":
@@ -560,6 +570,9 @@ class MesobInventoryRequisition(models.Model):
 
         voucher = self.env["mesob.inventory.issue.voucher"].create(voucher_vals)
         self.state = "issued"
+        
+        # AUTO-044: Send three-copy distribution notifications
+        voucher._send_three_copy_distribution_notifications()
 
         return {
             "name": "Issue Voucher",
