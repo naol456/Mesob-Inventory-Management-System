@@ -162,30 +162,29 @@ class MesobInventoryRequisition(models.Model):
 
     @api.model
     def get_view(self, view_id=None, view_type="form", **options):
-        """Hide New button for PAO and Storekeeper on both list and form views.
+        """Hide New button for operational roles even if they also have Inventory User group.
 
-        Only staff (group_mesob_inventory_user) may create requisitions.
+        Priority-based logic:
+        1. If user is PAO, Storekeeper, or Stock Clerk → HIDE create (even if also Inventory User)
+        2. Only if user is PURELY Inventory User → SHOW create
+        
+        This handles cases where PAO might also have Inventory User group assigned.
 
-        - list view:  create="0" removes the toolbar New button.
-        - form view:  create="0" removes the New button in the breadcrumb
-                      pager (the one visible when browsing an existing record).
-
-        Uses lxml to safely set the attribute on the root node instead of
-        fragile string replacement.
+        Covers: kanban, list, form views
         """
         result = super().get_view(view_id, view_type, **options)
 
-        if view_type in ("list", "form"):
+        if view_type in ("kanban", "list", "form"):
             user = self.env.user
+            
+            # Check operational roles FIRST (these should NOT create)
             is_pao = user.has_group("mesob_inventory_base.group_mesob_pao")
-            is_storekeeper = user.has_group(
-                "mesob_inventory_base.group_mesob_storekeeper"
-            )
-            is_stock_clerk = user.has_group(
-                "mesob_inventory_base.group_mesob_stock_clerk"
-            )
-
-            if is_pao or is_storekeeper or is_stock_clerk:
+            is_storekeeper = user.has_group("mesob_inventory_base.group_mesob_storekeeper")
+            is_stock_clerk = user.has_group("mesob_inventory_base.group_mesob_stock_clerk")
+            is_auditor = user.has_group("mesob_inventory_base.group_mesob_auditor")
+            
+            # If user has ANY operational role, hide create button (even if they also have inventory_user)
+            if is_pao or is_storekeeper or is_stock_clerk or is_auditor:
                 arch = result.get("arch", "")
                 if isinstance(arch, str):
                     arch = arch.encode("utf-8")

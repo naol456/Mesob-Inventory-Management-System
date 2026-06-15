@@ -76,6 +76,7 @@
     </record>
 
     <!-- ── Form View ──────────────────────────────────────────────── -->
+    <!-- Form view for Inventory Users - CAN create -->
     <record id="view_mesob_inventory_requisition_form" model="ir.ui.view">
         <field name="name">mesob.inventory.requisition.form</field>
         <field name="model">mesob.inventory.requisition</field>

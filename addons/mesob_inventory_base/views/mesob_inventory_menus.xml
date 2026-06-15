@@ -14,7 +14,7 @@
               groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_pao"
               sequence="5"/>
 
-    <!-- ONE menu for requisitions - create button hidden by get_view() method in model -->
+    <!-- Single menu for requisitions - create controlled by views -->
     <menuitem id="menu_mesob_inventory_requisitions" 
               name="Requisitions (Model 20)"
               parent="menu_mesob_inventory_operations"
