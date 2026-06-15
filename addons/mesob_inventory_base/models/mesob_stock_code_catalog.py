@@ -15,6 +15,7 @@ class MesobStockCodeCatalog(models.Model):
     
     _name = 'mesob.stock.code.catalog'
     _description = 'Stock Code Catalog Version'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'version_number desc, id desc'
     _rec_name = 'version_name'
     
