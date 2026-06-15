@@ -1,9 +1,10 @@
 import re
+import logging
 
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
-
+_logger = logging.getLogger(__name__)
 _ITEM_CODE_PATTERN = re.compile(r"^(?P<major>\d{4})-(?P<sub>\d{3})-(?P<specific>\d{3})$")
 
 
@@ -355,29 +356,75 @@ class MesobInventoryItem(models.Model):
             else:
                 item.stock_status = 'normal'
 
-            # FR-PROC-029: Auto-generate draft Purchase Requisition (need) upon reorder trigger
+            # AUTO-023: FR-PROC-029 Auto-generate draft Purchase Requisition (need) upon reorder trigger
             if item.reorder_level > 0 and current <= item.reorder_level:
-                # Check for outstanding open POs for this item code to prevent duplicate ordering
+                # Check for outstanding open POs for this item code to prevent duplicate ordering (FR-PROC-029)
                 outstanding_pos = self.env['mesob.procurement.order.line'].search([
                     ('item_id', '=', item.id),
                     ('order_id.state', 'in', ['draft', 'pending', 'approved', 'sent'])
                 ])
-                if not outstanding_pos:
-                    # Search if need already exists in draft to avoid duplication
+                
+                if outstanding_pos:
+                    # Outstanding PO exists - log info message
+                    _logger.info(
+                        f"AUTO-023: Reorder level reached for {item.item_code}, "
+                        f"but PO {outstanding_pos[0].order_id.name} already outstanding. "
+                        f"ETA: {outstanding_pos[0].order_id.date_order or 'N/A'}"
+                    )
+                else:
+                    # No outstanding PO - check for existing draft need to avoid duplication
                     existing_need = self.env['mesob.procurement.need'].search([
                         ('item_id', '=', item.id),
                         ('state', '=', 'draft')
                     ])
+                    
                     if not existing_need:
-                        # Auto-create draft need request
-                        self.env['mesob.procurement.need'].create({
-                            'department': 'ministry_transport_logistics', # default department fallback
+                        # Calculate suggested order quantity: (Max level - Current level) or reorder level
+                        suggested_qty = max(
+                            item.maximum_level - current if item.maximum_level > 0 else item.reorder_level,
+                            item.reorder_level - current
+                        )
+                        
+                        # Get last purchase price as estimated unit price (AUTO-023 intelligent pre-fill)
+                        last_po_line = self.env['mesob.procurement.order.line'].search([
+                            ('item_id', '=', item.id),
+                            ('order_id.state', 'in', ['approved', 'sent', 'fully_received', 'closed'])
+                        ], order='id desc', limit=1)
+                        estimated_price = last_po_line.price_unit if last_po_line else 100.0
+                        
+                        # Auto-create draft need request (FR-PROC-029)
+                        need = self.env['mesob.procurement.need'].create({
+                            'department': 'ministry_transport_logistics',  # default department fallback
                             'item_id': item.id,
-                            'quantity': max(1.0, item.reorder_level - current),
-                            'estimated_unit_price': 100.0, # default estimate
-                            'expected_delivery_period': 'Auto-Reorder Lead Period',
+                            'quantity': suggested_qty,
+                            'estimated_unit_price': estimated_price,
+                            'expected_delivery_period': f'{item.total_lead_time} days (Auto-Reorder)',
                             'state': 'draft'
                         })
+                        
+                        # AUTO-023: Send notification to Procurement Officer
+                        procurement_officers = self.env.ref('mesob_inventory_base.group_mesob_procurement_officer').users
+                        if procurement_officers:
+                            need.message_post(
+                                body=f"""<p><strong>AUTO-023: Reorder Alert</strong></p>
+                                <ul>
+                                    <li>Item: {item.item_code} - {item.name}</li>
+                                    <li>Current Stock: {current}</li>
+                                    <li>Reorder Level: {item.reorder_level}</li>
+                                    <li>Suggested Order Qty: {suggested_qty}</li>
+                                    <li>Last Unit Price: ETB {estimated_price}</li>
+                                    <li>Lead Time: {item.total_lead_time} days</li>
+                                </ul>
+                                <p>Review and convert this draft need to Purchase Order.</p>""",
+                                subject=f"Reorder Alert: {item.item_code}",
+                                message_type='notification',
+                                partner_ids=procurement_officers.mapped('partner_id').ids
+                            )
+                        
+                        _logger.info(
+                            f"AUTO-023: Auto-generated draft procurement need for {item.item_code}. "
+                            f"Current: {current}, Reorder: {item.reorder_level}, Suggested Qty: {suggested_qty}"
+                        )
 
     def _compute_issue_status(self):
         for rec in self:

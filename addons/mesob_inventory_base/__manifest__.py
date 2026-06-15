@@ -47,6 +47,7 @@
         "data/mesob_gate_pass_sequence.xml",
         "data/mesob_reorder_alert_sequence.xml",
         "data/mesob_procurement_sequences.xml",
+        "data/mesob_payment_validation_sequence.xml",
         # Company data
         "data/mesob_company_data.xml",
         # Views (Base)
