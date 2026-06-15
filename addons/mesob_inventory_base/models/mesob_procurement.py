@@ -1562,6 +1562,171 @@ class MesobProcurementContract(models.Model):
         )
         
         return True
+    
+    def action_calculate_price_adjustment(self, current_indices):
+        """AUTO-031: Calculate price adjustment based on current indices (FR-PROC-035).
+        
+        Args:
+            current_indices (dict): Current index values, e.g., {'fuel': 110, 'steel': 160, 'labor': 125}
+        
+        Returns:
+            dict: Adjustment calculation details
+        
+        Example:
+            contract.action_calculate_price_adjustment({'fuel': 110, 'steel': 160, 'labor': 125})
+        """
+        self.ensure_one()
+        
+        if not self.has_price_adjustment:
+            raise UserError("This contract does not have a price adjustment clause (FR-PROC-035).")
+        
+        if not self.base_price_indices:
+            raise UserError("Base price indices not configured. Cannot calculate adjustment.")
+        
+        if not self.price_adjustment_formula:
+            raise UserError("Price adjustment formula not configured.")
+        
+        # Parse base indices (JSON format)
+        import json
+        try:
+            base_indices = json.loads(self.base_price_indices)
+        except:
+            raise UserError("Invalid base price indices format. Expected JSON format.")
+        
+        # Parse formula (e.g., "40% fuel + 30% steel + 30% labor")
+        # Simplified parsing - production would use more robust parser
+        formula_parts = self.price_adjustment_formula.lower().replace('%', '').replace('+', ',').split(',')
+        
+        weights = {}
+        for part in formula_parts:
+            part = part.strip()
+            if not part:
+                continue
+            
+            tokens = part.split()
+            if len(tokens) != 2:
+                continue
+            
+            try:
+                weight = float(tokens[0]) / 100.0  # Convert percentage to decimal
+                component = tokens[1].strip()
+                weights[component] = weight
+            except:
+                continue
+        
+        # Calculate adjustment factor
+        adjustment_factor = 1.0
+        calculation_details = []
+        
+        for component, weight in weights.items():
+            base_index = base_indices.get(component, 0)
+            current_index = current_indices.get(component, 0)
+            
+            if base_index == 0:
+                raise UserError(f"Base index for '{component}' is zero or missing.")
+            
+            if current_index == 0:
+                raise UserError(f"Current index for '{component}' is zero or missing.")
+            
+            # Component adjustment = (current / base) * weight
+            component_adjustment = (current_index / base_index) * weight
+            adjustment_factor += component_adjustment - weight  # Subtract weight to get delta only
+            
+            calculation_details.append({
+                'component': component,
+                'weight': weight * 100,  # Convert back to percentage
+                'base_index': base_index,
+                'current_index': current_index,
+                'ratio': current_index / base_index,
+                'contribution': (component_adjustment - weight) * 100  # Delta in percentage
+            })
+        
+        # Calculate adjusted price
+        adjusted_total_value = self.total_value * adjustment_factor
+        adjustment_amount = adjusted_total_value - self.total_value
+        
+        # Log to chatter
+        calculation_html = '<table style="width: 100%; border-collapse: collapse; margin: 15px 0;">'
+        calculation_html += '''<thead style="background-color: #f8f9fa;">
+            <tr>
+                <th style="border: 1px solid #dee2e6; padding: 8px;">Component</th>
+                <th style="border: 1px solid #dee2e6; padding: 8px;">Weight</th>
+                <th style="border: 1px solid #dee2e6; padding: 8px;">Base Index</th>
+                <th style="border: 1px solid #dee2e6; padding: 8px;">Current Index</th>
+                <th style="border: 1px solid #dee2e6; padding: 8px;">Ratio</th>
+                <th style="border: 1px solid #dee2e6; padding: 8px;">Impact</th>
+            </tr>
+        </thead><tbody>'''
+        
+        for detail in calculation_details:
+            impact_color = '#28a745' if detail['contribution'] >= 0 else '#dc3545'
+            calculation_html += f'''<tr>
+                <td style="border: 1px solid #dee2e6; padding: 8px;">{detail['component'].title()}</td>
+                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">{detail['weight']:.1f}%</td>
+                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">{detail['base_index']:.2f}</td>
+                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">{detail['current_index']:.2f}</td>
+                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">{detail['ratio']:.4f}</td>
+                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right; color: {impact_color};">{detail['contribution']:+.2f}%</td>
+            </tr>'''
+        
+        calculation_html += '</tbody></table>'
+        
+        adjustment_color = '#28a745' if adjustment_amount >= 0 else '#dc3545'
+        sign = '+' if adjustment_amount >= 0 else ''
+        
+        self.message_post(
+            body=f"""<div style="background-color: #e7f3ff; border-left: 4px solid #2196F3; padding: 15px;">
+                <h3 style="margin-top: 0;">💰 AUTO-031: Price Adjustment Calculation</h3>
+                <p><strong>Calculation Date:</strong> {fields.Date.today()}</p>
+                <p><strong>Formula:</strong> {self.price_adjustment_formula}</p>
+                <hr/>
+                <h4>Index Analysis:</h4>
+                {calculation_html}
+                <hr/>
+                <table style="width: 100%; margin-top: 15px;">
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Original Contract Value:</strong></td>
+                        <td style="padding: 5px 0; text-align: right;">ETB {self.total_value:,.2f}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Adjustment Factor:</strong></td>
+                        <td style="padding: 5px 0; text-align: right;">{adjustment_factor:.6f}</td>
+                    </tr>
+                    <tr style="background-color: {adjustment_color}20;">
+                        <td style="padding: 8px 0; font-weight: bold; border-top: 2px solid #2196F3;">Price Adjustment:</td>
+                        <td style="padding: 8px 0; text-align: right; font-weight: bold; color: {adjustment_color}; font-size: 16px; border-top: 2px solid #2196F3;">{sign}ETB {abs(adjustment_amount):,.2f}</td>
+                    </tr>
+                    <tr style="background-color: #d4edda;">
+                        <td style="padding: 8px 0; font-weight: bold; border-top: 2px solid #28a745;">Adjusted Contract Value:</td>
+                        <td style="padding: 8px 0; text-align: right; font-weight: bold; font-size: 18px; border-top: 2px solid #28a745;">ETB {adjusted_total_value:,.2f}</td>
+                    </tr>
+                </table>
+                <div style="background-color: #fff3cd; padding: 10px; border-radius: 4px; margin-top: 15px;">
+                    <p style="margin: 0;"><strong>ℹ️ Important Notes (FR-PROC-035, BR-PROC-007):</strong></p>
+                    <ul style="margin: 5px 0 0 0;">
+                        <li><strong>Payment adjustment only</strong> - Does NOT alter FIFO stock cost (BR-PROC-007)</li>
+                        <li>Adjustment recorded separately in financial records</li>
+                        <li>Stock Record Cards maintain original PO unit prices</li>
+                        <li>Price indices source must be documented for audit</li>
+                    </ul>
+                </div>
+            </div>""",
+            subject=f'Price Adjustment: {sign}ETB {abs(adjustment_amount):,.2f}',
+            message_type='comment'
+        )
+        
+        _logger.info(
+            f"AUTO-031: Price adjustment calculated for contract {self.name} - "
+            f"Factor: {adjustment_factor:.6f}, Adjustment: {sign}ETB {adjustment_amount:,.2f}"
+        )
+        
+        return {
+            'adjustment_factor': adjustment_factor,
+            'original_value': self.total_value,
+            'adjusted_value': adjusted_total_value,
+            'adjustment_amount': adjustment_amount,
+            'calculation_details': calculation_details,
+        }
 
 
 class MesobContractMilestone(models.Model):
