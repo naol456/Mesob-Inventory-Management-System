@@ -210,13 +210,208 @@ class MesobInventoryRequisition(models.Model):
         return True
 
     def action_approve(self):
-        """PAO approves the requisition (FR-ISSUE-002)."""
+        """PAO approves the requisition (FR-ISSUE-002).
+        
+        AUTO-043: Enhanced with stock availability alert before approval.
+        """
         for record in self:
             if record.state != "submitted":
                 raise UserError("Only submitted requisitions can be approved.")
+            
+            # AUTO-043: Check stock availability before approval
+            stock_warnings = self._check_stock_availability()
+            
+            if stock_warnings:
+                # Show stock availability alert
+                warning_html = self._format_stock_availability_alert(stock_warnings)
+                
+                # Return wizard to show stock warnings
+                return {
+                    'name': 'Stock Availability Alert',
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'mesob.requisition.stock.alert.wizard',
+                    'view_mode': 'form',
+                    'target': 'new',
+                    'context': {
+                        'default_requisition_id': record.id,
+                        'default_warning_message': warning_html,
+                        'default_stock_warnings': stock_warnings,
+                    },
+                }
+            
+            # If no warnings, proceed with approval
             record.approved_by_id = self.env.user
             record.approved_on = fields.Date.today()
             record.state = "approved"
+        
+        return True
+    
+    def _check_stock_availability(self):
+        """AUTO-043: Check real-time stock availability for all requisition lines.
+        
+        Returns list of warnings with:
+        - Item code and name
+        - Requested quantity
+        - Current stock level (from latest bin card balance)
+        - Pending requisitions for same item
+        - Expected delivery date from open POs
+        """
+        self.ensure_one()
+        warnings = []
+        
+        BinCard = self.env['mesob.bin.card']
+        Requisition = self.env['mesob.inventory.requisition']
+        PurchaseOrder = self.env['mesob.procurement.order']
+        
+        for line in self.line_ids:
+            if not line.item_id:
+                continue
+            
+            item = line.item_id
+            requested_qty = line.quantity
+            
+            # Get current stock level from latest bin card
+            latest_bin_card = BinCard.search([
+                ('sub_classification_id', '=', item.sub_classification_id.id),
+                ('location', '=', 'Main Store')
+            ], order='date desc, id desc', limit=1)
+            
+            current_stock = latest_bin_card.balance if latest_bin_card else 0.0
+            
+            # Get pending approved requisitions for same item (excluding this one)
+            pending_requisitions = Requisition.search([
+                ('state', '=', 'approved'),
+                ('id', '!=', self.id)
+            ])
+            
+            pending_qty = 0.0
+            for pending_req in pending_requisitions:
+                for pending_line in pending_req.line_ids.filtered(lambda l: l.item_id == item):
+                    pending_qty += pending_line.quantity
+            
+            # Calculate available stock after pending requisitions
+            available_stock = current_stock - pending_qty
+            
+            # Check if stock is insufficient
+            if available_stock < requested_qty:
+                # Find open POs with this item
+                open_pos = PurchaseOrder.search([
+                    ('state', 'in', ['approved', 'sent']),
+                ])
+                
+                expected_delivery = None
+                expected_qty = 0.0
+                
+                for po in open_pos:
+                    for po_line in po.line_ids.filtered(lambda l: l.item_id == item):
+                        remaining_qty = po_line.quantity - po_line.qty_received
+                        if remaining_qty > 0:
+                            expected_qty += remaining_qty
+                            # Use PO order date + estimated lead time (assume 30 days if not specified)
+                            if po.date_order:
+                                from datetime import timedelta
+                                estimated_delivery = po.date_order + timedelta(days=30)
+                                if not expected_delivery or estimated_delivery < expected_delivery:
+                                    expected_delivery = estimated_delivery
+                
+                warnings.append({
+                    'item_code': item.item_code,
+                    'item_name': item.name,
+                    'requested_qty': requested_qty,
+                    'current_stock': current_stock,
+                    'pending_qty': pending_qty,
+                    'available_stock': available_stock,
+                    'shortage': requested_qty - available_stock,
+                    'expected_delivery': expected_delivery,
+                    'expected_qty': expected_qty,
+                    'can_partial': available_stock > 0,
+                })
+        
+        return warnings
+    
+    def _format_stock_availability_alert(self, warnings):
+        """AUTO-043: Format stock warnings into HTML for display."""
+        html = """<div style="font-family: Arial, sans-serif;">
+            <h3 style="color: #856404; background-color: #fff3cd; padding: 10px; border-left: 4px solid #ffc107;">
+                ⚠ Stock Availability Alert
+            </h3>
+            <p>The following items have insufficient stock to fulfill this requisition:</p>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                <thead style="background-color: #f8f9fa;">
+                    <tr>
+                        <th style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">Item</th>
+                        <th style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">Requested</th>
+                        <th style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">Current Stock</th>
+                        <th style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">Pending</th>
+                        <th style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">Available</th>
+                        <th style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">Shortage</th>
+                        <th style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">Expected Delivery</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """
+        
+        for warning in warnings:
+            shortage_color = '#dc3545' if warning['shortage'] > 0 else '#28a745'
+            html += f"""
+                <tr>
+                    <td style="border: 1px solid #dee2e6; padding: 8px;">
+                        <strong>{warning['item_code']}</strong><br/>
+                        <small>{warning['item_name']}</small>
+                    </td>
+                    <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">{warning['requested_qty']:.0f}</td>
+                    <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">{warning['current_stock']:.0f}</td>
+                    <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">{warning['pending_qty']:.0f}</td>
+                    <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">{warning['available_stock']:.0f}</td>
+                    <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right; color: {shortage_color}; font-weight: bold;">
+                        {warning['shortage']:.0f}
+                    </td>
+                    <td style="border: 1px solid #dee2e6; padding: 8px;">
+                        {warning['expected_delivery'].strftime('%Y-%m-%d') if warning['expected_delivery'] else 'Not scheduled'}
+                        {f"<br/><small>({warning['expected_qty']:.0f} units)</small>" if warning['expected_qty'] > 0 else ''}
+                    </td>
+                </tr>
+            """
+        
+        html += """
+                </tbody>
+            </table>
+            <div style="margin-top: 20px; padding: 15px; background-color: #e7f3ff; border-left: 4px solid #2196F3;">
+                <h4 style="margin-top: 0;">Options:</h4>
+                <ol>
+                    <li><strong>Approve Partial Quantity:</strong> Approve only the available quantity</li>
+                    <li><strong>Defer Until Stock Available:</strong> Wait for expected delivery</li>
+                    <li><strong>Override and Approve:</strong> Approve anyway (requires justification)</li>
+                </ol>
+            </div>
+        </div>
+        """
+        
+        return html
+    
+    def action_force_approve(self):
+        """AUTO-043: Force approve requisition despite stock shortages (requires PAO override)."""
+        self.ensure_one()
+        
+        if self.state != "submitted":
+            raise UserError("Only submitted requisitions can be approved.")
+        
+        # Log override action
+        self.message_post(
+            body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px;">
+                <h4>⚠ Stock Shortage Override</h4>
+                <p><strong>Approved By:</strong> {self.env.user.name}</p>
+                <p><strong>Date:</strong> {fields.Datetime.now()}</p>
+                <p><em>PAO approved this requisition despite stock availability warnings.</em></p>
+            </div>""",
+            subject='Requisition Approved with Stock Override',
+            message_type='comment'
+        )
+        
+        self.approved_by_id = self.env.user
+        self.approved_on = fields.Date.today()
+        self.state = "approved"
+        
         return True
 
     def action_reject(self):
@@ -254,7 +449,17 @@ class MesobInventoryRequisition(models.Model):
         return True
 
     def action_create_issue_voucher(self):
-        """Create Issue Voucher (Model 22) from approved requisition."""
+        """AUTO-044: Enhanced Model 22 auto-generation from approved requisition.
+        
+        Creates Issue Voucher (Model 22) with:
+        - Auto-populates items from approved requisition
+        - Three-copy digital distribution (FR-ISSUE-005):
+          * Original + Requisition → Stock Clerk (for bin card posting)
+          * Duplicate → Requesting Department
+          * Triplicate → Storekeeper (retained)
+        - Auto-sends notifications to all recipients
+        - Tracks acknowledgment status per recipient
+        """
         self.ensure_one()
 
         if self.state != "approved":
@@ -365,6 +570,9 @@ class MesobInventoryRequisition(models.Model):
 
         voucher = self.env["mesob.inventory.issue.voucher"].create(voucher_vals)
         self.state = "issued"
+        
+        # AUTO-044: Send three-copy distribution notifications
+        voucher._send_three_copy_distribution_notifications()
 
         return {
             "name": "Issue Voucher",

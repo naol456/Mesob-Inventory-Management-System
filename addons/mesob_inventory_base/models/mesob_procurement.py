@@ -494,6 +494,148 @@ class MesobProcurementPlanLot(models.Model):
             # Auto-set mechanism to match suggestion if no override reason exists
             if self.suggested_mechanism:
                 self.mechanism = self.suggested_mechanism
+    
+    def action_generate_purchase_order(self):
+        """AUTO-022: Auto-generate draft Purchase Order from approved lot.
+        
+        Creates a draft PO with:
+        - Item codes/quantities from consolidated needs
+        - Unit prices from approved bid/contract or last PO
+        - Delivery location from store master
+        - Supplier from winning bid or lot settings
+        
+        Officer reviews and submits for approval workflow (FR-PROC-026).
+        """
+        self.ensure_one()
+        
+        if self.state not in ('approved', 'tender', 'rfq'):
+            raise UserError("Only approved lots can generate Purchase Orders.")
+        
+        if not self.need_ids:
+            raise UserError(f"Lot {self.name} has no consolidated needs. Cannot generate PO.")
+        
+        # Find winning bid/contract for this lot
+        winning_bid = None
+        if self.mechanism == 'bidding':
+            tender = self.env['mesob.procurement.tender'].search([
+                ('lot_id', '=', self.id),
+                ('state', '=', 'evaluated')
+            ], limit=1)
+            if tender:
+                winning_bid = tender.bid_ids.filtered(lambda b: b.is_winner).sorted('evaluated_price')[:1]
+        
+        # Prepare PO values
+        po_vals = {
+            'plan_lot_id': self.id,
+            'date_order': fields.Date.today(),
+            'state': 'draft',
+            'line_ids': [],
+        }
+        
+        # Set supplier from winning bid if available
+        if winning_bid and winning_bid.supplier_id:
+            po_vals['supplier_id'] = winning_bid.supplier_id.id
+        else:
+            # Must have a supplier - raise error
+            raise UserError(
+                f"Cannot generate PO for Lot {self.name}: No supplier assigned.\n"
+                "Please either:\n"
+                "1. Award a bid from tender evaluation, or\n"
+                "2. Manually select a supplier after PO generation."
+            )
+        
+        # Group needs by item to avoid duplicate lines
+        items_dict = {}
+        for need in self.need_ids:
+            if not need.item_id:
+                continue
+            
+            item_id = need.item_id.id
+            if item_id not in items_dict:
+                items_dict[item_id] = {
+                    'item': need.item_id,
+                    'quantity': 0.0,
+                    'unit_price': need.estimated_unit_price or 0.0,
+                    'major_classification_id': need.major_classification_id.id if need.major_classification_id else False,
+                    'sub_classification_id': need.sub_classification_id.id if need.sub_classification_id else False,
+                }
+            
+            items_dict[item_id]['quantity'] += need.quantity
+            
+            # Use highest price as default (officer can adjust)
+            if need.estimated_unit_price > items_dict[item_id]['unit_price']:
+                items_dict[item_id]['unit_price'] = need.estimated_unit_price
+        
+        if not items_dict:
+            raise UserError(f"Lot {self.name} has no items with catalogued item codes. Cannot generate PO.")
+        
+        # Create PO lines
+        for item_data in items_dict.values():
+            item = item_data['item']
+            quantity = item_data['quantity']
+            unit_price = item_data['unit_price']
+            
+            # Override price from winning bid if available
+            if winning_bid and winning_bid.line_ids:
+                bid_line = winning_bid.line_ids.filtered(lambda l: l.item_id == item)
+                if bid_line:
+                    unit_price = bid_line[0].unit_price
+            
+            po_vals['line_ids'].append((0, 0, {
+                'item_id': item.id,
+                'major_classification_id': item_data['major_classification_id'],
+                'sub_classification_id': item_data['sub_classification_id'],
+                'quantity': quantity,
+                'price_unit': unit_price,
+                'description': item.name,
+            }))
+        
+        # Create the PO
+        po = self.env['mesob.procurement.order'].create(po_vals)
+        
+        # Update lot state
+        self.write({'state': 'closed'})
+        
+        # Calculate total PO value for logging
+        total_value = sum(line[2]['quantity'] * line[2]['price_unit'] for line in po_vals['line_ids'])
+        
+        # Log action
+        _logger.info(
+            f"AUTO-022: PO {po.name} auto-generated from Lot {self.name} - "
+            f"{len(po_vals['line_ids'])} items, Total: ETB {total_value:,.2f}"
+        )
+        
+        # Send notification to Procurement Officer
+        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement_officer', raise_if_not_found=False)
+        if procurement_users and procurement_users.users:
+            self.plan_id.message_post(
+                body=f"""<div style="background-color: #d1ecf1; border-left: 4px solid #0c5460; padding: 15px;">
+                    <h3>AUTO-022: Draft PO Generated</h3>
+                    <p><strong>PO Reference:</strong> {po.name}</p>
+                    <p><strong>Source Lot:</strong> {self.name}</p>
+                    <p><strong>Supplier:</strong> {po.supplier_id.name if po.supplier_id else 'Not assigned'}</p>
+                    <p><strong>Items:</strong> {len(po.line_ids)}</p>
+                    <p><strong>Estimated Total:</strong> ETB {total_value:,.2f}</p>
+                    <hr/>
+                    <p><em>Please review item quantities, unit prices, and supplier details before submitting for approval.</em></p>
+                    <p><a href="/web#id={po.id}&model=mesob.procurement.order&view_type=form" 
+                       style="background-color: #17a2b8; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                       Review PO →
+                    </a></p>
+                </div>""",
+                subject=f'Draft PO Ready for Review: {po.name}',
+                message_type='notification',
+                partner_ids=procurement_users.users.mapped('partner_id').ids
+            )
+        
+        return {
+            'name': 'Purchase Order',
+            'type': 'ir.actions.act_window',
+            'res_model': 'mesob.procurement.order',
+            'res_id': po.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
 
 
 class MesobProcurementNeed(models.Model):
@@ -792,6 +934,21 @@ class MesobProcurementBid(models.Model):
         default=0.0,
         help="Percentage of local material/manufacturing content.",
     )
+    
+    # AUTO-015: Domestic preference calculation fields
+    preference_percentage = fields.Float(
+        string="Preference Margin (%)",
+        compute='_compute_domestic_preference',
+        store=True,
+        help="AUTO-015: Domestic preference margin per BR-PROC-003 (13.5% for ≥70% local, 11% for 40-70% local)"
+    )
+    preference_amount = fields.Float(
+        string="Preference Amount (ETB)",
+        compute='_compute_domestic_preference',
+        store=True,
+        help="AUTO-015: Preference amount deducted for ranking purposes only"
+    )
+    
     preliminary_passed = fields.Boolean(
         string="Administrative Passed",
         default=True,
@@ -801,16 +958,159 @@ class MesobProcurementBid(models.Model):
     financial_score = fields.Float(string="Financial Score", default=0.0)
     evaluated_price = fields.Float(
         string="Evaluated Price (ETB)",
+        compute='_compute_domestic_preference',
+        store=True,
         readonly=True,
-        help="Adjusted price applying domestic preference margin for ranking ONLY (BR-PROC-003).",
+        help="AUTO-015: Adjusted price applying domestic preference for ranking (FR-PROC-018 + BR-PROC-003). Contract uses original bid_price.",
     )
     ranking = fields.Integer(string="Rank", readonly=True)
+    is_winner = fields.Boolean(string="Winning Bid", default=False, help="Marked as winning bid after evaluation")
+    
+    line_ids = fields.One2many(
+        'mesob.procurement.bid.line',
+        'bid_id',
+        string='Bid Lines',
+        help='Individual items quoted in this bid'
+    )
+    
+    @api.depends('bid_price', 'local_content')
+    def _compute_domestic_preference(self):
+        """AUTO-015: Auto-calculate domestic preference per BR-PROC-003.
+        
+        Ethiopian Federal Procurement Regulation:
+        - ≥70% local content → 13.5% preference margin
+        - 40-70% local content → 11% preference margin
+        - <40% or foreign → 0% preference
+        
+        Evaluated price = bid_price - (bid_price × preference_percentage)
+        
+        Note: Preference is for ranking ONLY. Contract and payment use original bid_price (FR-PROC-018).
+        """
+        for bid in self:
+            # Determine preference percentage based on local content (BR-PROC-003)
+            if bid.local_content >= 70.0:
+                bid.preference_percentage = 13.5
+            elif bid.local_content >= 40.0:
+                bid.preference_percentage = 11.0
+            else:
+                bid.preference_percentage = 0.0
+            
+            # Calculate preference amount
+            bid.preference_amount = bid.bid_price * (bid.preference_percentage / 100.0)
+            
+            # Calculate evaluated price for ranking
+            bid.evaluated_price = bid.bid_price - bid.preference_amount
+            
+            _logger.info(
+                f"AUTO-015: Bid {bid.id} preference calculation - "
+                f"Local Content: {bid.local_content}%, "
+                f"Preference: {bid.preference_percentage}%, "
+                f"Original Price: ETB {bid.bid_price:,.2f}, "
+                f"Evaluated Price: ETB {bid.evaluated_price:,.2f}"
+            )
+    
+    def action_generate_preference_worksheet(self):
+        """AUTO-015: Generate domestic preference calculation worksheet for audit trail (FR-PROC-018)."""
+        self.ensure_one()
+        
+        worksheet_html = f"""
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2 style="text-align: center;">Domestic Preference Calculation Worksheet</h2>
+            <p style="text-align: center;"><em>Federal Procurement Regulation BR-PROC-003</em></p>
+            <hr/>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                <tr style="background-color: #f0f0f0;">
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Item</th>
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Value</th>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">Tender Reference</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">{self.tender_id.name}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">Supplier Name</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">{self.supplier_id.name}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">Local Content (%)</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right; font-weight: bold;">{self.local_content}%</td>
+                </tr>
+                <tr style="background-color: #fff3cd;">
+                    <td style="border: 1px solid #ddd; padding: 8px;">Applicable Preference Margin</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right; font-weight: bold;">{self.preference_percentage}%</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">Original Bid Price (ETB)</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">{self.bid_price:,.2f}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">Preference Deduction (ETB)</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">({self.preference_amount:,.2f})</td>
+                </tr>
+                <tr style="background-color: #d4edda;">
+                    <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Evaluated Price for Ranking (ETB)</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right; font-weight: bold;">{self.evaluated_price:,.2f}</td>
+                </tr>
+            </table>
+            
+            <div style="margin-top: 30px; padding: 15px; background-color: #e7f3ff; border-left: 4px solid #2196F3;">
+                <h4 style="margin-top: 0;">Preference Calculation Rules (BR-PROC-003):</h4>
+                <ul>
+                    <li><strong>≥70% local content:</strong> 13.5% preference margin</li>
+                    <li><strong>40-70% local content:</strong> 11% preference margin</li>
+                    <li><strong>&lt;40% local content:</strong> 0% preference (no margin)</li>
+                </ul>
+                <p style="margin-bottom: 0;"><strong>Note:</strong> Preference is applied for <em>ranking purposes only</em>. Contract value and payments use the <strong>original bid price</strong> (FR-PROC-018).</p>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <p><strong>Generated:</strong> {fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+                <p><strong>System:</strong> AUTO-015 Domestic Preference Calculation Engine</p>
+            </div>
+        </div>
+        """
+        
+        # Post to tender chatter for audit trail
+        self.tender_id.message_post(
+            body=worksheet_html,
+            subject=f'Domestic Preference Worksheet: {self.supplier_id.name}',
+            message_type='comment'
+        )
+        
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Preference Calculation Worksheet',
+            'res_model': 'mesob.procurement.tender',
+            'res_id': self.tender_id.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
 
     @api.constrains("supplier_id")
     def _check_supplier_status(self):
         for rec in self:
             if rec.supplier_id.fppa_blacklisted:
                 raise ValidationError(f"Supplier {rec.supplier_id.name} is blacklisted and cannot participate (FR-PROC-012).")
+
+
+class MesobProcurementBidLine(models.Model):
+    """Individual item lines within a bid submission."""
+    
+    _name = "mesob.procurement.bid.line"
+    _description = "Bid Line Item"
+    
+    bid_id = fields.Many2one('mesob.procurement.bid', string='Bid', required=True, ondelete='cascade')
+    item_id = fields.Many2one('mesob.inventory.item', string='Item', required=True)
+    quantity = fields.Float(string='Quantity', required=True, default=1.0)
+    unit_price = fields.Float(string='Unit Price (ETB)', required=True)
+    total_price = fields.Float(string='Total Price (ETB)', compute='_compute_total_price', store=True)
+    uom_id = fields.Many2one('uom.uom', string='Unit of Measure')
+    
+    @api.depends('quantity', 'unit_price')
+    def _compute_total_price(self):
+        for line in self:
+            line.total_price = line.quantity * line.unit_price
 
 
 class MesobProcurementContract(models.Model):

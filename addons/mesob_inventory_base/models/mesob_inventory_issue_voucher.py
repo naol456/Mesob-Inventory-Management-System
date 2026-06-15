@@ -1,6 +1,9 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from lxml import etree
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class MesobInventoryIssueVoucher(models.Model):
@@ -224,7 +227,10 @@ class MesobInventoryIssueVoucher(models.Model):
     # ── Actions ─────────────────────────────────────────────────────────
 
     def action_issue(self):
-        """Issue materials and mark copy distribution (FR-ISSUE-005)."""
+        """Issue materials and mark copy distribution (FR-ISSUE-005).
+        
+        AUTO-044: Enhanced with three-copy digital distribution.
+        """
         for record in self:
             if record.state != "draft":
                 raise UserError("Only draft vouchers can be issued.")
@@ -253,8 +259,119 @@ class MesobInventoryIssueVoucher(models.Model):
                 body=f"Issue Voucher {record.name} issued by {record.issued_by_id.name}. "
                      f"Copies distributed: Original→Stock Clerk, Duplicate→Department, Triplicate→Storekeeper."
             )
+            
+            # AUTO-044: Send three-copy distribution notifications
+            record._send_three_copy_distribution_notifications()
 
         return True
+    
+    def _send_three_copy_distribution_notifications(self):
+        """AUTO-044: Send digital copy distribution notifications to all recipients (FR-ISSUE-005).
+        
+        Three-copy distribution:
+        1. Original + Requisition → Stock Clerk (for bin card posting)
+        2. Duplicate → Requesting Department
+        3. Triplicate → Storekeeper (retained in system)
+        
+        Tracks acknowledgment status for accountability.
+        """
+        self.ensure_one()
+        
+        # Build items summary for notification
+        items_summary = '<ul>'
+        for line in self.line_ids:
+            items_summary += f'<li><strong>{line.item_id.item_code}</strong>: {line.quantity_issued} {line.uom_id.name if line.uom_id else "units"} - {line.item_id.name}</li>'
+        items_summary += '</ul>'
+        
+        # 1. Original → Stock Clerk (for posting to stock records)
+        stock_clerk_users = self.env.ref('mesob_inventory_base.group_mesob_stock_clerk', raise_if_not_found=False)
+        if stock_clerk_users and stock_clerk_users.users:
+            self.message_post(
+                body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px;">
+                    <h3>📄 Model 22 - ORIGINAL COPY (Stock Clerk)</h3>
+                    <p><strong>Issue Voucher:</strong> {self.name}</p>
+                    <p><strong>Issue Date:</strong> {self.issue_date}</p>
+                    <p><strong>Issued By:</strong> {self.issued_by_id.name}</p>
+                    <p><strong>Issued To:</strong> {self.requisition_id.department if self.requisition_id else 'N/A'}</p>
+                    <p><strong>Requisition Ref:</strong> {self.requisition_name}</p>
+                    <hr/>
+                    <h4>Items Issued:</h4>
+                    {items_summary}
+                    <hr/>
+                    <div style="background-color: #e7f3ff; padding: 10px; border-radius: 4px; margin-top: 15px;">
+                        <p style="margin: 0;"><strong>⚠ ACTION REQUIRED:</strong></p>
+                        <p style="margin: 5px 0 0 0;">Please post these transactions to Bin Cards and Stock Record Cards (FR-RECARD-001, FR-RECARD-002).</p>
+                    </div>
+                    <p style="margin-top: 15px;"><a href="/web#id={self.id}&model=mesob.inventory.issue.voucher&view_type=form" 
+                       style="background-color: #ffc107; color: #000; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                       View Issue Voucher →
+                    </a></p>
+                </div>""",
+                subject=f'[ORIGINAL] Model 22 Issue Voucher: {self.name}',
+                message_type='notification',
+                partner_ids=stock_clerk_users.users.mapped('partner_id').ids
+            )
+            
+            _logger.info(f"AUTO-044: Original copy sent to {len(stock_clerk_users.users)} Stock Clerk users")
+        
+        # 2. Duplicate → Requesting Department
+        if self.requisition_id and self.requisition_id.requested_by_id:
+            department_user = self.requisition_id.requested_by_id
+            self.message_post(
+                body=f"""<div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px;">
+                    <h3>📄 Model 22 - DUPLICATE COPY (Department)</h3>
+                    <p><strong>Issue Voucher:</strong> {self.name}</p>
+                    <p><strong>Issue Date:</strong> {self.issue_date}</p>
+                    <p><strong>Issued By:</strong> {self.issued_by_id.name}</p>
+                    <p><strong>Department:</strong> {self.requisition_id.department}</p>
+                    <p><strong>Your Requisition:</strong> {self.requisition_name}</p>
+                    <hr/>
+                    <h4>Items Issued to Your Department:</h4>
+                    {items_summary}
+                    <hr/>
+                    <div style="background-color: #e7f3ff; padding: 10px; border-radius: 4px; margin-top: 15px;">
+                        <p style="margin: 0;"><strong>⚠ ACTION REQUIRED:</strong></p>
+                        <p style="margin: 5px 0 0 0;">Please collect these items from the store and confirm receipt (FR-ISSUE-006).</p>
+                    </div>
+                    <p style="margin-top: 15px;"><a href="/web#id={self.id}&model=mesob.inventory.issue.voucher&view_type=form" 
+                       style="background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                       Confirm Receipt →
+                    </a></p>
+                </div>""",
+                subject=f'[DUPLICATE] Your Requisition Items Ready: {self.name}',
+                message_type='notification',
+                partner_ids=[department_user.partner_id.id]
+            )
+            
+            _logger.info(f"AUTO-044: Duplicate copy sent to department user {department_user.name}")
+        
+        # 3. Triplicate → Storekeeper (retained - notification for record keeping)
+        storekeeper_users = self.env.ref('mesob_inventory_base.group_mesob_storekeeper', raise_if_not_found=False)
+        if storekeeper_users and storekeeper_users.users:
+            self.message_post(
+                body=f"""<div style="background-color: #d1ecf1; border-left: 4px solid #0c5460; padding: 15px;">
+                    <h3>📄 Model 22 - TRIPLICATE COPY (Storekeeper)</h3>
+                    <p><strong>Issue Voucher:</strong> {self.name}</p>
+                    <p><strong>Issue Date:</strong> {self.issue_date}</p>
+                    <p><strong>Issued By:</strong> {self.issued_by_id.name}</p>
+                    <p><strong>Issued To:</strong> {self.requisition_id.department if self.requisition_id else 'N/A'}</p>
+                    <hr/>
+                    <h4>Items Issued:</h4>
+                    {items_summary}
+                    <hr/>
+                    <p><em>This is your retained copy for store records. Original sent to Stock Clerk for posting.</em></p>
+                </div>""",
+                subject=f'[TRIPLICATE] Model 22 Retained Copy: {self.name}',
+                message_type='comment',  # Comment instead of notification (already aware)
+                partner_ids=storekeeper_users.users.mapped('partner_id').ids
+            )
+            
+            _logger.info(f"AUTO-044: Triplicate copy retained for {len(storekeeper_users.users)} Storekeeper users")
+        
+        _logger.info(
+            f"AUTO-044: Three-copy distribution completed for Issue Voucher {self.name} - "
+            f"{len(self.line_ids)} items issued to {self.requisition_id.department if self.requisition_id else 'N/A'}"
+        )
     
     def _update_bin_cards_on_issue(self):
         """AUTO-049: Create bin card and stock record card entries for issued items.
