@@ -257,10 +257,17 @@ class MesobInventoryIssueVoucher(models.Model):
         return True
     
     def _update_bin_cards_on_issue(self):
-        """Create bin card entries for issued items (distributed quantity)."""
+        """AUTO-049: Create bin card and stock record card entries for issued items.
+        
+        Enhanced automation:
+        - Create Bin Card entries (quantity distributed) per sub-classification
+        - Create Stock Record Card entries (quantity + value) with FIFO consumption
+        - Auto-consume FIFO layers for accurate costing
+        - Send notifications to Stock Clerk for posting confirmation
+        """
         self.ensure_one()
         
-        # Group items by sub-classification
+        # Group items by sub-classification for Bin Card
         items_by_subclass = {}
         for line in self.line_ids:
             if not line.item_id or not line.item_id.sub_classification_id:
@@ -278,7 +285,7 @@ class MesobInventoryIssueVoucher(models.Model):
             
             items_by_subclass[sub_id]['quantity'] += line.quantity_issued
         
-        # Create bin card entry for each sub-classification
+        # AUTO-049: Create bin card entry for each sub-classification (FR-RECARD-001)
         BinCard = self.env['mesob.bin.card']
         uom_unit = self.env.ref('uom.product_uom_unit', raise_if_not_found=False)
         if not uom_unit:
@@ -298,6 +305,55 @@ class MesobInventoryIssueVoucher(models.Model):
                 'uom_id': uom_unit.id if uom_unit else False,
                 'received_by_id': self.issued_by_id.id,
             })
+        
+        # AUTO-049: Create Stock Record Card entries with FIFO consumption (FR-RECARD-002, FR-VAL-001)
+        StockRecordCard = self.env['mesob.stock.record.card']
+        
+        for line in self.line_ids:
+            if not line.item_id:
+                continue
+            
+            # Create stock record card debit entry
+            stock_record = StockRecordCard.create({
+                'item_id': line.item_id.id,
+                'date': self.issue_date or fields.Date.today(),
+                'transaction_type': 'issue',
+                'reference': self.name,
+                'description': f'Issue to {self.requisition_id.department if self.requisition_id else "Department"}',
+                'quantity_in': 0.0,
+                'quantity_out': line.quantity_issued,
+                'uom_id': line.uom_id.id if line.uom_id else line.item_id.uom_id.id,
+                'unit_cost': 0.0,  # Will be calculated by FIFO consumption
+                'source_document': f'Model 22 / {self.name}',
+            })
+            
+            # AUTO-049: Consume FIFO layers for accurate costing (FR-VAL-001)
+            stock_record.action_consume_fifo()
+            
+            self.env['logging'].getLogger(__name__).info(
+                f"AUTO-049: Stock Record Card created for {line.item_id.item_code} - "
+                f"Issue Qty: {line.quantity_issued}, FIFO Cost: ETB {stock_record.total_cost_out}"
+            )
+        
+        # AUTO-049: Send notification to Stock Clerk for posting confirmation
+        stock_clerk_users = self.env.ref('mesob_inventory_base.group_mesob_stock_clerk', raise_if_not_found=False)
+        if stock_clerk_users and stock_clerk_users.users:
+            self.message_post(
+                body=f"""<div>
+                    <h3>AUTO-049: Stock Records Auto-Updated</h3>
+                    <p><strong>Issue Voucher:</strong> {self.name}</p>
+                    <p><strong>Date:</strong> {self.issue_date}</p>
+                    <p><strong>Issued To:</strong> {self.requisition_id.department if self.requisition_id else 'N/A'}</p>
+                    <p><strong>Items Issued:</strong></p>
+                    <ul>
+                        {''.join([f'<li>{line.item_id.item_code}: {line.quantity_issued} {line.uom_id.name if line.uom_id else ""}</li>' for line in self.line_ids if line.item_id])}
+                    </ul>
+                    <p><em>Bin Cards and Stock Record Cards have been automatically debited with FIFO costing.</em></p>
+                </div>""",
+                subject=f"Stock Records Updated: {self.name}",
+                message_type='notification',
+                partner_ids=stock_clerk_users.users.mapped('partner_id').ids
+            )
 
     def action_confirm_receipt(self):
         """Department confirms receipt of materials (FR-ISSUE-006)."""
