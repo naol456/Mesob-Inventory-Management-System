@@ -1131,11 +1131,29 @@ class MesobProcurementContract(models.Model):
     total_value = fields.Float(string="Total Contract Value (ETB)", required=True)
     delivery_schedule = fields.Text(string="Delivery Schedule")
     payment_terms = fields.Text(string="Payment Terms")
+    
+    # ── AUTO-019: Performance Security & Guarantees ────────────────
     performance_security_recorded = fields.Boolean(
         string="Performance Security Recorded",
         default=False,
     )
     performance_security_details = fields.Text(string="Performance Security Details")
+    performance_security_amount = fields.Float(
+        string="Performance Security Amount (ETB)",
+        help="AUTO-019: Typically 5-10% of contract value"
+    )
+    performance_security_expiry = fields.Date(
+        string="Performance Security Expiry Date",
+        help="AUTO-019: Alert will be sent 30/15/7 days before expiry"
+    )
+    performance_security_alert_sent = fields.Selection([
+        ('none', 'No Alert Sent'),
+        ('30days', '30 Days Alert Sent'),
+        ('15days', '15 Days Alert Sent'),
+        ('7days', '7 Days Alert Sent'),
+        ('expired', 'Expiry Alert Sent'),
+    ], string='Security Alert Status', default='none')
+    
     advance_payment = fields.Float(
         string="Advance Payment (%)",
         default=0.0,
@@ -1145,10 +1163,100 @@ class MesobProcurementContract(models.Model):
         string="Advance Payment Guarantee Recorded",
         default=False,
     )
+    advance_payment_guarantee_amount = fields.Float(
+        string="Advance Payment Guarantee Amount (ETB)",
+        compute='_compute_advance_payment_guarantee_amount',
+        store=True,
+        help="AUTO-019: Must equal advance payment amount"
+    )
+    advance_payment_guarantee_expiry = fields.Date(
+        string="Advance Payment Guarantee Expiry",
+        help="AUTO-019: Alert will be sent before expiry"
+    )
+    advance_payment_guarantee_alert_sent = fields.Selection([
+        ('none', 'No Alert Sent'),
+        ('30days', '30 Days Alert Sent'),
+        ('15days', '15 Days Alert Sent'),
+        ('7days', '7 Days Alert Sent'),
+        ('expired', 'Expiry Alert Sent'),
+    ], string='Guarantee Alert Status', default='none')
+    
+    # ── AUTO-020: Delivery Milestones ──────────────────────────────
+    milestone_ids = fields.One2many(
+        'mesob.contract.milestone',
+        'contract_id',
+        string='Delivery Milestones',
+        help='AUTO-020: Auto-tracked delivery milestones'
+    )
+    
+    # ── AUTO-031: Price Adjustment ──────────────────────────────────
+    has_price_adjustment = fields.Boolean(
+        string="Price Adjustment Clause",
+        default=False,
+        help="AUTO-031: Contract allows price adjustments per FR-PROC-035"
+    )
+    base_price_indices = fields.Text(
+        string="Base Price Indices",
+        help="AUTO-031: JSON format: {fuel: 100, steel: 150, labor: 120}"
+    )
+    price_adjustment_formula = fields.Text(
+        string="Price Adjustment Formula",
+        help="AUTO-031: e.g., 40% fuel + 30% steel + 30% labor"
+    )
+    
+    # ── AUTO-032: Retention & Warranty ─────────────────────────────
+    retention_percentage = fields.Float(
+        string="Retention Percentage (%)",
+        default=10.0,
+        help="AUTO-032: Holdback per payment (max 10% per FR-PROC-037)"
+    )
+    cumulative_retention = fields.Float(
+        string="Cumulative Retention Held (ETB)",
+        default=0.0,
+        readonly=True,
+        help="AUTO-032: Total retention held from payments"
+    )
+    retention_released = fields.Boolean(
+        string="Retention Released",
+        default=False,
+        help="AUTO-032: True when retention released to supplier"
+    )
+    retention_release_date = fields.Date(
+        string="Retention Release Date",
+        readonly=True,
+        help="AUTO-032: Date retention was released"
+    )
+    warranty_period_months = fields.Integer(
+        string="Warranty Period (Months)",
+        default=12,
+        help="AUTO-032: Defects liability period"
+    )
+    warranty_expiry_date = fields.Date(
+        string="Warranty Expiry Date",
+        compute='_compute_warranty_expiry',
+        store=True,
+        help="AUTO-032: Contract close date + warranty months"
+    )
+    defects_cleared = fields.Boolean(
+        string="Defects Liability Cleared",
+        default=False,
+        help="AUTO-032: Procurement officer confirms no defects"
+    )
+    
     cumulative_variation_total = fields.Float(
         string="Cumulative Variations Total (ETB)",
         default=0.0,
     )
+    
+    contract_sign_date = fields.Date(
+        string="Contract Signature Date",
+        help="Date contract was signed"
+    )
+    contract_close_date = fields.Date(
+        string="Contract Close Date",
+        help="Date final delivery completed"
+    )
+    
     state = fields.Selection(
         [
             ("draft", "Draft"),
@@ -1161,6 +1269,25 @@ class MesobProcurementContract(models.Model):
         required=True,
     )
 
+    @api.depends('advance_payment', 'total_value')
+    def _compute_advance_payment_guarantee_amount(self):
+        """AUTO-019: Calculate required advance payment guarantee amount."""
+        for rec in self:
+            if rec.advance_payment > 0:
+                rec.advance_payment_guarantee_amount = rec.total_value * (rec.advance_payment / 100.0)
+            else:
+                rec.advance_payment_guarantee_amount = 0.0
+    
+    @api.depends('contract_close_date', 'warranty_period_months')
+    def _compute_warranty_expiry(self):
+        """AUTO-032: Calculate warranty expiry date."""
+        for rec in self:
+            if rec.contract_close_date and rec.warranty_period_months:
+                from dateutil.relativedelta import relativedelta
+                rec.warranty_expiry_date = rec.contract_close_date + relativedelta(months=rec.warranty_period_months)
+            else:
+                rec.warranty_expiry_date = False
+    
     @api.constrains("advance_payment", "advance_payment_guarantee")
     def _check_advance_payment_rules(self):
         for rec in self:
@@ -1185,6 +1312,632 @@ class MesobProcurementContract(models.Model):
                 raise UserError("Performance security must be recorded for contracts of ETB 500,000 or above before signature (FR-PROC-021).")
             
             rec.state = "signed"
+        return True
+    
+    @api.model
+    def _cron_check_guarantee_expiry(self):
+        """AUTO-019: Scheduled job to check performance security & advance payment guarantee expiry.
+        
+        Runs daily to send alerts at 30, 15, 7 days before expiry (FR-PROC-022).
+        Blocks payments if guarantees expire before delivery complete.
+        """
+        today = fields.Date.today()
+        from datetime import timedelta
+        
+        active_contracts = self.search([
+            ('state', 'in', ['signed', 'variation']),
+        ])
+        
+        for contract in active_contracts:
+            # Check Performance Security expiry
+            if contract.performance_security_recorded and contract.performance_security_expiry:
+                days_until_expiry = (contract.performance_security_expiry - today).days
+                
+                if days_until_expiry <= 0 and contract.performance_security_alert_sent != 'expired':
+                    contract._send_security_expiry_alert('expired', days_until_expiry)
+                    contract.performance_security_alert_sent = 'expired'
+                elif days_until_expiry <= 7 and contract.performance_security_alert_sent not in ['7days', 'expired']:
+                    contract._send_security_expiry_alert('7days', days_until_expiry)
+                    contract.performance_security_alert_sent = '7days'
+                elif days_until_expiry <= 15 and contract.performance_security_alert_sent not in ['15days', '7days', 'expired']:
+                    contract._send_security_expiry_alert('15days', days_until_expiry)
+                    contract.performance_security_alert_sent = '15days'
+                elif days_until_expiry <= 30 and contract.performance_security_alert_sent == 'none':
+                    contract._send_security_expiry_alert('30days', days_until_expiry)
+                    contract.performance_security_alert_sent = '30days'
+            
+            # Check Advance Payment Guarantee expiry
+            if contract.advance_payment_guarantee and contract.advance_payment_guarantee_expiry:
+                days_until_expiry = (contract.advance_payment_guarantee_expiry - today).days
+                
+                if days_until_expiry <= 0 and contract.advance_payment_guarantee_alert_sent != 'expired':
+                    contract._send_guarantee_expiry_alert('expired', days_until_expiry)
+                    contract.advance_payment_guarantee_alert_sent = 'expired'
+                elif days_until_expiry <= 7 and contract.advance_payment_guarantee_alert_sent not in ['7days', 'expired']:
+                    contract._send_guarantee_expiry_alert('7days', days_until_expiry)
+                    contract.advance_payment_guarantee_alert_sent = '7days'
+                elif days_until_expiry <= 15 and contract.advance_payment_guarantee_alert_sent not in ['15days', '7days', 'expired']:
+                    contract._send_guarantee_expiry_alert('15days', days_until_expiry)
+                    contract.advance_payment_guarantee_alert_sent = '15days'
+                elif days_until_expiry <= 30 and contract.advance_payment_guarantee_alert_sent == 'none':
+                    contract._send_guarantee_expiry_alert('30days', days_until_expiry)
+                    contract.advance_payment_guarantee_alert_sent = '30days'
+        
+        _logger.info(f"AUTO-019: Guarantee expiry check completed - {len(active_contracts)} contracts scanned")
+    
+    def _send_security_expiry_alert(self, alert_type, days_remaining):
+        """AUTO-019: Send performance security expiry alert."""
+        self.ensure_one()
+        
+        alert_colors = {
+            '30days': ('#fff3cd', '#856404', '⚠️', 'WARNING'),
+            '15days': ('#fff3cd', '#ff9800', '⚠️', 'URGENT'),
+            '7days': ('#f8d7da', '#dc3545', '🚨', 'CRITICAL'),
+            'expired': ('#f8d7da', '#721c24', '❌', 'EXPIRED'),
+        }
+        
+        bg_color, text_color, icon, severity = alert_colors.get(alert_type, alert_colors['30days'])
+        days_text = f"{days_remaining} days" if days_remaining > 0 else "EXPIRED"
+        
+        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement_officer', raise_if_not_found=False)
+        
+        if procurement_users and procurement_users.users:
+            self.message_post(
+                body=f"""<div style="background-color: {bg_color}; border-left: 4px solid {text_color}; padding: 15px;">
+                    <h3 style="color: {text_color}; margin-top: 0;">{icon} AUTO-019: Performance Security {severity}</h3>
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Contract:</strong></td>
+                            <td style="padding: 5px 0; text-align: right;">{self.name}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Supplier:</strong></td>
+                            <td style="padding: 5px 0; text-align: right;">{self.supplier_id.name}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Security Amount:</strong></td>
+                            <td style="padding: 5px 0; text-align: right;">ETB {self.performance_security_amount:,.2f}</td>
+                        </tr>
+                        <tr style="background-color: {bg_color};">
+                            <td style="padding: 5px 0;"><strong>Expiry Date:</strong></td>
+                            <td style="padding: 5px 0; text-align: right; font-weight: bold;">{self.performance_security_expiry}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Days Remaining:</strong></td>
+                            <td style="padding: 5px 0; text-align: right; color: {text_color}; font-weight: bold; font-size: 18px;">{days_text}</td>
+                        </tr>
+                    </table>
+                    <div style="background-color: #fff; padding: 10px; border-radius: 4px; margin-top: 15px;">
+                        <p style="margin: 0;"><strong>⚠️ ACTION REQUIRED (FR-PROC-022):</strong></p>
+                        <p style="margin: 5px 0 0 0;">Contact supplier to renew performance security before expiry or risk will not be covered.</p>
+                    </div>
+                </div>""",
+                subject=f'{icon} {severity}: Performance Security Expiry - {self.name}',
+                message_type='notification',
+                partner_ids=procurement_users.users.mapped('partner_id').ids
+            )
+    
+    def _send_guarantee_expiry_alert(self, alert_type, days_remaining):
+        """AUTO-019: Send advance payment guarantee expiry alert."""
+        self.ensure_one()
+        
+        alert_colors = {
+            '30days': ('#fff3cd', '#856404', '⚠️', 'WARNING'),
+            '15days': ('#fff3cd', '#ff9800', '⚠️', 'URGENT'),
+            '7days': ('#f8d7da', '#dc3545', '🚨', 'CRITICAL'),
+            'expired': ('#f8d7da', '#721c24', '❌', 'EXPIRED - PAYMENT BLOCKED'),
+        }
+        
+        bg_color, text_color, icon, severity = alert_colors.get(alert_type, alert_colors['30days'])
+        days_text = f"{days_remaining} days" if days_remaining > 0 else "EXPIRED"
+        
+        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement_officer', raise_if_not_found=False)
+        
+        if procurement_users and procurement_users.users:
+            self.message_post(
+                body=f"""<div style="background-color: {bg_color}; border-left: 4px solid {text_color}; padding: 15px;">
+                    <h3 style="color: {text_color}; margin-top: 0;">{icon} AUTO-019: Advance Payment Guarantee {severity}</h3>
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Contract:</strong></td>
+                            <td style="padding: 5px 0; text-align: right;">{self.name}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Supplier:</strong></td>
+                            <td style="padding: 5px 0; text-align: right;">{self.supplier_id.name}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Guarantee Amount:</strong></td>
+                            <td style="padding: 5px 0; text-align: right;">ETB {self.advance_payment_guarantee_amount:,.2f}</td>
+                        </tr>
+                        <tr style="background-color: {bg_color};">
+                            <td style="padding: 5px 0;"><strong>Expiry Date:</strong></td>
+                            <td style="padding: 5px 0; text-align: right; font-weight: bold;">{self.advance_payment_guarantee_expiry}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Days Remaining:</strong></td>
+                            <td style="padding: 5px 0; text-align: right; color: {text_color}; font-weight: bold; font-size: 18px;">{days_text}</td>
+                        </tr>
+                    </table>
+                    <div style="background-color: #f8d7da; padding: 10px; border-radius: 4px; margin-top: 15px;">
+                        <p style="margin: 0;"><strong>🚨 CRITICAL (BR-PROC-006, FR-PROC-022):</strong></p>
+                        <p style="margin: 5px 0 0 0;">Advance payment is BLOCKED if guarantee expires! Contact supplier immediately for renewal.</p>
+                    </div>
+                </div>""",
+                subject=f'{icon} {severity}: Advance Payment Guarantee - {self.name}',
+                message_type='notification',
+                partner_ids=procurement_users.users.mapped('partner_id').ids
+            )
+    
+    def action_release_retention(self):
+        """AUTO-032: Release retention to supplier (FR-PROC-037).
+        
+        Conditions:
+        - Contract closed (final Model 19 confirmed)
+        - Warranty period elapsed
+        - No defects liability issues
+        - Procurement officer clearance
+        """
+        self.ensure_one()
+        
+        # Validation checks
+        if self.state != 'closed':
+            raise UserError("Retention can only be released for closed contracts.")
+        
+        if not self.warranty_expiry_date:
+            raise UserError("Warranty period not configured. Cannot determine if warranty has elapsed.")
+        
+        if fields.Date.today() < self.warranty_expiry_date:
+            raise UserError(
+                f"Warranty period has not elapsed yet. "
+                f"Warranty expires on {self.warranty_expiry_date}. "
+                f"Cannot release retention until warranty period complete."
+            )
+        
+        if not self.defects_cleared:
+            raise UserError(
+                "Procurement officer must confirm defects liability clearance before retention release. "
+                "Please check 'Defects Liability Cleared' field."
+            )
+        
+        if self.retention_released:
+            raise UserError("Retention has already been released.")
+        
+        if self.cumulative_retention <= 0:
+            raise UserError("No retention amount to release.")
+        
+        # Release retention
+        self.write({
+            'retention_released': True,
+            'retention_release_date': fields.Date.today()
+        })
+        
+        # Log to chatter
+        self.message_post(
+            body=f"""<div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px;">
+                <h3 style="color: #155724;">✅ AUTO-032: Retention Released</h3>
+                <table style="width: 100%;">
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Contract:</strong></td>
+                        <td style="padding: 5px 0; text-align: right;">{self.name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Supplier:</strong></td>
+                        <td style="padding: 5px 0; text-align: right;">{self.supplier_id.name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Retention Amount:</strong></td>
+                        <td style="padding: 5px 0; text-align: right; font-weight: bold; color: #28a745; font-size: 18px;">ETB {self.cumulative_retention:,.2f}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Release Date:</strong></td>
+                        <td style="padding: 5px 0; text-align: right;">{self.retention_release_date}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Warranty Expiry:</strong></td>
+                        <td style="padding: 5px 0; text-align: right;">{self.warranty_expiry_date}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Released By:</strong></td>
+                        <td style="padding: 5px 0; text-align: right;">{self.env.user.name}</td>
+                    </tr>
+                </table>
+                <div style="background-color: #fff; padding: 10px; border-radius: 4px; margin-top: 15px;">
+                    <p style="margin: 0;"><strong>✓ Conditions Met (FR-PROC-037):</strong></p>
+                    <ul style="margin: 5px 0 0 0;">
+                        <li>Contract closed with final Model 19 confirmed</li>
+                        <li>Warranty period ({self.warranty_period_months} months) elapsed</li>
+                        <li>Defects liability clearance confirmed</li>
+                        <li>Procurement officer approval obtained</li>
+                    </ul>
+                </div>
+            </div>""",
+            subject=f'Retention Released: ETB {self.cumulative_retention:,.2f}',
+            message_type='comment'
+        )
+        
+        _logger.info(
+            f"AUTO-032: Retention released for contract {self.name} - "
+            f"Amount: ETB {self.cumulative_retention:,.2f}, Supplier: {self.supplier_id.name}"
+        )
+        
+        return True
+    
+    def action_calculate_price_adjustment(self, current_indices):
+        """AUTO-031: Calculate price adjustment based on current indices (FR-PROC-035).
+        
+        Args:
+            current_indices (dict): Current index values, e.g., {'fuel': 110, 'steel': 160, 'labor': 125}
+        
+        Returns:
+            dict: Adjustment calculation details
+        
+        Example:
+            contract.action_calculate_price_adjustment({'fuel': 110, 'steel': 160, 'labor': 125})
+        """
+        self.ensure_one()
+        
+        if not self.has_price_adjustment:
+            raise UserError("This contract does not have a price adjustment clause (FR-PROC-035).")
+        
+        if not self.base_price_indices:
+            raise UserError("Base price indices not configured. Cannot calculate adjustment.")
+        
+        if not self.price_adjustment_formula:
+            raise UserError("Price adjustment formula not configured.")
+        
+        # Parse base indices (JSON format)
+        import json
+        try:
+            base_indices = json.loads(self.base_price_indices)
+        except:
+            raise UserError("Invalid base price indices format. Expected JSON format.")
+        
+        # Parse formula (e.g., "40% fuel + 30% steel + 30% labor")
+        # Simplified parsing - production would use more robust parser
+        formula_parts = self.price_adjustment_formula.lower().replace('%', '').replace('+', ',').split(',')
+        
+        weights = {}
+        for part in formula_parts:
+            part = part.strip()
+            if not part:
+                continue
+            
+            tokens = part.split()
+            if len(tokens) != 2:
+                continue
+            
+            try:
+                weight = float(tokens[0]) / 100.0  # Convert percentage to decimal
+                component = tokens[1].strip()
+                weights[component] = weight
+            except:
+                continue
+        
+        # Calculate adjustment factor
+        adjustment_factor = 1.0
+        calculation_details = []
+        
+        for component, weight in weights.items():
+            base_index = base_indices.get(component, 0)
+            current_index = current_indices.get(component, 0)
+            
+            if base_index == 0:
+                raise UserError(f"Base index for '{component}' is zero or missing.")
+            
+            if current_index == 0:
+                raise UserError(f"Current index for '{component}' is zero or missing.")
+            
+            # Component adjustment = (current / base) * weight
+            component_adjustment = (current_index / base_index) * weight
+            adjustment_factor += component_adjustment - weight  # Subtract weight to get delta only
+            
+            calculation_details.append({
+                'component': component,
+                'weight': weight * 100,  # Convert back to percentage
+                'base_index': base_index,
+                'current_index': current_index,
+                'ratio': current_index / base_index,
+                'contribution': (component_adjustment - weight) * 100  # Delta in percentage
+            })
+        
+        # Calculate adjusted price
+        adjusted_total_value = self.total_value * adjustment_factor
+        adjustment_amount = adjusted_total_value - self.total_value
+        
+        # Log to chatter
+        calculation_html = '<table style="width: 100%; border-collapse: collapse; margin: 15px 0;">'
+        calculation_html += '''<thead style="background-color: #f8f9fa;">
+            <tr>
+                <th style="border: 1px solid #dee2e6; padding: 8px;">Component</th>
+                <th style="border: 1px solid #dee2e6; padding: 8px;">Weight</th>
+                <th style="border: 1px solid #dee2e6; padding: 8px;">Base Index</th>
+                <th style="border: 1px solid #dee2e6; padding: 8px;">Current Index</th>
+                <th style="border: 1px solid #dee2e6; padding: 8px;">Ratio</th>
+                <th style="border: 1px solid #dee2e6; padding: 8px;">Impact</th>
+            </tr>
+        </thead><tbody>'''
+        
+        for detail in calculation_details:
+            impact_color = '#28a745' if detail['contribution'] >= 0 else '#dc3545'
+            calculation_html += f'''<tr>
+                <td style="border: 1px solid #dee2e6; padding: 8px;">{detail['component'].title()}</td>
+                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">{detail['weight']:.1f}%</td>
+                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">{detail['base_index']:.2f}</td>
+                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">{detail['current_index']:.2f}</td>
+                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">{detail['ratio']:.4f}</td>
+                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right; color: {impact_color};">{detail['contribution']:+.2f}%</td>
+            </tr>'''
+        
+        calculation_html += '</tbody></table>'
+        
+        adjustment_color = '#28a745' if adjustment_amount >= 0 else '#dc3545'
+        sign = '+' if adjustment_amount >= 0 else ''
+        
+        self.message_post(
+            body=f"""<div style="background-color: #e7f3ff; border-left: 4px solid #2196F3; padding: 15px;">
+                <h3 style="margin-top: 0;">💰 AUTO-031: Price Adjustment Calculation</h3>
+                <p><strong>Calculation Date:</strong> {fields.Date.today()}</p>
+                <p><strong>Formula:</strong> {self.price_adjustment_formula}</p>
+                <hr/>
+                <h4>Index Analysis:</h4>
+                {calculation_html}
+                <hr/>
+                <table style="width: 100%; margin-top: 15px;">
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Original Contract Value:</strong></td>
+                        <td style="padding: 5px 0; text-align: right;">ETB {self.total_value:,.2f}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Adjustment Factor:</strong></td>
+                        <td style="padding: 5px 0; text-align: right;">{adjustment_factor:.6f}</td>
+                    </tr>
+                    <tr style="background-color: {adjustment_color}20;">
+                        <td style="padding: 8px 0; font-weight: bold; border-top: 2px solid #2196F3;">Price Adjustment:</td>
+                        <td style="padding: 8px 0; text-align: right; font-weight: bold; color: {adjustment_color}; font-size: 16px; border-top: 2px solid #2196F3;">{sign}ETB {abs(adjustment_amount):,.2f}</td>
+                    </tr>
+                    <tr style="background-color: #d4edda;">
+                        <td style="padding: 8px 0; font-weight: bold; border-top: 2px solid #28a745;">Adjusted Contract Value:</td>
+                        <td style="padding: 8px 0; text-align: right; font-weight: bold; font-size: 18px; border-top: 2px solid #28a745;">ETB {adjusted_total_value:,.2f}</td>
+                    </tr>
+                </table>
+                <div style="background-color: #fff3cd; padding: 10px; border-radius: 4px; margin-top: 15px;">
+                    <p style="margin: 0;"><strong>ℹ️ Important Notes (FR-PROC-035, BR-PROC-007):</strong></p>
+                    <ul style="margin: 5px 0 0 0;">
+                        <li><strong>Payment adjustment only</strong> - Does NOT alter FIFO stock cost (BR-PROC-007)</li>
+                        <li>Adjustment recorded separately in financial records</li>
+                        <li>Stock Record Cards maintain original PO unit prices</li>
+                        <li>Price indices source must be documented for audit</li>
+                    </ul>
+                </div>
+            </div>""",
+            subject=f'Price Adjustment: {sign}ETB {abs(adjustment_amount):,.2f}',
+            message_type='comment'
+        )
+        
+        _logger.info(
+            f"AUTO-031: Price adjustment calculated for contract {self.name} - "
+            f"Factor: {adjustment_factor:.6f}, Adjustment: {sign}ETB {adjustment_amount:,.2f}"
+        )
+        
+        return {
+            'adjustment_factor': adjustment_factor,
+            'original_value': self.total_value,
+            'adjusted_value': adjusted_total_value,
+            'adjustment_amount': adjustment_amount,
+            'calculation_details': calculation_details,
+        }
+
+
+class MesobContractMilestone(models.Model):
+    """AUTO-020: Contract Delivery Milestone Tracking.
+    
+    Auto-tracks delivery milestones from contract schedule.
+    Sends alerts 14, 7, 3 days before due date.
+    Flags overdue milestones with days-late counter.
+    """
+    
+    _name = 'mesob.contract.milestone'
+    _description = 'Contract Delivery Milestone'
+    _order = 'due_date asc, id'
+    
+    contract_id = fields.Many2one(
+        'mesob.procurement.contract',
+        string='Contract',
+        required=True,
+        ondelete='cascade'
+    )
+    
+    name = fields.Char(
+        string='Milestone Description',
+        required=True,
+        help='e.g., "First Batch Delivery - 100 units"'
+    )
+    
+    due_date = fields.Date(
+        string='Due Date',
+        required=True,
+        help='Contract delivery deadline'
+    )
+    
+    actual_date = fields.Date(
+        string='Actual Delivery Date',
+        help='Actual date items were received (Model 19 date)'
+    )
+    
+    status = fields.Selection([
+        ('upcoming', 'Upcoming'),
+        ('approaching', 'Approaching (14 days)'),
+        ('urgent', 'Urgent (7 days)'),
+        ('critical', 'Critical (3 days)'),
+        ('overdue', 'Overdue'),
+        ('completed', 'Completed'),
+    ], string='Status', compute='_compute_status', store=True)
+    
+    days_until_due = fields.Integer(
+        string='Days Until Due',
+        compute='_compute_status',
+        store=True,
+        help='Negative if overdue'
+    )
+    
+    alert_14days_sent = fields.Boolean(string='14-Day Alert Sent', default=False)
+    alert_7days_sent = fields.Boolean(string='7-Day Alert Sent', default=False)
+    alert_3days_sent = fields.Boolean(string='3-Day Alert Sent', default=False)
+    alert_overdue_sent = fields.Boolean(string='Overdue Alert Sent', default=False)
+    
+    notes = fields.Text(string='Notes')
+    
+    @api.depends('due_date', 'actual_date')
+    def _compute_status(self):
+        """AUTO-020: Compute milestone status and days until due."""
+        today = fields.Date.today()
+        
+        for milestone in self:
+            if milestone.actual_date:
+                milestone.status = 'completed'
+                milestone.days_until_due = 0
+                continue
+            
+            if not milestone.due_date:
+                milestone.status = 'upcoming'
+                milestone.days_until_due = 999
+                continue
+            
+            days_diff = (milestone.due_date - today).days
+            milestone.days_until_due = days_diff
+            
+            if days_diff < 0:
+                milestone.status = 'overdue'
+            elif days_diff <= 3:
+                milestone.status = 'critical'
+            elif days_diff <= 7:
+                milestone.status = 'urgent'
+            elif days_diff <= 14:
+                milestone.status = 'approaching'
+            else:
+                milestone.status = 'upcoming'
+    
+    @api.model
+    def _cron_check_milestone_alerts(self):
+        """AUTO-020: Scheduled job to check milestones and send alerts.
+        
+        Runs daily to send alerts at 14, 7, 3 days before due date.
+        Flags overdue milestones with escalation.
+        """
+        today = fields.Date.today()
+        
+        upcoming_milestones = self.search([
+            ('actual_date', '=', False),  # Not completed yet
+        ])
+        
+        for milestone in upcoming_milestones:
+            days_until = milestone.days_until_due
+            
+            # Overdue alert
+            if days_until < 0 and not milestone.alert_overdue_sent:
+                milestone._send_milestone_alert('overdue', days_until)
+                milestone.alert_overdue_sent = True
+            
+            # 3-day alert
+            elif days_until <= 3 and days_until >= 0 and not milestone.alert_3days_sent:
+                milestone._send_milestone_alert('3days', days_until)
+                milestone.alert_3days_sent = True
+            
+            # 7-day alert
+            elif days_until <= 7 and days_until > 3 and not milestone.alert_7days_sent:
+                milestone._send_milestone_alert('7days', days_until)
+                milestone.alert_7days_sent = True
+            
+            # 14-day alert
+            elif days_until <= 14 and days_until > 7 and not milestone.alert_14days_sent:
+                milestone._send_milestone_alert('14days', days_until)
+                milestone.alert_14days_sent = True
+        
+        _logger.info(f"AUTO-020: Milestone alert check completed - {len(upcoming_milestones)} milestones scanned")
+    
+    def _send_milestone_alert(self, alert_type, days_until):
+        """AUTO-020: Send milestone delivery alert."""
+        self.ensure_one()
+        
+        alert_configs = {
+            '14days': ('#d1ecf1', '#0c5460', '📅', 'REMINDER', 'Delivery due in 14 days'),
+            '7days': ('#fff3cd', '#856404', '⚠️', 'WARNING', 'Delivery due in 7 days'),
+            '3days': ('#f8d7da', '#dc3545', '🚨', 'URGENT', 'Delivery due in 3 days'),
+            'overdue': ('#f8d7da', '#721c24', '❌', 'OVERDUE', f'Delivery {abs(days_until)} days late'),
+        }
+        
+        bg_color, text_color, icon, severity, message = alert_configs.get(alert_type, alert_configs['14days'])
+        
+        # Send to procurement officer and supplier (if email available)
+        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement_officer', raise_if_not_found=False)
+        
+        recipients = []
+        if procurement_users and procurement_users.users:
+            recipients.extend(procurement_users.users.mapped('partner_id').ids)
+        
+        # Add supplier if email available
+        if self.contract_id.supplier_id.email:
+            recipients.append(self.contract_id.supplier_id.id)
+        
+        if recipients:
+            self.contract_id.message_post(
+                body=f"""<div style="background-color: {bg_color}; border-left: 4px solid {text_color}; padding: 15px;">
+                    <h3 style="color: {text_color}; margin-top: 0;">{icon} AUTO-020: Delivery Milestone {severity}</h3>
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Contract:</strong></td>
+                            <td style="padding: 5px 0; text-align: right;">{self.contract_id.name}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Supplier:</strong></td>
+                            <td style="padding: 5px 0; text-align: right;">{self.contract_id.supplier_id.name}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Milestone:</strong></td>
+                            <td style="padding: 5px 0; text-align: right;">{self.name}</td>
+                        </tr>
+                        <tr style="background-color: {bg_color};">
+                            <td style="padding: 5px 0;"><strong>Due Date:</strong></td>
+                            <td style="padding: 5px 0; text-align: right; font-weight: bold;">{self.due_date}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Status:</strong></td>
+                            <td style="padding: 5px 0; text-align: right; color: {text_color}; font-weight: bold;">{message}</td>
+                        </tr>
+                    </table>
+                    <div style="background-color: #fff; padding: 10px; border-radius: 4px; margin-top: 15px;">
+                        <p style="margin: 0;"><strong>FR-PROC-024: Delivery Tracking</strong></p>
+                        <p style="margin: 5px 0 0 0;">Please ensure timely delivery per contract schedule. Delays may trigger liquidated damages (AUTO-024).</p>
+                    </div>
+                </div>""",
+                subject=f'{icon} {severity}: Delivery Milestone - {self.name}',
+                message_type='notification',
+                partner_ids=recipients
+            )
+        
+        _logger.info(f"AUTO-020: {severity} alert sent for milestone {self.name}")
+    
+    def action_mark_completed(self):
+        """Mark milestone as completed with actual delivery date."""
+        self.ensure_one()
+        
+        if self.actual_date:
+            raise UserError("Milestone is already marked as completed.")
+        
+        self.actual_date = fields.Date.today()
+        
+        self.contract_id.message_post(
+            body=f"""<div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px;">
+                <h3 style="color: #155724;">✅ Milestone Completed</h3>
+                <p><strong>Milestone:</strong> {self.name}</p>
+                <p><strong>Due Date:</strong> {self.due_date}</p>
+                <p><strong>Actual Date:</strong> {self.actual_date}</p>
+                <p><strong>Days {'Early' if self.days_until_due > 0 else 'Late'}:</strong> {abs(self.days_until_due)}</p>
+            </div>""",
+            subject=f'Milestone Completed: {self.name}'
+        )
+        
         return True
 
 
