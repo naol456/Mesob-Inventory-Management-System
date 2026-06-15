@@ -76,6 +76,7 @@
         "wizard/mesob_inventory_issue_receipt_wizard_views.xml",
         "wizard/mesob_abc_classification_wizard_views.xml",
         "wizard/mesob_fiscal_year_valuation_wizard_views.xml",
+        "wizard/mesob_requisition_stock_alert_wizard_views.xml",
         # Reports
         "reports/mesob_gate_pass_report.xml",
     ],
