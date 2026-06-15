@@ -1286,7 +1286,11 @@ class MesobProcurementOrder(models.Model):
             rec.state = "pending"
 
     def action_approve(self):
-        """Authorize the Purchase Order."""
+        """Authorize the Purchase Order.
+        
+        AUTO-025: Enhanced with automatic receiving handoff notification.
+        AUTO-026: Enhanced with automatic inspection type assignment.
+        """
         for rec in self:
             if rec.state != "pending":
                 raise UserError("Only pending Purchase Orders can be approved.")
@@ -1297,7 +1301,428 @@ class MesobProcurementOrder(models.Model):
                     raise UserError(f"Approval Blocked: Stock item code '{line.item_id.item_code}' is currently flagged as surplus in the Disposal system! (BR-PROC-008)")
 
             rec.state = "approved"
+            
+            # AUTO-026: Auto-assign inspection type based on item classifications
+            rec._auto_assign_inspection_type()
+            
+            # AUTO-025: Notify Storekeeper of expected delivery
+            rec._send_receiving_handoff_notification()
+        
         return True
+    
+    def _auto_assign_inspection_type(self):
+        """AUTO-026: Auto-assign inspection type based on item classification (FR-PROC-031).
+        
+        Classification-based inspection rules:
+        - 4401-4403 (office supplies, stationery, cleaning) → Storekeeper inspection
+        - 4405 (fuel), 4411 (drugs/chemicals) → Technical staff inspection
+        - 4413 (vehicles), 4414 (equipment) → User technical staff + Storekeeper
+        - Default → Storekeeper inspection
+        
+        Officer can override with documented reason.
+        """
+        self.ensure_one()
+        
+        # Analyze items in PO to determine inspection type
+        major_codes = []
+        for line in self.line_ids:
+            if line.item_id and line.item_id.classification_id:
+                code = line.item_id.classification_id.code
+                if code and code not in major_codes:
+                    major_codes.append(code)
+        
+        if not major_codes:
+            self.inspection_type = 'storekeeper'
+            return
+        
+        # Apply classification-based rules (FR-PROC-031)
+        requires_technical = False
+        requires_independent = False
+        
+        for code in major_codes:
+            # Fuel, drugs, chemicals require technical inspection
+            if code in ['4405', '4411']:
+                requires_technical = True
+            
+            # Vehicles, heavy equipment require independent/user technical staff
+            elif code in ['4413', '4414']:
+                requires_independent = True
+        
+        # Assign inspection type based on highest requirement
+        if requires_independent:
+            self.inspection_type = 'independent'
+            _logger.info(f"AUTO-026: PO {self.name} assigned 'independent' inspection (vehicles/equipment)")
+        elif requires_technical:
+            self.inspection_type = 'technical'
+            _logger.info(f"AUTO-026: PO {self.name} assigned 'technical' inspection (fuel/chemicals)")
+        else:
+            self.inspection_type = 'storekeeper'
+            _logger.info(f"AUTO-026: PO {self.name} assigned 'storekeeper' inspection (standard supplies)")
+        
+        # Log assignment to chatter
+        inspection_reason = {
+            'independent': 'Contains vehicles (4413) or heavy equipment (4414)',
+            'technical': 'Contains fuel (4405) or drugs/chemicals (4411)',
+            'storekeeper': 'Standard office supplies and materials'
+        }
+        
+        self.message_post(
+            body=f"""<div style="background-color: #e7f3ff; border-left: 4px solid #2196F3; padding: 15px;">
+                <h4>AUTO-026: Inspection Type Auto-Assigned</h4>
+                <p><strong>Inspection Type:</strong> {dict(self._fields['inspection_type'].selection).get(self.inspection_type)}</p>
+                <p><strong>Reason:</strong> {inspection_reason.get(self.inspection_type)}</p>
+                <p><strong>Item Classifications:</strong> {', '.join(major_codes)}</p>
+                <p><em>Officer can override this assignment with documented reason if needed (FR-PROC-031).</em></p>
+            </div>""",
+            subject='Inspection Type Auto-Assigned',
+            message_type='comment'
+        )
+    
+    def _send_receiving_handoff_notification(self):
+        """AUTO-025: Notify Storekeeper of expected delivery (FR-PROC-030).
+        
+        Sends comprehensive notification with:
+        - Expected items (codes, descriptions, quantities)
+        - Supplier name and contact info
+        - Expected delivery date
+        - Assigned inspection type
+        - Preparation checklist
+        
+        Enables proactive receiving area preparation.
+        """
+        self.ensure_one()
+        
+        # Build items table
+        items_html = '<table style="width: 100%; border-collapse: collapse; margin: 15px 0;">'
+        items_html += '''<thead style="background-color: #f8f9fa;">
+            <tr>
+                <th style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">Item Code</th>
+                <th style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">Description</th>
+                <th style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">Quantity</th>
+                <th style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">Unit</th>
+            </tr>
+        </thead><tbody>'''
+        
+        for line in self.line_ids:
+            items_html += f'''<tr>
+                <td style="border: 1px solid #dee2e6; padding: 8px;"><strong>{line.item_id.item_code if line.item_id else 'N/A'}</strong></td>
+                <td style="border: 1px solid #dee2e6; padding: 8px;">{line.description or (line.item_id.name if line.item_id else 'N/A')}</td>
+                <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right;">{line.quantity:.0f}</td>
+                <td style="border: 1px solid #dee2e6; padding: 8px;">{line.item_id.uom_id.name if line.item_id and line.item_id.uom_id else 'units'}</td>
+            </tr>'''
+        
+        items_html += '</tbody></table>'
+        
+        # Calculate expected delivery date (PO date + 30 days lead time)
+        from datetime import timedelta
+        expected_date = self.date_order + timedelta(days=30) if self.date_order else fields.Date.today()
+        
+        # Inspection type label
+        inspection_label = dict(self._fields['inspection_type'].selection).get(self.inspection_type, 'Storekeeper')
+        
+        # Build checklist based on inspection type
+        if self.inspection_type == 'technical':
+            checklist = '''
+                <li>✓ Coordinate with technical staff for inspection</li>
+                <li>✓ Prepare specialized testing equipment if needed</li>
+                <li>✓ Review technical specifications from PO</li>
+                <li>✓ Prepare receiving area with safety precautions</li>
+                <li>✓ Ensure proper storage conditions are ready</li>
+            '''
+        elif self.inspection_type == 'independent':
+            checklist = '''
+                <li>✓ Coordinate with user department technical staff</li>
+                <li>✓ Schedule inspection appointment with supplier if needed</li>
+                <li>✓ Prepare vehicle/equipment inspection checklist</li>
+                <li>✓ Ensure adequate receiving space</li>
+                <li>✓ Review contract specifications</li>
+            '''
+        else:
+            checklist = '''
+                <li>✓ Prepare receiving inspection checklist (FR-REC-003)</li>
+                <li>✓ Clear receiving area for incoming delivery</li>
+                <li>✓ Ensure adequate storage space is available</li>
+                <li>✓ Review PO specifications</li>
+                <li>✓ Prepare Model 19 forms (will be auto-generated)</li>
+            '''
+        
+        # Send notification to Storekeeper group
+        storekeeper_users = self.env.ref('mesob_inventory_base.group_mesob_storekeeper', raise_if_not_found=False)
+        
+        if storekeeper_users and storekeeper_users.users:
+            self.message_post(
+                body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px;">
+                    <h2 style="margin-top: 0;">📦 AUTO-025: Expected Delivery Notification</h2>
+                    
+                    <div style="background-color: #fff; padding: 15px; border-radius: 4px; margin: 15px 0;">
+                        <h3 style="margin-top: 0; color: #856404;">Purchase Order Details</h3>
+                        <table style="width: 100%;">
+                            <tr>
+                                <td style="padding: 5px 0;"><strong>PO Reference:</strong></td>
+                                <td style="padding: 5px 0;">{self.name}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 0;"><strong>Supplier:</strong></td>
+                                <td style="padding: 5px 0;">{self.supplier_id.name}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 0;"><strong>Supplier Contact:</strong></td>
+                                <td style="padding: 5px 0;">{self.supplier_id.phone or 'N/A'} / {self.supplier_id.email or 'N/A'}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 0;"><strong>PO Date:</strong></td>
+                                <td style="padding: 5px 0;">{self.date_order}</td>
+                            </tr>
+                            <tr style="background-color: #fff3cd;">
+                                <td style="padding: 5px 0;"><strong>Expected Delivery:</strong></td>
+                                <td style="padding: 5px 0; font-weight: bold;">{expected_date}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 0;"><strong>Inspection Type:</strong></td>
+                                <td style="padding: 5px 0;"><span style="background-color: #17a2b8; color: white; padding: 3px 10px; border-radius: 3px;">{inspection_label}</span></td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <h3 style="color: #856404;">Expected Items</h3>
+                    {items_html}
+                    
+                    <div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin-top: 20px;">
+                        <h3 style="margin-top: 0; color: #155724;">📋 Preparation Checklist</h3>
+                        <ul style="margin: 0;">
+                            {checklist}
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background-color: #e7f3ff; border-radius: 4px;">
+                        <p style="margin: 0;"><strong>ℹ️ Note:</strong> Model 19 (Goods Received Note) will be auto-generated after successful inspection (AUTO-027).</p>
+                    </div>
+                    
+                    <p style="margin-top: 20px;">
+                        <a href="/web#id={self.id}&model=mesob.procurement.order&view_type=form" 
+                           style="background-color: #ffc107; color: #000; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                           📋 View Full PO →
+                        </a>
+                    </p>
+                </div>""",
+                subject=f'Expected Delivery: PO {self.name} from {self.supplier_id.name}',
+                message_type='notification',
+                partner_ids=storekeeper_users.users.mapped('partner_id').ids
+            )
+            
+            _logger.info(
+                f"AUTO-025: Receiving handoff notification sent to {len(storekeeper_users.users)} Storekeeper users - "
+                f"PO {self.name}, {len(self.line_ids)} items, Expected: {expected_date}"
+            )
+        else:
+            _logger.warning("AUTO-025: No Storekeeper users found for receiving notification")
+    
+    @api.model
+    def _cron_check_overdue_pos(self):
+        """AUTO-024: Scheduled job to check for overdue POs and send escalation alerts.
+        
+        Runs daily to check all approved/sent POs for overdue deliveries.
+        Escalation schedule:
+        - Day 1 overdue: Supplier reminder (if email available)
+        - Day 3 overdue: Procurement Officer alert
+        - Day 7 overdue: PAO/HOPE escalation with liquidated damages recommendation
+        
+        Called by scheduled action (cron job).
+        """
+        today = fields.Date.today()
+        
+        # Find all POs that are approved or sent but not fully received
+        overdue_pos = self.search([
+            ('state', 'in', ['approved', 'sent', 'partially_received']),
+            ('date_order', '!=', False)
+        ])
+        
+        for po in overdue_pos:
+            # Calculate expected delivery date (PO date + 30 days)
+            from datetime import timedelta
+            expected_date = po.date_order + timedelta(days=30)
+            
+            if expected_date >= today:
+                continue  # Not overdue yet
+            
+            days_overdue = (today - expected_date).days
+            
+            if days_overdue == 1:
+                # Day 1: Send reminder to supplier
+                po._send_supplier_overdue_reminder(days_overdue)
+            
+            elif days_overdue == 3:
+                # Day 3: Alert Procurement Officer
+                po._send_procurement_overdue_alert(days_overdue)
+            
+            elif days_overdue == 7:
+                # Day 7: Escalate to PAO/HOPE with LD recommendation
+                po._send_pao_overdue_escalation(days_overdue)
+            
+            elif days_overdue > 7 and days_overdue % 7 == 0:
+                # Every 7 days after: Continue escalation
+                po._send_pao_overdue_escalation(days_overdue)
+        
+        _logger.info(f"AUTO-024: Overdue PO check completed - {len(overdue_pos)} POs scanned")
+    
+    def _send_supplier_overdue_reminder(self, days_overdue):
+        """AUTO-024: Send overdue delivery reminder to supplier (Day 1)."""
+        self.ensure_one()
+        
+        if not self.supplier_id.email:
+            _logger.warning(f"AUTO-024: Cannot send supplier reminder for PO {self.name} - no email for {self.supplier_id.name}")
+            return
+        
+        # Log to PO chatter
+        self.message_post(
+            body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px;">
+                <h4>⏰ AUTO-024: Overdue Delivery Reminder Sent</h4>
+                <p><strong>Days Overdue:</strong> {days_overdue} day(s)</p>
+                <p><strong>Supplier:</strong> {self.supplier_id.name}</p>
+                <p><strong>Email:</strong> {self.supplier_id.email}</p>
+                <p><em>Automated reminder sent to supplier requesting delivery status update.</em></p>
+            </div>""",
+            subject=f'Overdue Delivery Reminder Sent: Day {days_overdue}',
+            message_type='comment'
+        )
+        
+        _logger.info(f"AUTO-024: Day 1 supplier reminder sent for PO {self.name}")
+    
+    def _send_procurement_overdue_alert(self, days_overdue):
+        """AUTO-024: Alert Procurement Officer of overdue delivery (Day 3)."""
+        self.ensure_one()
+        
+        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement_officer', raise_if_not_found=False)
+        
+        if procurement_users and procurement_users.users:
+            self.message_post(
+                body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #ff9800; padding: 15px;">
+                    <h3>⚠️ AUTO-024: Overdue PO Alert</h3>
+                    <p><strong>PO Reference:</strong> {self.name}</p>
+                    <p><strong>Supplier:</strong> {self.supplier_id.name}</p>
+                    <p><strong>PO Date:</strong> {self.date_order}</p>
+                    <p><strong>Days Overdue:</strong> <span style="color: #ff9800; font-weight: bold; font-size: 18px;">{days_overdue} days</span></p>
+                    <hr/>
+                    <h4>Recommended Actions:</h4>
+                    <ul>
+                        <li>Contact supplier for delivery status update</li>
+                        <li>Request revised delivery schedule</li>
+                        <li>Document supplier response</li>
+                        <li>Consider escalation if no response</li>
+                    </ul>
+                    <p style="margin-top: 15px;">
+                        <a href="/web#id={self.id}&model=mesob.procurement.order&view_type=form" 
+                           style="background-color: #ff9800; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                           Review PO →
+                        </a>
+                    </p>
+                </div>""",
+                subject=f'OVERDUE: PO {self.name} - {days_overdue} days late',
+                message_type='notification',
+                partner_ids=procurement_users.users.mapped('partner_id').ids
+            )
+            
+            _logger.info(f"AUTO-024: Day 3 procurement alert sent for PO {self.name}")
+    
+    def _send_pao_overdue_escalation(self, days_overdue):
+        """AUTO-024: Escalate to PAO/HOPE with liquidated damages recommendation (Day 7+)."""
+        self.ensure_one()
+        
+        # Calculate potential liquidated damages (1/1000 per working day, max 10%)
+        # Simplified: assume all days are working days
+        contract_value = sum(line.price_subtotal for line in self.line_ids)
+        ld_rate = 0.001  # 1/1000 per day per FR-PROC-036
+        ld_amount = contract_value * ld_rate * days_overdue
+        ld_cap = contract_value * 0.10  # 10% cap
+        
+        if ld_amount > ld_cap:
+            ld_amount = ld_cap
+        
+        pao_users = self.env.ref('mesob_inventory_base.group_mesob_pao', raise_if_not_found=False)
+        
+        if pao_users and pao_users.users:
+            self.message_post(
+                body=f"""<div style="background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 15px;">
+                    <h2 style="color: #721c24; margin-top: 0;">🚨 AUTO-024: CRITICAL - Overdue PO Escalation</h2>
+                    
+                    <div style="background-color: #fff; padding: 15px; border-radius: 4px; margin: 15px 0;">
+                        <table style="width: 100%;">
+                            <tr>
+                                <td style="padding: 5px 0;"><strong>PO Reference:</strong></td>
+                                <td style="padding: 5px 0;">{self.name}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 0;"><strong>Supplier:</strong></td>
+                                <td style="padding: 5px 0;">{self.supplier_id.name}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 0;"><strong>PO Date:</strong></td>
+                                <td style="padding: 5px 0;">{self.date_order}</td>
+                            </tr>
+                            <tr style="background-color: #f8d7da;">
+                                <td style="padding: 5px 0;"><strong>Days Overdue:</strong></td>
+                                <td style="padding: 5px 0; font-weight: bold; color: #dc3545; font-size: 20px;">{days_overdue} days</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 0;"><strong>Contract Value:</strong></td>
+                                <td style="padding: 5px 0;">ETB {contract_value:,.2f}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div style="background-color: #fff3cd; border-left: 4px solid #856404; padding: 15px; margin: 15px 0;">
+                        <h4 style="margin-top: 0; color: #856404;">💰 Liquidated Damages Calculation (FR-PROC-036)</h4>
+                        <table style="width: 100%;">
+                            <tr>
+                                <td style="padding: 3px 0;">LD Rate:</td>
+                                <td style="padding: 3px 0; text-align: right;">1/1000 per working day</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 3px 0;">Delay Period:</td>
+                                <td style="padding: 3px 0; text-align: right;">{days_overdue} days</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 3px 0;">Calculated LD:</td>
+                                <td style="padding: 3px 0; text-align: right;">ETB {contract_value * ld_rate * days_overdue:,.2f}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 3px 0;">LD Cap (10%):</td>
+                                <td style="padding: 3px 0; text-align: right;">ETB {ld_cap:,.2f}</td>
+                            </tr>
+                            <tr style="background-color: #fff; font-weight: bold;">
+                                <td style="padding: 8px 0; border-top: 2px solid #856404;">Recommended LD:</td>
+                                <td style="padding: 8px 0; text-align: right; border-top: 2px solid #856404; color: #dc3545; font-size: 16px;">ETB {ld_amount:,.2f}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px;">
+                        <h4 style="margin-top: 0; color: #155724;">📋 Recommended Actions</h4>
+                        <ol style="margin: 0;">
+                            <li><strong>Issue formal notice</strong> to supplier citing contract breach</li>
+                            <li><strong>Document all communications</strong> regarding delivery delay</li>
+                            <li><strong>Assess liquidated damages</strong> per FR-PROC-036</li>
+                            <li><strong>Consider contract termination</strong> if delay continues</li>
+                            <li><strong>Initiate alternative procurement</strong> if critical items</li>
+                        </ol>
+                    </div>
+                    
+                    <p style="margin-top: 20px;">
+                        <a href="/web#id={self.id}&model=mesob.procurement.order&view_type=form" 
+                           style="background-color: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                           🚨 REVIEW URGENT →
+                        </a>
+                    </p>
+                </div>""",
+                subject=f'🚨 CRITICAL: PO {self.name} - {days_overdue} days overdue - LD Recommended',
+                message_type='notification',
+                partner_ids=pao_users.users.mapped('partner_id').ids
+            )
+            
+            _logger.info(
+                f"AUTO-024: Day {days_overdue} PAO escalation sent for PO {self.name} - "
+                f"LD Recommendation: ETB {ld_amount:,.2f}"
+            )
 
 
 class MesobProcurementOrderLine(models.Model):

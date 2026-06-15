@@ -167,7 +167,152 @@ class MesobPaymentValidation(models.Model):
     
     note = fields.Text(string='Internal Notes')
     
+    # ── AUTO-030: Liquidated Damages Calculation ────────────────────
+    contract_delivery_date = fields.Date(
+        string='Contract Delivery Date',
+        help='AUTO-030: Contracted delivery date for LD calculation'
+    )
+    
+    actual_delivery_date = fields.Date(
+        string='Actual Delivery Date',
+        compute='_compute_actual_delivery_date',
+        store=True,
+        help='AUTO-030: Model 19 acceptance date'
+    )
+    
+    delay_days = fields.Integer(
+        string='Delay (Working Days)',
+        compute='_compute_liquidated_damages',
+        store=True,
+        help='AUTO-030: Working days between contract and actual delivery'
+    )
+    
+    ld_rate = fields.Float(
+        string='LD Rate',
+        default=0.001,
+        help='AUTO-030: Liquidated damages rate (default: 1/1000 per working day per FR-PROC-036)'
+    )
+    
+    contract_value = fields.Monetary(
+        string='Contract Value',
+        compute='_compute_contract_value',
+        store=True,
+        currency_field='currency_id',
+        help='AUTO-030: Total PO value for LD calculation'
+    )
+    
+    ld_calculated = fields.Monetary(
+        string='LD Calculated',
+        compute='_compute_liquidated_damages',
+        store=True,
+        currency_field='currency_id',
+        help='AUTO-030: Calculated liquidated damages (delay days × rate × contract value)'
+    )
+    
+    ld_cap = fields.Monetary(
+        string='LD Cap (10%)',
+        compute='_compute_liquidated_damages',
+        store=True,
+        currency_field='currency_id',
+        help='AUTO-030: Maximum LD (10% of contract value per FR-PROC-036)'
+    )
+    
+    ld_amount = fields.Monetary(
+        string='LD Amount to Deduct',
+        compute='_compute_liquidated_damages',
+        store=True,
+        currency_field='currency_id',
+        help='AUTO-030: Final LD amount (min of calculated and cap)'
+    )
+    
+    net_payment_amount = fields.Monetary(
+        string='Net Payment Amount',
+        compute='_compute_liquidated_damages',
+        store=True,
+        currency_field='currency_id',
+        help='AUTO-030: Invoice amount minus LD deduction'
+    )
+    
+    has_delivery_delay = fields.Boolean(
+        string='Delivery Delayed',
+        compute='_compute_liquidated_damages',
+        store=True,
+        help='AUTO-030: True if delivery was late'
+    )
+    
     # ── Computed Fields ─────────────────────────────────────────────
+    
+    @api.depends('model19_id', 'model19_id.confirmation_date')
+    def _compute_actual_delivery_date(self):
+        """AUTO-030: Get actual delivery date from Model 19 acceptance."""
+        for rec in self:
+            if rec.model19_id and rec.model19_id.confirmation_date:
+                rec.actual_delivery_date = rec.model19_id.confirmation_date
+            else:
+                rec.actual_delivery_date = False
+    
+    @api.depends('po_id', 'po_id.line_ids')
+    def _compute_contract_value(self):
+        """AUTO-030: Calculate total contract value from PO."""
+        for rec in self:
+            if rec.po_id and rec.po_id.line_ids:
+                rec.contract_value = sum(line.price_subtotal for line in rec.po_id.line_ids)
+            else:
+                rec.contract_value = 0.0
+    
+    @api.depends('contract_delivery_date', 'actual_delivery_date', 'contract_value', 'ld_rate')
+    def _compute_liquidated_damages(self):
+        """AUTO-030: Auto-calculate liquidated damages for late delivery (FR-PROC-036).
+        
+        Formula per Ethiopian Federal Procurement Regulation:
+        - LD = Contract Value × (1/1000) × Delay in Working Days
+        - Capped at 10% of contract value
+        - Only applied if actual delivery exceeds contract date
+        - Net payment = Invoice amount - LD amount
+        """
+        for rec in self:
+            # Default values
+            rec.delay_days = 0
+            rec.ld_calculated = 0.0
+            rec.ld_cap = 0.0
+            rec.ld_amount = 0.0
+            rec.net_payment_amount = rec.invoice_amount
+            rec.has_delivery_delay = False
+            
+            # Check if we have all required data
+            if not rec.contract_delivery_date or not rec.actual_delivery_date or not rec.contract_value:
+                continue
+            
+            # Calculate delay
+            if rec.actual_delivery_date > rec.contract_delivery_date:
+                rec.has_delivery_delay = True
+                
+                # Calculate working days (simplified: all days are working days)
+                # TODO: Exclude Ethiopian public holidays and weekends
+                delay = (rec.actual_delivery_date - rec.contract_delivery_date).days
+                rec.delay_days = delay
+                
+                # Calculate LD per FR-PROC-036
+                # LD = Contract Value × LD Rate × Delay Days
+                rec.ld_calculated = rec.contract_value * rec.ld_rate * delay
+                
+                # Calculate cap (10% of contract value)
+                rec.ld_cap = rec.contract_value * 0.10
+                
+                # Apply cap
+                if rec.ld_calculated > rec.ld_cap:
+                    rec.ld_amount = rec.ld_cap
+                else:
+                    rec.ld_amount = rec.ld_calculated
+                
+                # Calculate net payment
+                rec.net_payment_amount = rec.invoice_amount - rec.ld_amount
+                
+                _logger.info(
+                    f"AUTO-030: LD calculated for {rec.name} - "
+                    f"Delay: {delay} days, LD: ETB {rec.ld_amount:,.2f}, "
+                    f"Net Payment: ETB {rec.net_payment_amount:,.2f}"
+                )
     
     @api.depends('po_id', 'invoice_number')
     def _compute_display_name(self):
@@ -310,6 +455,62 @@ class MesobPaymentValidation(models.Model):
                 'payment_approved': True,
                 'state': 'approved'
             })
+            
+            # AUTO-030: Show LD deduction if applicable
+            if self.has_delivery_delay and self.ld_amount > 0:
+                self.message_post(
+                    body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #856404; padding: 15px;">
+                        <h3>AUTO-030: Liquidated Damages Applied</h3>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 5px 0;"><strong>Contract Delivery Date:</strong></td>
+                                <td style="padding: 5px 0; text-align: right;">{self.contract_delivery_date}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 0;"><strong>Actual Delivery Date:</strong></td>
+                                <td style="padding: 5px 0; text-align: right;">{self.actual_delivery_date}</td>
+                            </tr>
+                            <tr style="background-color: #fff3cd;">
+                                <td style="padding: 5px 0;"><strong>Delay (Working Days):</strong></td>
+                                <td style="padding: 5px 0; text-align: right; font-weight: bold;">{self.delay_days} days</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 0;">Contract Value:</td>
+                                <td style="padding: 5px 0; text-align: right;">ETB {self.contract_value:,.2f}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 0;">LD Rate:</td>
+                                <td style="padding: 5px 0; text-align: right;">{self.ld_rate} (1/1000 per day)</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 0;">LD Calculated:</td>
+                                <td style="padding: 5px 0; text-align: right;">ETB {self.ld_calculated:,.2f}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 0;">LD Cap (10%):</td>
+                                <td style="padding: 5px 0; text-align: right;">ETB {self.ld_cap:,.2f}</td>
+                            </tr>
+                            <tr style="background-color: #f8d7da;">
+                                <td style="padding: 8px 0; border-top: 2px solid #856404; font-weight: bold;">LD Amount Deducted:</td>
+                                <td style="padding: 8px 0; text-align: right; border-top: 2px solid #856404; color: #dc3545; font-weight: bold; font-size: 16px;">ETB {self.ld_amount:,.2f}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 0;">Invoice Amount:</td>
+                                <td style="padding: 5px 0; text-align: right;">ETB {self.invoice_amount:,.2f}</td>
+                            </tr>
+                            <tr style="background-color: #d4edda;">
+                                <td style="padding: 8px 0; border-top: 2px solid #28a745; font-weight: bold;">Net Payment Amount:</td>
+                                <td style="padding: 8px 0; text-align: right; border-top: 2px solid #28a745; color: #155724; font-weight: bold; font-size: 16px;">ETB {self.net_payment_amount:,.2f}</td>
+                            </tr>
+                        </table>
+                        <p style="margin-top: 15px; padding: 10px; background-color: #e7f3ff; border-radius: 4px;">
+                            <strong>ℹ️ FR-PROC-036:</strong> Liquidated damages automatically calculated at 1/1000 of contract value per working day of delay, capped at 10% of contract value.
+                        </p>
+                    </div>""",
+                    subject='Liquidated Damages Applied',
+                    message_type='comment'
+                )
+            
             _logger.info(f"AUTO-029: Payment validation {self.name} PASSED - Ready for payment")
         else:
             _logger.warning(
