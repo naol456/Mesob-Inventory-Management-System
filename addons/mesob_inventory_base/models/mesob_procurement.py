@@ -1,6 +1,9 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 import datetime
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class MesobProcurementPlan(models.Model):
@@ -63,6 +66,38 @@ class MesobProcurementPlan(models.Model):
         required=True,
         tracking=True,
     )
+    
+    # AUTO-004: Approval workflow tracking fields
+    submitted_date = fields.Datetime(
+        string="Submitted Date",
+        readonly=True,
+        help="Date when APP was submitted for approval"
+    )
+    puh_approval_date = fields.Datetime(
+        string="PUH Approval Date",
+        readonly=True
+    )
+    pec_approval_date = fields.Datetime(
+        string="PEC Approval Date",
+        readonly=True
+    )
+    hope_approval_date = fields.Datetime(
+        string="HOPE Approval Date",
+        readonly=True
+    )
+    
+    approval_sla_status = fields.Selection([
+        ('on_time', 'On Time'),
+        ('warning', 'Approaching Deadline'),
+        ('overdue', 'Overdue'),
+    ], string='Approval SLA Status', compute='_compute_approval_sla', store=True)
+    
+    days_in_approval = fields.Integer(
+        string='Days in Approval',
+        compute='_compute_approval_sla',
+        store=True,
+        help='Number of days since submission'
+    )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -70,34 +105,114 @@ class MesobProcurementPlan(models.Model):
             if vals.get("name", "New") == "New":
                 vals["name"] = f"APP/{vals.get('fiscal_year', 'FY')}/{self.env['ir.sequence'].next_by_code('mesob.procurement.plan') or '001'}"
         return super().create(vals_list)
+    
+    @api.depends('submitted_date', 'state')
+    def _compute_approval_sla(self):
+        """AUTO-004: Compute approval SLA status and days in approval."""
+        for rec in self:
+            if not rec.submitted_date or rec.state in ('draft', 'hope_approved', 'rejected'):
+                rec.approval_sla_status = 'on_time'
+                rec.days_in_approval = 0
+                continue
+            
+            # Calculate days since submission
+            now = fields.Datetime.now()
+            days_diff = (now - rec.submitted_date).days
+            rec.days_in_approval = days_diff
+            
+            # SLA thresholds (configurable)
+            warning_days = 5  # Yellow alert at 5 days
+            overdue_days = 7  # Red alert at 7 days
+            
+            if days_diff >= overdue_days:
+                rec.approval_sla_status = 'overdue'
+            elif days_diff >= warning_days:
+                rec.approval_sla_status = 'warning'
+            else:
+                rec.approval_sla_status = 'on_time'
+
+    def action_submit_for_approval(self):
+        """AUTO-004: Submit APP for approval workflow (initiates auto-routing)."""
+        for rec in self:
+            if rec.state != 'draft':
+                raise UserError("Only draft plans can be submitted.")
+            if not rec.lot_ids:
+                raise UserError("Please add at least one lot before submitting.")
+            
+            rec.write({
+                'submitted_date': fields.Datetime.now(),
+                'state': 'draft'  # Remains draft until PUH approves
+            })
+            
+            # AUTO-004: Auto-route to PUH with notification
+            rec._send_approval_notification('puh')
+            
+            _logger.info(f"AUTO-004: APP {rec.name} submitted for approval")
+        
+        return True
 
     def action_puh_approve(self):
-        """Procurement Unit Head approves the APP."""
+        """AUTO-004: PUH approves and auto-routes to PEC."""
         for rec in self:
             if rec.state not in ("draft", "rejected"):
                 raise UserError("Only draft or rejected plans can be approved by PUH.")
-            rec.state = "puh_approved"
+            
+            rec.write({
+                'state': 'puh_approved',
+                'puh_approval_date': fields.Datetime.now()
+            })
+            
+            # AUTO-004: Auto-route to PEC with notification
+            rec._send_approval_notification('pec')
+            
+            _logger.info(f"AUTO-004: APP {rec.name} approved by PUH, routed to PEC")
+        
         return True
 
     def action_pec_approve(self):
-        """Procurement Endorsing Committee approves the APP."""
+        """AUTO-004: PEC approves and auto-routes to HOPE."""
         for rec in self:
             if rec.state != "puh_approved":
                 raise UserError("The plan must be approved by PUH first.")
-            rec.state = "pec_approved"
+            
+            rec.write({
+                'state': 'pec_approved',
+                'pec_approval_date': fields.Datetime.now()
+            })
+            
+            # AUTO-004: Auto-route to HOPE with notification
+            rec._send_approval_notification('hope')
+            
+            _logger.info(f"AUTO-004: APP {rec.name} approved by PEC, routed to HOPE")
+        
         return True
 
     def action_hope_approve(self):
-        """Head of Public Body (HOPE) gives final authorization (FR-PROC-005)."""
+        """AUTO-004: HOPE gives final authorization and publishes APP (FR-PROC-005)."""
         for rec in self:
             if rec.state != "pec_approved":
                 raise UserError("The plan must be approved by PEC first.")
-            rec.state = "hope_approved"
+            
+            rec.write({
+                'state': 'hope_approved',
+                'hope_approval_date': fields.Datetime.now()
+            })
+            
             # Route lots to correct execution workflow (FR-PROC-006)
             for lot in rec.lot_ids:
                 if lot.mechanism == "bidding":
                     lot.state = "tender"
                 elif lot.mechanism == "shopping":
+                    lot.state = "rfq"
+                else:
+                    lot.state = "approved"
+            
+            # AUTO-004: Send publication notification to all stakeholders
+            rec._send_publication_notification()
+            
+            _logger.info(f"AUTO-004: APP {rec.name} approved by HOPE and published")
+        
+        return True
                     lot.state = "rfq"
                 else:
                     lot.state = "approved"
@@ -172,6 +287,92 @@ class MesobProcurementPlan(models.Model):
                     sub_class_needs.write({"lot_id": lot.id})
                     lot_count += 1
         return True
+    
+    def _send_approval_notification(self, approver_role):
+        """AUTO-004: Send notification to next approver in workflow.
+        
+        Args:
+            approver_role: 'puh', 'pec', or 'hope'
+        """
+        self.ensure_one()
+        
+        # Map roles to user groups (configure these group external IDs)
+        role_group_map = {
+            'puh': 'mesob_inventory_base.group_mesob_procurement_officer',  # Adjust as needed
+            'pec': 'mesob_inventory_base.group_mesob_pao',
+            'hope': 'mesob_inventory_base.group_mesob_pao',  # HOPE typically PAO or higher
+        }
+        
+        group_xml_id = role_group_map.get(approver_role)
+        if not group_xml_id:
+            return
+        
+        approver_group = self.env.ref(group_xml_id, raise_if_not_found=False)
+        if not approver_group or not approver_group.users:
+            _logger.warning(f"AUTO-004: No users found for approver role {approver_role}")
+            return
+        
+        role_names = {'puh': 'Procurement Unit Head', 'pec': 'Procurement Endorsing Committee', 'hope': 'Head of Public Body'}
+        role_name = role_names.get(approver_role, approver_role.upper())
+        
+        # Build lots summary
+        lots_summary = '<ul>'
+        for lot in self.lot_ids:
+            lots_summary += f'<li>{lot.name}: ETB {lot.budget:,.2f} ({lot.mechanism})</li>'
+        lots_summary += '</ul>'
+        
+        # SLA status indicator
+        sla_color = {'on_time': 'green', 'warning': 'orange', 'overdue': 'red'}[self.approval_sla_status]
+        
+        self.message_post(
+            body=f"""<div style="border-left: 4px solid {sla_color}; padding-left: 15px;">
+                <h3>APP Approval Required: {role_name}</h3>
+                <p><strong>APP Reference:</strong> {self.name}</p>
+                <p><strong>Fiscal Year:</strong> {self.fiscal_year}</p>
+                <p><strong>Days in Approval:</strong> <span style="color: {sla_color}; font-weight: bold;">{self.days_in_approval} days</span></p>
+                <p><strong>Total Lots:</strong> {len(self.lot_ids)}</p>
+                <p><strong>Total Budget:</strong> ETB {sum(self.lot_ids.mapped('budget')):,.2f}</p>
+                <hr/>
+                <h4>Lots Summary:</h4>
+                {lots_summary}
+                <hr/>
+                <p><em>Please review and approve this Annual Procurement Plan.</em></p>
+                <p><a href="/web#id={self.id}&model=mesob.procurement.plan&view_type=form" 
+                   style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                   Review APP →
+                </a></p>
+            </div>""",
+            subject=f'APP Approval Required: {self.name} ({role_name})',
+            message_type='notification',
+            partner_ids=approver_group.users.mapped('partner_id').ids
+        )
+        
+        _logger.info(f"AUTO-004: Notification sent to {len(approver_group.users)} {role_name} users")
+    
+    def _send_publication_notification(self):
+        """AUTO-004: Send APP publication notification to all stakeholders."""
+        self.ensure_one()
+        
+        # Notify all procurement users and department heads
+        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement_officer', raise_if_not_found=False)
+        
+        if procurement_users and procurement_users.users:
+            self.message_post(
+                body=f"""<div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px;">
+                    <h2 style="color: #155724;">✅ APP Published & Approved</h2>
+                    <p><strong>APP Reference:</strong> {self.name}</p>
+                    <p><strong>Fiscal Year:</strong> {self.fiscal_year}</p>
+                    <p><strong>Approval Date:</strong> {self.hope_approval_date}</p>
+                    <p><strong>Total Lots:</strong> {len(self.lot_ids)}</p>
+                    <p><strong>Total Budget:</strong> ETB {sum(self.lot_ids.mapped('budget')):,.2f}</p>
+                    <hr/>
+                    <p><em>This APP has been approved by HOPE and is now published for execution.</em></p>
+                    <p><em>Lots have been auto-routed to appropriate execution workflows.</em></p>
+                </div>""",
+                subject=f'APP Published: {self.name}',
+                message_type='notification',
+                partner_ids=procurement_users.users.mapped('partner_id').ids
+            )
 
 
 class MesobProcurementPlanLot(models.Model):
