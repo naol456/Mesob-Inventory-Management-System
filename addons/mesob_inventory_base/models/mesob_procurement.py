@@ -414,6 +414,25 @@ class MesobProcurementPlanLot(models.Model):
         default="shopping",
         required=True,
     )
+    
+    # AUTO-006: Suggested mechanism based on thresholds
+    suggested_mechanism = fields.Selection(
+        [
+            ("bidding", "Tender / Bidding"),
+            ("shopping", "Shopping / RFQ"),
+            ("direct", "Direct (Single-Source)"),
+        ],
+        string="Suggested Mechanism",
+        compute='_compute_suggested_mechanism',
+        store=True,
+        help="AUTO-006: System-suggested procurement method based on estimated value thresholds"
+    )
+    
+    mechanism_override_reason = fields.Text(
+        string="Method Override Reason",
+        help="Mandatory if selected mechanism differs from suggested mechanism"
+    )
+    
     budget = fields.Float(string="Distributed Budget", required=True)
     state = fields.Selection(
         [
@@ -431,6 +450,50 @@ class MesobProcurementPlanLot(models.Model):
         "lot_id",
         string="Consolidated Needs",
     )
+    
+    @api.depends('budget')
+    def _compute_suggested_mechanism(self):
+        """AUTO-006: Suggest procurement mechanism based on threshold rules (FR-PROC-007, FR-PROC-008)."""
+        # TODO: Make these thresholds configurable via system parameters
+        # Ethiopian procurement thresholds (example values - adjust per FPPA regulations)
+        ICB_THRESHOLD = 10000000.0  # ETB 10M+ requires International Competitive Bidding
+        NCB_THRESHOLD = 5000000.0   # ETB 5M-10M requires National Competitive Bidding
+        RFQ_THRESHOLD = 500000.0    # ETB 500K-5M allows Shopping/RFQ
+        # Below 500K can use Shopping/RFQ
+        
+        for lot in self:
+            if lot.budget >= ICB_THRESHOLD:
+                lot.suggested_mechanism = 'bidding'  # ICB
+            elif lot.budget >= NCB_THRESHOLD:
+                lot.suggested_mechanism = 'bidding'  # NCB
+            elif lot.budget >= RFQ_THRESHOLD:
+                lot.suggested_mechanism = 'shopping'  # RFQ/Shopping
+            else:
+                lot.suggested_mechanism = 'shopping'  # Shopping
+    
+    @api.constrains('mechanism', 'suggested_mechanism', 'mechanism_override_reason')
+    def _check_mechanism_override(self):
+        """AUTO-006: Require justification if mechanism differs from suggestion."""
+        for lot in self:
+            if lot.mechanism != lot.suggested_mechanism:
+                if lot.mechanism == 'direct' and not lot.mechanism_override_reason:
+                    raise ValidationError(
+                        f"Lot {lot.name}: Direct/Single-Source procurement requires "
+                        "documented justification in 'Method Override Reason' field (FR-PROC-007)."
+                    )
+                elif not lot.mechanism_override_reason:
+                    raise ValidationError(
+                        f"Lot {lot.name}: Selected mechanism '{lot.mechanism}' differs from "
+                        f"suggested '{lot.suggested_mechanism}'. Please provide override reason."
+                    )
+    
+    @api.onchange('budget')
+    def _onchange_budget(self):
+        """AUTO-006: Auto-suggest mechanism when budget changes."""
+        if self.budget and not self.mechanism_override_reason:
+            # Auto-set mechanism to match suggestion if no override reason exists
+            if self.suggested_mechanism:
+                self.mechanism = self.suggested_mechanism
 
 
 class MesobProcurementNeed(models.Model):
