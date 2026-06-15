@@ -1,6 +1,9 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 from lxml import etree
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class MesobInventoryReceiving(models.Model):
@@ -398,7 +401,15 @@ class MesobInventoryReceiving(models.Model):
     # ── Document Generation ────────────────────────────────────────
 
     def _generate_model19(self):
-        """Create Model 19 receipt document from accepted lines."""
+        """AUTO-027: Create Model 19 receipt document from accepted lines with auto-distribution.
+        
+        Enhanced automation features:
+        - Auto-generates Model 19 from accepted receiving lines (FR-REC-005)
+        - Auto-distributes four copies digitally (FR-REC-006)
+        - Sends notifications to all recipients (Accounts, Stock Clerk, Supplier, Storekeeper)
+        - Triggers Bin Card and Stock Record Card updates (AUTO-049)
+        - Links to Purchase Order for three-way match (AUTO-029)
+        """
         self.ensure_one()
         if self.model19_id:
             return  # Already generated
@@ -427,6 +438,202 @@ class MesobInventoryReceiving(models.Model):
         }
         model19 = self.env["mesob.inventory.model19"].create(model19_vals)
         self.model19_id = model19.id
+        
+        # AUTO-027: Auto-confirm Model 19 to trigger downstream automations
+        model19.action_confirm()
+        
+        # AUTO-027: Auto-distribute copies digitally (FR-REC-006)
+        self._auto_distribute_model19_copies(model19)
+        
+        # AUTO-027: Trigger Bin Card and Stock Record Card updates (AUTO-049)
+        self._auto_update_stock_records(model19)
+        
+        # AUTO-027: Update linked PO status if exists (for AUTO-029 three-way match)
+        self._update_po_receipt_status(model19)
+        
+        _logger.info(
+            f"AUTO-027: Model 19 {model19.name} auto-generated, distributed, "
+            f"and stock records updated for Receiving {self.name}"
+        )
+
+    def _auto_distribute_model19_copies(self, model19):
+        """AUTO-027: Auto-distribute Model 19 four copies digitally (FR-REC-006).
+        
+        Distribution:
+        - Original → Accounts Unit (with supplier invoice)
+        - Duplicate → Stock Clerk (for posting)
+        - Triplicate → Supplier/Deliverer
+        - Book Copy → Storekeeper
+        """
+        # Find user groups for notification
+        accounts_users = self.env.ref('mesob_inventory_base.group_mesob_pao', raise_if_not_found=False)
+        stock_clerk_users = self.env.ref('mesob_inventory_base.group_mesob_stock_clerk', raise_if_not_found=False)
+        storekeeper_users = self.env.ref('mesob_inventory_base.group_mesob_storekeeper', raise_if_not_found=False)
+        
+        # Auto-mark copies as distributed
+        model19.write({
+            'copy_accounts': 'distributed',
+            'copy_stock_clerk': 'distributed',
+            'copy_supplier': 'distributed',
+            'copy_storekeeper': 'distributed',
+        })
+        
+        # Notification body
+        notification_body = f"""<div>
+            <h3>Model 19 Receipt Generated</h3>
+            <p><strong>Reference:</strong> {model19.name}</p>
+            <p><strong>Date:</strong> {model19.date}</p>
+            <p><strong>Supplier:</strong> {model19.supplier_id.name if model19.supplier_id else 'N/A'}</p>
+            <p><strong>Total Amount:</strong> ETB {model19.total_amount:,.2f}</p>
+            <p><strong>Items:</strong></p>
+            <ul>
+                {''.join([f'<li>{line.description}: {line.quantity} {line.uom_id.name if line.uom_id else ""}</li>' for line in model19.line_ids])}
+            </ul>
+        </div>"""
+        
+        # Send to Accounts Unit (Original)
+        if accounts_users and accounts_users.users:
+            model19.message_post(
+                body=f"""<p><strong>Original Copy → Accounts Unit</strong></p>{notification_body}
+                <p><em>Attach supplier invoice for payment processing (FR-PROC-034 three-way match).</em></p>""",
+                subject=f"Model 19 Original: {model19.name}",
+                message_type='notification',
+                partner_ids=accounts_users.users.mapped('partner_id').ids
+            )
+        
+        # Send to Stock Clerk (Duplicate)
+        if stock_clerk_users and stock_clerk_users.users:
+            model19.message_post(
+                body=f"""<p><strong>Duplicate Copy → Stock Clerk</strong></p>{notification_body}
+                <p><em>Stock records have been auto-updated (Bin Card & Stock Record Card).</em></p>""",
+                subject=f"Model 19 Duplicate: {model19.name}",
+                message_type='notification',
+                partner_ids=stock_clerk_users.users.mapped('partner_id').ids
+            )
+        
+        # Send to Supplier (Triplicate) - if email available
+        if model19.supplier_id and model19.supplier_id.email:
+            model19.message_post(
+                body=f"""<p><strong>Triplicate Copy → Supplier</strong></p>{notification_body}
+                <p><em>This confirms receipt and acceptance of your delivery.</em></p>""",
+                subject=f"Receipt Confirmation: {model19.name}",
+                message_type='email',
+                partner_ids=[model19.supplier_id.id]
+            )
+        
+        # Send to Storekeeper (Book Copy)
+        if storekeeper_users and storekeeper_users.users:
+            model19.message_post(
+                body=f"""<p><strong>Book Copy → Storekeeper</strong></p>{notification_body}
+                <p><em>Retained for your records.</em></p>""",
+                subject=f"Model 19 Book Copy: {model19.name}",
+                message_type='notification',
+                partner_ids=storekeeper_users.users.mapped('partner_id').ids
+            )
+        
+        # Mark as distributed
+        model19.action_mark_distributed()
+        
+        _logger.info(f"AUTO-027: Model 19 {model19.name} - Four copies auto-distributed digitally")
+
+    def _auto_update_stock_records(self, model19):
+        """AUTO-049: Trigger real-time Bin Card and Stock Record Card updates.
+        
+        When Model 19 is confirmed:
+        - Create Bin Card entry (quantity received) per sub-classification
+        - Create Stock Record Card entry (quantity + value) with FIFO cost
+        - Update PO status to Partially/Fully Received
+        """
+        for line in model19.line_ids:
+            if not line.item_id:
+                continue
+            
+            # AUTO-049: Create Bin Card entry (FR-RECARD-001)
+            if line.item_id.sub_classification_id:
+                self.env['mesob.bin.card'].create({
+                    'major_classification_id': line.item_id.classification_id.id,
+                    'sub_classification_id': line.item_id.sub_classification_id.id,
+                    'location': 'Main Store',  # Default location
+                    'date': model19.date,
+                    'transaction_type': 'receipt',
+                    'reference': model19.name,
+                    'description': f'Receipt: {line.description}',
+                    'quantity_received': line.quantity,
+                    'quantity_distributed': 0.0,
+                    'uom_id': line.uom_id.id if line.uom_id else line.item_id.uom_id.id,
+                    'received_by_id': self.env.user.id,
+                })
+                _logger.info(
+                    f"AUTO-049: Bin Card created for {line.item_id.item_code} - "
+                    f"Qty: {line.quantity}"
+                )
+            
+            # AUTO-049: Create Stock Record Card entry (FR-RECARD-002) with FIFO
+            stock_record = self.env['mesob.stock.record.card'].create({
+                'item_id': line.item_id.id,
+                'date': model19.date,
+                'transaction_type': 'receipt',
+                'reference': model19.name,
+                'description': f'Receipt: {line.description}',
+                'quantity_in': line.quantity,
+                'quantity_out': 0.0,
+                'uom_id': line.uom_id.id if line.uom_id else line.item_id.uom_id.id,
+                'unit_cost': line.unit_price,  # From PO unit price (FR-VAL-001)
+                'source_document': self.purchase_order_ref or model19.name,
+            })
+            
+            # Create FIFO layer for this receipt (FR-VAL-001)
+            stock_record.action_create_fifo_layers()
+            
+            _logger.info(
+                f"AUTO-049: Stock Record Card created for {line.item_id.item_code} - "
+                f"Qty: {line.quantity}, Unit Cost: ETB {line.unit_price}"
+            )
+
+    def _update_po_receipt_status(self, model19):
+        """AUTO-027: Update linked Purchase Order status for three-way match.
+        
+        Links Model 19 to PO and updates PO status:
+        - Partially Received if some lines pending
+        - Fully Received if all lines received
+        
+        Enables AUTO-029 three-way match (PO + Model 19 + Invoice).
+        """
+        if not self.purchase_order_ref:
+            return
+        
+        # Find linked PO by reference
+        po = self.env['mesob.procurement.order'].search([
+            ('name', '=', self.purchase_order_ref)
+        ], limit=1)
+        
+        if not po:
+            _logger.warning(
+                f"AUTO-027: PO {self.purchase_order_ref} not found for Model 19 {model19.name}"
+            )
+            return
+        
+        # Update PO status based on receipt completion
+        total_ordered = sum(po.line_ids.mapped('quantity'))
+        total_received = sum([
+            line.quantity for line in model19.line_ids if line.item_id
+        ])
+        
+        if total_received >= total_ordered:
+            po.state = 'fully_received'
+            _logger.info(f"AUTO-027: PO {po.name} marked as Fully Received")
+        else:
+            po.state = 'partially_received'
+            _logger.info(f"AUTO-027: PO {po.name} marked as Partially Received")
+        
+        # Link Model 19 to PO for three-way match (AUTO-029)
+        po.message_post(
+            body=f"""<p><strong>Model 19 Linked for Three-Way Match</strong></p>
+            <p>Model 19: {model19.name}</p>
+            <p>Received: {total_received} / {total_ordered} items</p>
+            <p><em>Ready for payment processing once supplier invoice is received.</em></p>""",
+            subject=f"Receipt Confirmation: {model19.name}"
+        )
 
     def _generate_dsr(self):
         """Create DSR from rejected lines (FR-REC-008)."""
