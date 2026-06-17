@@ -183,7 +183,7 @@
     <menuitem 
         id="menu_mesob_budget_allocation" 
         name="Budget Allocations" 
-        parent="menu_mesob_procurement_root" 
+        parent="menu_mesob_procurement" 
         action="action_mesob_budget_allocation" 
         sequence="15"/>
 
