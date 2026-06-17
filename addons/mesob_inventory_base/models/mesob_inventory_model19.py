@@ -9,10 +9,17 @@ class MesobInventoryModel19(models.Model):
     Auto-generated when a receiving order is accepted.
     Tracks four-copy distribution as required by FDRE procedures.
     (SRS: FR-REC-005, FR-REC-006, FR-REC-007)
+    
+    AUTO-027: Model 19 Auto-Generation & Three-Way Match Trigger
+    - Auto-generates when receiving is completed and accepted
+    - Automatically posts to Bin Card and Stock Record Card via AUTO-049
+    - Triggers three-way match for payment processing (AUTO-029)
+    - Tracks four-copy distribution: Accounts, Stock clerk, Supplier, Storekeeper
     """
 
     _name = "mesob.inventory.model19"
     _description = "Receipt for Articles/Property (Model 19)"
+    _inherit = ['mesob.stock.movement.mixin', 'mail.thread', 'mail.activity.mixin']
     _order = "date desc, id desc"
     _rec_name = "name"
 
@@ -167,11 +174,46 @@ class MesobInventoryModel19(models.Model):
     # ── Actions ────────────────────────────────────────────────────
 
     def action_confirm(self):
-        """Confirm the Model 19 receipt."""
+        """AUTO-027: Confirm Model 19 and auto-post stock movements.
+        
+        Compliance: FR-REC-005, FR-PROC-033, FR-RECARD-001, FR-RECARD-002
+        """
         for rec in self:
             if rec.state != "draft":
                 raise UserError("Only draft receipts can be confirmed.")
+            
+            # AUTO-027: Auto-post stock movements to Bin Card and Stock Record Card
+            if not rec.stock_movements_posted and rec.line_ids:
+                movements_data = []
+                for line in rec.line_ids:
+                    if line.item_id and line.quantity_accepted > 0:
+                        movements_data.append({
+                            'item_id': line.item_id.id,
+                            'quantity': line.quantity_accepted,
+                            'transaction_type': 'receipt',
+                            'unit_cost': line.unit_price or 0.0,
+                            'reference': rec.name,
+                        })
+                
+                if movements_data:
+                    rec.action_post_stock_movements(movements_data)
+            
             rec.state = "confirmed"
+            
+            # AUTO-027: Trigger three-way match notification
+            rec.message_post(
+                body=f"""<div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px;">
+                    <h4>✅ Model 19 Confirmed - Ready for Payment Match</h4>
+                    <p><strong>Reference:</strong> {rec.name}</p>
+                    <p><strong>Date:</strong> {rec.date}</p>
+                    <p><strong>Supplier:</strong> {rec.supplier_id.name if rec.supplier_id else 'N/A'}</p>
+                    <p><strong>Lines:</strong> {len(rec.line_ids)}</p>
+                    <p><em>AUTO-027: Stock movements posted. This receipt is now available for three-way match (PO + Model 19 + Invoice).</em></p>
+                </div>""",
+                subject='Model 19 Confirmed - Three-Way Match Ready',
+                message_type='comment'
+            )
+        
         return True
 
     def action_mark_distributed(self):
