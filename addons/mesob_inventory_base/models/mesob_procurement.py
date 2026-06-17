@@ -294,7 +294,7 @@ class MesobProcurementPlan(models.Model):
         
         # Map roles to user groups (configure these group external IDs)
         role_group_map = {
-            'puh': 'mesob_inventory_base.group_mesob_procurement_officer',  # Adjust as needed
+            'puh': 'mesob_inventory_base.group_mesob_procurement',  # Procurement Unit Head
             'pec': 'mesob_inventory_base.group_mesob_pao',
             'hope': 'mesob_inventory_base.group_mesob_pao',  # HOPE typically PAO or higher
         }
@@ -350,7 +350,7 @@ class MesobProcurementPlan(models.Model):
         self.ensure_one()
         
         # Notify all procurement users and department heads
-        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement_officer', raise_if_not_found=False)
+        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement', raise_if_not_found=False)
         
         if procurement_users and procurement_users.users:
             self.message_post(
@@ -642,7 +642,7 @@ class MesobProcurementPlanLot(models.Model):
         )
         
         # Send notification to Procurement Officer
-        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement_officer', raise_if_not_found=False)
+        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement', raise_if_not_found=False)
         if procurement_users and procurement_users.users:
             self.plan_id.message_post(
                 body=f"""<div style="background-color: #d1ecf1; border-left: 4px solid #0c5460; padding: 15px;">
@@ -989,31 +989,22 @@ class MesobProcurementNeed(models.Model):
         Prevents wasted consolidation effort on unfunded needs.
         """
         for rec in self:
-            if not rec.budget_classification or not rec.total_price:
+            if not rec.budget_classification or not rec.total_price or not rec.fiscal_year:
                 rec.budget_available = True
                 rec.budget_balance = 0.0
                 rec.budget_warning = False
                 continue
             
-            # TODO: Integrate with actual budget system
-            # For now, use placeholder logic
-            # In production, query budget.line or account.budget.post
+            # AUTO-003: Check real-time budget availability
+            budget_check = self.env['mesob.budget.allocation'].check_budget_availability(
+                rec.budget_classification,
+                rec.fiscal_year,
+                rec.total_price
+            )
             
-            # Placeholder: Assume budgets are configured per classification
-            # total_budget = 10000000.0  # ETB 10M per classification
-            # committed_budget = sum of all approved needs for this classification
-            
-            # Simplified check
-            rec.budget_available = True  # Default to available
-            rec.budget_balance = 0.0  # Unknown without budget integration
-            rec.budget_warning = False
-            
-            # Flag for NSR override if needed
-            if rec.total_price > 1000000:  # ETB 1M+ may need multi-year approval
-                rec.budget_warning = (
-                    f"⚠️ Large procurement (ETB {rec.total_price:,.2f}). "
-                    "Ensure budget coverage or NSR approval for multi-year allocation."
-                )
+            rec.budget_available = budget_check['available']
+            rec.budget_balance = budget_check['balance']
+            rec.budget_warning = budget_check['warning'] or False
     
     @api.depends('item_id')
     def _compute_last_purchase_price(self):
@@ -1355,7 +1346,7 @@ class MesobProcurementNeed(models.Model):
         self.ensure_one()
         
         # Get SPO users
-        spo_group = self.env.ref('mesob_inventory_base.group_mesob_procurement_officer', raise_if_not_found=False)
+        spo_group = self.env.ref('mesob_inventory_base.group_mesob_procurement', raise_if_not_found=False)
         if not spo_group or not spo_group.users:
             _logger.warning("AUTO-001: No SPO users found for notification")
             return
@@ -1877,7 +1868,7 @@ class MesobProcurementTender(models.Model):
         self.write({'state': 'doc_generated'})
         
         # Send notification to procurement officers
-        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement_officer', raise_if_not_found=False)
+        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement', raise_if_not_found=False)
         if procurement_users and procurement_users.users:
             self.message_post(
                 body=f"""<div style="background-color: #d1ecf1; border-left: 4px solid #0c5460; padding: 15px;">
@@ -2474,7 +2465,7 @@ class MesobProcurementContract(models.Model):
         bg_color, text_color, icon, severity = alert_colors.get(alert_type, alert_colors['30days'])
         days_text = f"{days_remaining} days" if days_remaining > 0 else "EXPIRED"
         
-        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement_officer', raise_if_not_found=False)
+        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement', raise_if_not_found=False)
         
         if procurement_users and procurement_users.users:
             self.message_post(
@@ -2526,7 +2517,7 @@ class MesobProcurementContract(models.Model):
         bg_color, text_color, icon, severity = alert_colors.get(alert_type, alert_colors['30days'])
         days_text = f"{days_remaining} days" if days_remaining > 0 else "EXPIRED"
         
-        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement_officer', raise_if_not_found=False)
+        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement', raise_if_not_found=False)
         
         if procurement_users and procurement_users.users:
             self.message_post(
@@ -2965,7 +2956,7 @@ class MesobContractMilestone(models.Model):
         bg_color, text_color, icon, severity, message = alert_configs.get(alert_type, alert_configs['14days'])
         
         # Send to procurement officer and supplier (if email available)
-        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement_officer', raise_if_not_found=False)
+        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement', raise_if_not_found=False)
         
         recipients = []
         if procurement_users and procurement_users.users:
@@ -3440,7 +3431,7 @@ class MesobProcurementOrder(models.Model):
         """AUTO-024: Alert Procurement Officer of overdue delivery (Day 3)."""
         self.ensure_one()
         
-        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement_officer', raise_if_not_found=False)
+        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement', raise_if_not_found=False)
         
         if procurement_users and procurement_users.users:
             self.message_post(
@@ -3748,3 +3739,4 @@ class MesobProcurementComplaint(models.Model):
                 raise UserError("Please document the resolution outcome first.")
             rec.state = "resolved"
         return True
+

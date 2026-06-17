@@ -622,7 +622,7 @@ class MesobInventoryItem(models.Model):
                         })
                         
                         # AUTO-023: Send notification to Procurement Officer
-                        procurement_officers = self.env.ref('mesob_inventory_base.group_mesob_procurement_officer').users
+                        procurement_officers = self.env.ref('mesob_inventory_base.group_mesob_procurement').users
                         if procurement_officers:
                             need.message_post(
                                 body=f"""<p><strong>AUTO-023: Reorder Alert</strong></p>
@@ -679,3 +679,4 @@ class MesobInventoryItem(models.Model):
                     rec.current_holder = ""
             else:
                 rec.current_holder = ""
+

@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- AUTO-003: Budget Allocation Views -->
+    
+    <!-- Budget Allocation Tree View -->
+    <record id="view_mesob_budget_allocation_tree" model="ir.ui.view">
+        <field name="name">mesob.budget.allocation.tree</field>
+        <field name="model">mesob.budget.allocation</field>
+        <field name="arch" type="xml">
+            <list string="Budget Allocations">
+                <field name="name"/>
+                <field name="fiscal_year"/>
+                <field name="classification_code"/>
+                <field name="allocated_budget" sum="Total Allocated"/>
+                <field name="committed_budget" sum="Total Committed"/>
+                <field name="available_budget" sum="Total Available"/>
+                <field name="utilization_percent" widget="progressbar"/>
+                <field name="budget_status" widget="badge" 
+                       decoration-success="budget_status == 'available'"
+                       decoration-warning="budget_status == 'warning'"
+                       decoration-danger="budget_status in ['critical', 'exhausted']"/>
+                <field name="state" widget="badge" 
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'confirmed'"
+                       decoration-muted="state == 'closed'"/>
+            </list>
+        </field>
+    </record>
+    
+    <!-- Budget Allocation Form View -->
+    <record id="view_mesob_budget_allocation_form" model="ir.ui.view">
+        <field name="name">mesob.budget.allocation.form</field>
+        <field name="model">mesob.budget.allocation</field>
+        <field name="arch" type="xml">
+            <form string="Budget Allocation">
+                <header>
+                    <button name="action_confirm" 
+                            string="Confirm Budget" 
+                            type="object" 
+                            class="oe_highlight" 
+                            invisible="state != 'draft'"/>
+                    <button name="action_reset_to_draft" 
+                            string="Reset to Draft" 
+                            type="object" 
+                            invisible="state != 'confirmed'"/>
+                    <button name="action_close" 
+                            string="Close Fiscal Year" 
+                            type="object" 
+                            class="btn-warning" 
+                            invisible="state != 'confirmed'"
+                            confirm="Are you sure you want to close this fiscal year budget?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group string="Budget Details">
+                            <field name="fiscal_year" readonly="state != 'draft'"/>
+                            <field name="classification_code" readonly="state != 'draft'"/>
+                            <field name="allocated_budget" readonly="state != 'draft'"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Budget Status">
+                            <field name="committed_budget" readonly="1"/>
+                            <field name="available_budget" readonly="1"/>
+                            <field name="utilization_percent" widget="progressbar"/>
+                            <field name="budget_status" widget="badge" 
+                                   decoration-success="budget_status == 'available'"
+                                   decoration-warning="budget_status == 'warning'"
+                                   decoration-danger="budget_status in ['critical', 'exhausted']"/>
+                        </group>
+                    </group>
+                    
+                    <div class="alert alert-info" role="alert" invisible="state != 'draft'">
+                        <h4 class="alert-heading">AUTO-003: Budget Availability Check</h4>
+                        <p>This budget allocation will be used to validate department needs submissions in real-time. 
+                           Please confirm the budget before departments submit their needs.</p>
+                    </div>
+                    
+                    <div class="alert alert-warning" role="alert" invisible="budget_status not in ['warning', 'critical']">
+                        <h4 class="alert-heading">Budget Warning</h4>
+                        <p><strong>Utilization: <field name="utilization_percent" readonly="1"/>%</strong></p>
+                        <p invisible="budget_status != 'warning'">Budget utilization has exceeded 80%. Monitor submissions carefully.</p>
+                        <p invisible="budget_status != 'critical'">Critical: Budget utilization has exceeded 95%. Consider budget reallocation or rejecting low-priority needs.</p>
+                    </div>
+                    
+                    <div class="alert alert-danger" role="alert" invisible="budget_status != 'exhausted'">
+                        <h4 class="alert-heading">Budget Exhausted</h4>
+                        <p>This budget classification has been fully committed. New needs submissions will be automatically flagged.</p>
+                    </div>
+                    
+                    <group>
+                        <field name="notes" placeholder="Additional notes about this budget allocation..."/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Budget Allocation Kanban View -->
+    <record id="view_mesob_budget_allocation_kanban" model="ir.ui.view">
+        <field name="name">mesob.budget.allocation.kanban</field>
+        <field name="model">mesob.budget.allocation</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="name"/>
+                <field name="fiscal_year"/>
+                <field name="classification_code"/>
+                <field name="allocated_budget"/>
+                <field name="available_budget"/>
+                <field name="utilization_percent"/>
+                <field name="budget_status"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="row">
+                                <div class="col-12">
+                                    <strong><field name="name"/></strong>
+                                    <span class="float-end">
+                                        <field name="state" widget="badge"/>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <field name="classification_code"/>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    Allocated: <field name="allocated_budget" widget="monetary"/>
+                                </div>
+                                <div class="col-6">
+                                    Available: <field name="available_budget" widget="monetary"/>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <field name="utilization_percent" widget="progressbar"/>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <field name="budget_status" widget="badge" 
+                                           decoration-success="budget_status == 'available'"
+                                           decoration-warning="budget_status == 'warning'"
+                                           decoration-danger="budget_status in ['critical', 'exhausted']"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    
+    <!-- Budget Allocation Action -->
+    <record id="action_mesob_budget_allocation" model="ir.actions.act_window">
+        <field name="name">Budget Allocations</field>
+        <field name="res_model">mesob.budget.allocation</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configure Budget Allocations
+            </p>
+            <p>
+                AUTO-003: Budget allocations control real-time budget availability checks during needs submission.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Menu Item -->
+    <menuitem 
+        id="menu_mesob_budget_allocation" 
+        name="Budget Allocations" 
+        parent="menu_mesob_procurement" 
+        action="action_mesob_budget_allocation" 
+        sequence="15"/>
+
+</odoo>
