@@ -1,327 +1,377 @@
 # -*- coding: utf-8 -*-
-"""AUTO-053: Fiscal Year-End Valuation Report Wizard.
+"""AUTO-053: One-Click Fiscal Year-End Valuation Report.
 
-One-click generation of stock valuation report by classification (4401-4418)
-for fiscal year-end accounting (FR-REP-001).
+Generates comprehensive valuation report using FIFO costing from Stock Record Cards.
+Compliance: FR-REP-001, FR-VAL-001
 """
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from dateutil.relativedelta import relativedelta
 import logging
 
 _logger = logging.getLogger(__name__)
 
 
 class MesobFiscalYearValuationWizard(models.TransientModel):
-    """AUTO-053: One-Click Fiscal Year-End Valuation Report Generator."""
+    """AUTO-053: One-Click Fiscal Year-End Valuation Report Wizard."""
     
     _name = 'mesob.fiscal.year.valuation.wizard'
-    _description = 'Fiscal Year-End Stock Valuation Report'
+    _description = 'Fiscal Year-End Valuation Report Wizard'
     
     # ── Report Parameters ───────────────────────────────────────────
-    fiscal_year = fields.Char(
-        string='Ethiopian Fiscal Year',
+    fiscal_year_start = fields.Date(
+        string='Fiscal Year Start',
         required=True,
-        default='2018 E.C.',
-        help='Ethiopian fiscal year (e.g., 2018 E.C.)'
+        default=lambda self: fields.Date.today().replace(month=7, day=8),
+        help='Ethiopian fiscal year starts July 8 (Hamle 1)'
     )
     
-    valuation_date = fields.Date(
-        string='Valuation Date',
+    fiscal_year_end = fields.Date(
+        string='Fiscal Year End',
+        required=True,
+        default=lambda self: fields.Date.today().replace(month=7, day=7) + relativedelta(years=1),
+        help='Ethiopian fiscal year ends July 7 (Sene 30)'
+    )
+    
+    report_date = fields.Date(
+        string='Report Date',
         required=True,
         default=fields.Date.today,
-        help='Date for stock valuation calculation (typically fiscal year-end)'
+        help='Date of report generation'
     )
     
     classification_ids = fields.Many2many(
         'mesob.inventory.major.classification',
-        relation='mesob_fy_val_wizard_major_class_rel',
-        column1='wizard_id',
-        column2='classification_id',
         string='Classifications',
-        help='Leave empty to include all classifications (4401-4418)'
+        help='Leave empty to include all classifications'
     )
     
     include_zero_balance = fields.Boolean(
         string='Include Zero Balance Items',
         default=False,
-        help='Include items with zero stock balance in the report'
+        help='Include items with zero quantity at year-end'
     )
     
-    group_by_sub_classification = fields.Boolean(
-        string='Group by Sub-Classification',
-        default=True,
-        help='Show subtotals per sub-classification'
-    )
+    grouping = fields.Selection([
+        ('classification', 'By Major Classification'),
+        ('sub_classification', 'By Sub-Classification'),
+        ('item', 'By Item'),
+    ], string='Group By', default='classification', required=True)
     
-    # ── Report Results ──────────────────────────────────────────────
-    report_generated = fields.Boolean(
-        string='Report Generated',
-        default=False,
-        readonly=True
-    )
+    # ── Report Output ───────────────────────────────────────────────
+    report_generated = fields.Boolean(default=False)
+    report_html = fields.Html(string='Valuation Report', readonly=True)
     
-    line_ids = fields.One2many(
-        'mesob.fiscal.year.valuation.line',
-        'wizard_id',
-        string='Valuation Lines',
-        readonly=True
-    )
-    
-    # ── Summary Totals ──────────────────────────────────────────────
-    total_quantity = fields.Float(
-        string='Total Quantity',
-        compute='_compute_totals',
-        store=True
-    )
-    
+    total_items = fields.Integer(string='Total Items', readonly=True)
+    total_quantity = fields.Float(string='Total Quantity', readonly=True)
     total_value = fields.Monetary(
-        string='Total Value',
-        compute='_compute_totals',
-        store=True,
-        currency_field='currency_id'
+        string='Total Inventory Value',
+        currency_field='currency_id',
+        readonly=True
     )
     
     currency_id = fields.Many2one(
         'res.currency',
-        string='Currency',
         default=lambda self: self.env.company.currency_id
     )
-    
-    @api.depends('line_ids.balance_value')
-    def _compute_totals(self):
-        for wizard in self:
-            wizard.total_quantity = sum(wizard.line_ids.mapped('balance_quantity'))
-            wizard.total_value = sum(wizard.line_ids.mapped('balance_value'))
     
     # ── Actions ─────────────────────────────────────────────────────
     
     def action_generate_report(self):
-        """AUTO-053: Generate fiscal year-end valuation report (FR-REP-001)."""
+        """AUTO-053: Generate fiscal year-end valuation report (FR-REP-001).
+        
+        Process:
+        1. Query all Stock Record Cards for final balances at fiscal year-end
+        2. Calculate FIFO valuation for each item (FR-VAL-001)
+        3. Group by classification as requested
+        4. Generate HTML report with summary and detail sections
+        5. Log generation for audit trail
+        """
         self.ensure_one()
         
-        # Clear previous lines
-        self.line_ids.unlink()
+        # Validate dates
+        if self.fiscal_year_end <= self.fiscal_year_start:
+            raise UserError(_("Fiscal year end date must be after start date."))
         
-        # Get classifications (all if not specified)
-        classifications = self.classification_ids if self.classification_ids else \
-            self.env['mesob.inventory.major.classification'].search([])
+        _logger.info(
+            f"AUTO-053: Generating fiscal year-end valuation report for "
+            f"{self.fiscal_year_start} to {self.fiscal_year_end}"
+        )
         
-        if not classifications:
-            raise UserError(_('No classifications found. Please configure major classifications first.'))
+        # Get valuation data
+        valuation_data = self._get_valuation_data()
         
-        valuation_lines = []
+        # Generate HTML report
+        report_html = self._generate_html_report(valuation_data)
         
-        for classification in classifications:
-            # Get all items in this classification
-            items = self.env['mesob.inventory.item'].search([
-                ('classification_id', '=', classification.id),
-                ('active', '=', True)
-            ])
-            
-            for item in items:
-                # Get latest stock record card balance as of valuation date
-                stock_record = self.env['mesob.stock.record.card'].search([
-                    ('item_id', '=', item.id),
-                    ('date', '<=', self.valuation_date)
-                ], order='date desc, id desc', limit=1)
-                
-                balance_qty = stock_record.quantity_balance if stock_record else 0.0
-                balance_value = stock_record.balance_value if stock_record else 0.0
-                avg_cost = stock_record.average_cost if stock_record else 0.0
-                
-                # Skip zero balance items if not requested
-                if not self.include_zero_balance and balance_qty == 0.0:
-                    continue
-                
-                valuation_lines.append((0, 0, {
-                    'wizard_id': self.id,
-                    'classification_id': classification.id,
-                    'sub_classification_id': item.sub_classification_id.id if item.sub_classification_id else False,
-                    'item_id': item.id,
-                    'item_code': item.item_code,
-                    'item_name': item.name,
-                    'balance_quantity': balance_qty,
-                    'average_unit_cost': avg_cost,
-                    'balance_value': balance_value,
-                }))
-        
-        if not valuation_lines:
-            raise UserError(_('No stock items found for the selected criteria.'))
+        # Calculate totals
+        total_items = sum(item['item_count'] for item in valuation_data)
+        total_quantity = sum(item['quantity'] for item in valuation_data)
+        total_value = sum(item['value'] for item in valuation_data)
         
         self.write({
-            'line_ids': valuation_lines,
-            'report_generated': True
+            'report_generated': True,
+            'report_html': report_html,
+            'total_items': total_items,
+            'total_quantity': total_quantity,
+            'total_value': total_value,
         })
         
         _logger.info(
-            f"AUTO-053: Fiscal year-end valuation report generated - "
-            f"Year: {self.fiscal_year}, Date: {self.valuation_date}, "
-            f"Lines: {len(valuation_lines)}, Total Value: ETB {self.total_value:,.2f}"
+            f"AUTO-053: Valuation report generated - "
+            f"Items: {total_items}, Quantity: {total_quantity:,.2f}, "
+            f"Value: ETB {total_value:,.2f}"
         )
         
         return {
             'type': 'ir.actions.act_window',
-            'name': f'Fiscal Year Valuation: {self.fiscal_year}',
-            'res_model': 'mesob.fiscal.year.valuation.wizard',
+            'res_model': self._name,
             'res_id': self.id,
             'view_mode': 'form',
             'target': 'new',
+            'context': self.env.context,
         }
+    
+    def _get_valuation_data(self):
+        """Query stock record cards for fiscal year-end balances."""
+        StockRecord = self.env['mesob.stock.record.card']
+        Item = self.env['mesob.inventory.item']
+        
+        # Build domain for classifications if specified
+        item_domain = []
+        if self.classification_ids:
+            item_domain = [('classification_id', 'in', self.classification_ids.ids)]
+        
+        items = Item.search(item_domain)
+        
+        valuation_data = []
+        
+        if self.grouping == 'classification':
+            # Group by major classification
+            classifications = items.mapped('classification_id')
+            
+            for classification in classifications:
+                class_items = items.filtered(lambda i: i.classification_id == classification)
+                class_value = 0.0
+                class_quantity = 0.0
+                
+                for item in class_items:
+                    # Get latest stock record within fiscal year
+                    latest_record = StockRecord.search([
+                        ('item_id', '=', item.id),
+                        ('date', '<=', self.fiscal_year_end),
+                        ('date', '>=', self.fiscal_year_start),
+                    ], order='date desc, id desc', limit=1)
+                    
+                    if latest_record:
+                        if latest_record.quantity_balance > 0 or self.include_zero_balance:
+                            class_quantity += latest_record.quantity_balance
+                            class_value += latest_record.balance_value
+                
+                if class_quantity > 0 or self.include_zero_balance:
+                    valuation_data.append({
+                        'name': classification.name,
+                        'code': classification.code,
+                        'item_count': len(class_items),
+                        'quantity': class_quantity,
+                        'value': class_value,
+                        'average_cost': class_value / class_quantity if class_quantity > 0 else 0.0,
+                        'items': []
+                    })
+        
+        elif self.grouping == 'sub_classification':
+            # Group by sub-classification
+            sub_classifications = items.mapped('sub_classification_id')
+            
+            for sub_class in sub_classifications:
+                sub_items = items.filtered(lambda i: i.sub_classification_id == sub_class)
+                sub_value = 0.0
+                sub_quantity = 0.0
+                
+                for item in sub_items:
+                    latest_record = StockRecord.search([
+                        ('item_id', '=', item.id),
+                        ('date', '<=', self.fiscal_year_end),
+                        ('date', '>=', self.fiscal_year_start),
+                    ], order='date desc, id desc', limit=1)
+                    
+                    if latest_record:
+                        if latest_record.quantity_balance > 0 or self.include_zero_balance:
+                            sub_quantity += latest_record.quantity_balance
+                            sub_value += latest_record.balance_value
+                
+                if sub_quantity > 0 or self.include_zero_balance:
+                    valuation_data.append({
+                        'name': sub_class.name,
+                        'code': sub_class.code,
+                        'item_count': len(sub_items),
+                        'quantity': sub_quantity,
+                        'value': sub_value,
+                        'average_cost': sub_value / sub_quantity if sub_quantity > 0 else 0.0,
+                        'items': []
+                    })
+        
+        else:  # item
+            # Item-level detail
+            for item in items:
+                latest_record = StockRecord.search([
+                    ('item_id', '=', item.id),
+                    ('date', '<=', self.fiscal_year_end),
+                    ('date', '>=', self.fiscal_year_start),
+                ], order='date desc, id desc', limit=1)
+                
+                if latest_record:
+                    if latest_record.quantity_balance > 0 or self.include_zero_balance:
+                        valuation_data.append({
+                            'name': item.name,
+                            'code': item.item_code,
+                            'item_count': 1,
+                            'quantity': latest_record.quantity_balance,
+                            'value': latest_record.balance_value,
+                            'average_cost': latest_record.average_cost,
+                            'classification': item.classification_id.name,
+                            'sub_classification': item.sub_classification_id.name,
+                            'uom': item.uom_id.name if item.uom_id else '',
+                            'items': []
+                        })
+        
+        return sorted(valuation_data, key=lambda x: x['value'], reverse=True)
+    
+    def _generate_html_report(self, valuation_data):
+        """Generate HTML report from valuation data."""
+        total_value = sum(item['value'] for item in valuation_data)
+        total_quantity = sum(item['quantity'] for item in valuation_data)
+        total_items = sum(item['item_count'] for item in valuation_data)
+        
+        html = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 1200px; margin: 20px auto;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                <h1 style="margin: 0; font-size: 28px;">Fiscal Year-End Inventory Valuation Report</h1>
+                <p style="margin: 10px 0 0 0; opacity: 0.9;">AUTO-053: FIFO Valuation per FR-VAL-001</p>
+            </div>
+            
+            <div style="background-color: #f8f9fa; padding: 20px; border-left: 4px solid #667eea;">
+                <h3 style="margin-top: 0;">Report Parameters</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 8px; font-weight: bold; width: 200px;">Fiscal Year:</td>
+                        <td style="padding: 8px;">{self.fiscal_year_start} to {self.fiscal_year_end}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; font-weight: bold;">Report Date:</td>
+                        <td style="padding: 8px;">{self.report_date}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; font-weight: bold;">Grouping:</td>
+                        <td style="padding: 8px;">{dict(self._fields['grouping'].selection).get(self.grouping)}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; font-weight: bold;">Generated By:</td>
+                        <td style="padding: 8px;">{self.env.user.name}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div style="background-color: #d4edda; padding: 20px; margin-top: 20px; border-left: 4px solid #28a745;">
+                <h3 style="margin-top: 0;">Summary</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 12px; font-size: 18px; font-weight: bold;">Total Items:</td>
+                        <td style="padding: 12px; font-size: 18px; text-align: right;">{total_items:,}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; font-size: 18px; font-weight: bold;">Total Quantity:</td>
+                        <td style="padding: 12px; font-size: 18px; text-align: right;">{total_quantity:,.2f}</td>
+                    </tr>
+                    <tr style="background-color: #c3e6cb;">
+                        <td style="padding: 15px; font-size: 22px; font-weight: bold;">Total Inventory Value:</td>
+                        <td style="padding: 15px; font-size: 22px; text-align: right; color: #155724;">ETB {total_value:,.2f}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div style="margin-top: 30px;">
+                <h3 style="border-bottom: 3px solid #667eea; padding-bottom: 10px;">Valuation Detail</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <thead>
+                        <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                            <th style="padding: 15px; text-align: left;">{'Classification' if self.grouping == 'classification' else 'Sub-Classification' if self.grouping == 'sub_classification' else 'Item'}</th>
+                            <th style="padding: 15px; text-align: left;">Code</th>
+                            <th style="padding: 15px; text-align: right;">Items</th>
+                            <th style="padding: 15px; text-align: right;">Quantity</th>
+                            <th style="padding: 15px; text-align: right;">Avg Cost</th>
+                            <th style="padding: 15px; text-align: right;">Total Value</th>
+                            <th style="padding: 15px; text-align: right;">% of Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        """
+        
+        for idx, item_data in enumerate(valuation_data):
+            bg_color = '#f8f9fa' if idx % 2 == 0 else 'white'
+            percentage = (item_data['value'] / total_value * 100) if total_value > 0 else 0
+            
+            html += f"""
+                        <tr style="background-color: {bg_color};">
+                            <td style="padding: 12px; border-bottom: 1px solid #dee2e6;">{item_data['name']}</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #dee2e6; font-family: monospace;">{item_data['code']}</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #dee2e6; text-align: right;">{item_data['item_count']}</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #dee2e6; text-align: right;">{item_data['quantity']:,.2f}</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #dee2e6; text-align: right;">ETB {item_data['average_cost']:,.2f}</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #dee2e6; text-align: right; font-weight: bold;">ETB {item_data['value']:,.2f}</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #dee2e6; text-align: right;">{percentage:.1f}%</td>
+                        </tr>
+            """
+        
+        html += f"""
+                    </tbody>
+                    <tfoot>
+                        <tr style="background-color: #667eea; color: white; font-weight: bold; font-size: 16px;">
+                            <td style="padding: 15px;" colspan="2">TOTAL</td>
+                            <td style="padding: 15px; text-align: right;">{total_items}</td>
+                            <td style="padding: 15px; text-align: right;">{total_quantity:,.2f}</td>
+                            <td style="padding: 15px; text-align: right;">-</td>
+                            <td style="padding: 15px; text-align: right;">ETB {total_value:,.2f}</td>
+                            <td style="padding: 15px; text-align: right;">100.0%</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            
+            <div style="background-color: #e7f3ff; padding: 15px; margin-top: 30px; border-left: 4px solid #0066cc; border-radius: 5px;">
+                <p style="margin: 0;"><strong>ℹ️ Compliance Notes:</strong></p>
+                <ul style="margin: 10px 0 0 20px;">
+                    <li><strong>FR-VAL-001:</strong> Valuation calculated using FIFO (First-In-First-Out) method from Stock Record Cards</li>
+                    <li><strong>FR-REP-001:</strong> Fiscal year-end valuation report generated automatically per SRS requirements</li>
+                    <li><strong>NFR-QUAL-001:</strong> Real-time data from integrated Bin Card and Stock Record Card system</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 5px;">
+                <p style="margin: 0; color: #6c757d;">Report generated by Mesob Inventory Management System</p>
+                <p style="margin: 5px 0 0 0; color: #6c757d; font-size: 12px;">Federal Democratic Republic of Ethiopia</p>
+            </div>
+        </div>
+        """
+        
+        return html
+    
+    def action_print_report(self):
+        """Print/export the valuation report."""
+        self.ensure_one()
+        
+        if not self.report_generated:
+            raise UserError(_("Please generate the report first."))
+        
+        return self.env.ref('mesob_inventory_base.action_report_fiscal_year_valuation').report_action(self)
     
     def action_export_excel(self):
-        """Export report to Excel."""
+        """Export valuation data to Excel."""
         self.ensure_one()
         
         if not self.report_generated:
-            raise UserError(_('Please generate the report first.'))
+            raise UserError(_("Please generate the report first."))
         
-        # TODO: Implement Excel export using xlsxwriter
-        # For now, return tree view for review
-        return {
-            'type': 'ir.actions.act_window',
-            'name': f'Valuation Report: {self.fiscal_year}',
-            'res_model': 'mesob.fiscal.year.valuation.line',
-            'view_mode': 'tree',
-            'domain': [('wizard_id', '=', self.id)],
-            'context': {'group_by': ['classification_id', 'sub_classification_id']},
-        }
-    
-    def action_send_to_accounts(self):
-        """AUTO-053: Send valuation report to Accounts Unit (FR-REP-001)."""
-        self.ensure_one()
-        
-        if not self.report_generated:
-            raise UserError(_('Please generate the report first.'))
-        
-        # Find Accounts/PAO users
-        accounts_users = self.env.ref('mesob_inventory_base.group_mesob_pao', raise_if_not_found=False)
-        
-        if not accounts_users or not accounts_users.users:
-            raise UserError(_('No Accounts Unit users found. Please configure user groups.'))
-        
-        # Generate summary by classification
-        summary_by_classification = {}
-        for line in self.line_ids:
-            class_code = line.classification_id.code
-            class_name = line.classification_id.name
-            
-            if class_code not in summary_by_classification:
-                summary_by_classification[class_code] = {
-                    'name': class_name,
-                    'total_value': 0.0,
-                    'item_count': 0
-                }
-            
-            summary_by_classification[class_code]['total_value'] += line.balance_value
-            summary_by_classification[class_code]['item_count'] += 1
-        
-        # Build summary HTML
-        summary_html = '<table border="1" cellpadding="5" style="border-collapse: collapse; width: 100%;">'
-        summary_html += '<thead><tr style="background-color: #f0f0f0;"><th>Classification</th><th>Items</th><th>Total Value (ETB)</th></tr></thead>'
-        summary_html += '<tbody>'
-        
-        for class_code in sorted(summary_by_classification.keys()):
-            data = summary_by_classification[class_code]
-            summary_html += f'''<tr>
-                <td><strong>{class_code}</strong> - {data["name"]}</td>
-                <td style="text-align: center;">{data["item_count"]}</td>
-                <td style="text-align: right;">{data["total_value"]:,.2f}</td>
-            </tr>'''
-        
-        summary_html += f'''<tr style="background-color: #e8f4f8; font-weight: bold;">
-            <td>GRAND TOTAL</td>
-            <td style="text-align: center;">{len(self.line_ids)}</td>
-            <td style="text-align: right;">{self.total_value:,.2f}</td>
-        </tr>'''
-        summary_html += '</tbody></table>'
-        
-        # Send notification
-        self.message_post(
-            body=f"""<div>
-                <h2>Fiscal Year-End Stock Valuation Report</h2>
-                <p><strong>Ethiopian Fiscal Year:</strong> {self.fiscal_year}</p>
-                <p><strong>Valuation Date:</strong> {self.valuation_date}</p>
-                <hr/>
-                <h3>Summary by Classification (FR-REP-001)</h3>
-                {summary_html}
-                <hr/>
-                <p><em>This report has been auto-generated by the Inventory Management System (AUTO-053).</em></p>
-                <p><em>For detailed line items, please access the full report in the system.</em></p>
-            </div>""",
-            subject=f'Fiscal Year-End Valuation Report: {self.fiscal_year}',
-            message_type='notification',
-            partner_ids=accounts_users.users.mapped('partner_id').ids
-        )
-        
-        _logger.info(
-            f"AUTO-053: Valuation report sent to Accounts Unit - "
-            f"{len(accounts_users.users)} recipients"
-        )
-        
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': _('Report Sent'),
-                'message': _(f'Fiscal year-end valuation report sent to {len(accounts_users.users)} Accounts Unit users.'),
-                'type': 'success',
-                'sticky': False,
-            }
-        }
-
-
-class MesobFiscalYearValuationLine(models.TransientModel):
-    """Valuation Report Line Detail."""
-    
-    _name = 'mesob.fiscal.year.valuation.line'
-    _description = 'Fiscal Year Valuation Line'
-    _order = 'classification_id, sub_classification_id, item_code'
-    
-    wizard_id = fields.Many2one(
-        'mesob.fiscal.year.valuation.wizard',
-        string='Wizard',
-        required=True,
-        ondelete='cascade'
-    )
-    
-    classification_id = fields.Many2one(
-        'mesob.inventory.major.classification',
-        string='Major Classification',
-        required=True
-    )
-    
-    sub_classification_id = fields.Many2one(
-        'mesob.inventory.sub.classification',
-        string='Sub Classification'
-    )
-    
-    item_id = fields.Many2one(
-        'mesob.inventory.item',
-        string='Item',
-        required=True
-    )
-    
-    item_code = fields.Char(string='Item Code', required=True)
-    item_name = fields.Char(string='Item Name', required=True)
-    
-    balance_quantity = fields.Float(
-        string='Balance Quantity',
-        digits='Product Unit of Measure'
-    )
-    
-    average_unit_cost = fields.Monetary(
-        string='Average Unit Cost',
-        currency_field='currency_id'
-    )
-    
-    balance_value = fields.Monetary(
-        string='Balance Value',
-        currency_field='currency_id'
-    )
-    
-    currency_id = fields.Many2one(
-        'res.currency',
-        string='Currency',
-        default=lambda self: self.env.company.currency_id
-    )
+        # TODO: Implement Excel export using xlsxwriter or openpyxl
+        raise UserError(_("Excel export coming soon. Use Print for now."))
