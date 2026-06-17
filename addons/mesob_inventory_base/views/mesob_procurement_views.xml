@@ -22,10 +22,35 @@
         <field name="arch" type="xml">
             <form string="Annual Procurement Plan">
                 <header>
-                    <button name="action_auto_generate_lots" string="Auto Group Needs to Lots" type="object" class="oe_highlight" invisible="state != 'draft'"/>
-                    <button name="action_puh_approve" string="PUH Approve" type="object" class="oe_highlight" invisible="state not in ['draft', 'rejected']" groups="mesob_inventory_base.group_mesob_pao"/>
-                    <button name="action_pec_approve" string="PEC Approve" type="object" class="oe_highlight" invisible="state != 'puh_approved'" groups="mesob_inventory_base.group_mesob_pao"/>
-                    <button name="action_hope_approve" string="HOPE Publish" type="object" class="oe_highlight" invisible="state != 'pec_approved'" groups="mesob_inventory_base.group_mesob_pao"/>
+                    <button name="action_intelligent_consolidation" 
+                            string="Intelligent Consolidation" 
+                            type="object" 
+                            class="btn-primary" 
+                            invisible="state != 'draft'"
+                            help="AUTO-002: Use AI-powered consolidation to group needs into lots"/>
+                    <button name="action_auto_generate_lots" 
+                            string="Auto Group Needs to Lots" 
+                            type="object" 
+                            class="oe_highlight" 
+                            invisible="state != 'draft'"/>
+                    <button name="action_puh_approve" 
+                            string="PUH Approve" 
+                            type="object" 
+                            class="oe_highlight" 
+                            invisible="state not in ['draft', 'rejected']" 
+                            groups="mesob_inventory_base.group_mesob_pao"/>
+                    <button name="action_pec_approve" 
+                            string="PEC Approve" 
+                            type="object" 
+                            class="oe_highlight" 
+                            invisible="state != 'puh_approved'" 
+                            groups="mesob_inventory_base.group_mesob_pao"/>
+                    <button name="action_hope_approve" 
+                            string="HOPE Publish" 
+                            type="object" 
+                            class="oe_highlight" 
+                            invisible="state != 'pec_approved'" 
+                            groups="mesob_inventory_base.group_mesob_pao"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,puh_approved,pec_approved,hope_approved"/>
                 </header>
                 <sheet>
