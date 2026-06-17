@@ -109,18 +109,18 @@
             <form string="Department Need Request - AUTO-001 Self-Service">
                 <header>
                     <!-- AUTO-001: Department self-service submission -->
-                    <button name="action_submit" string="✅ Submit Need to SPO" type="object" class="oe_highlight" 
+                    <button name="action_submit" string="Submit Need to SPO" type="object" class="oe_highlight" 
                             invisible="state != 'draft'"
                             confirm="Are you sure you want to submit this need? Please ensure all details are accurate."/>
                     
                     <!-- SPO Review Actions -->
-                    <button name="action_review" string="✓ Approve Need" type="object" class="oe_highlight" 
+                    <button name="action_review" string="Approve Need" type="object" class="oe_highlight" 
                             invisible="state != 'submitted'" 
                             groups="mesob_inventory_base.group_mesob_pao"/>
-                    <button name="action_reject" string="✗ Reject Need" type="object" class="btn-danger" 
+                    <button name="action_reject" string="Reject Need" type="object" class="btn-danger" 
                             invisible="state not in ['submitted', 'reviewed']" 
                             groups="mesob_inventory_base.group_mesob_pao"/>
-                    <button name="action_lock" string="🔒 Lock (Immutable)" type="object" class="oe_highlight" 
+                    <button name="action_lock" string="Lock (Immutable)" type="object" class="oe_highlight" 
                             invisible="state != 'reviewed'" 
                             groups="mesob_inventory_base.group_mesob_pao"/>
                     
@@ -155,12 +155,12 @@
                     </div>
                     
                     <!-- Submission Tracking -->
-                    <group string="📥 Submission Information" invisible="state == 'draft'">
+                    <group string="Submission Information" invisible="state == 'draft'">
                         <field name="submission_date"/>
                         <field name="submitted_by_id"/>
                     </group>
                     
-                    <group string="🏛️ Department & Classification">
+                    <group string="Department and Classification">
                         <group>
                             <field name="fiscal_year" readonly="state != 'draft'"/>
                             <field name="department" readonly="state != 'draft'" required="1"/>
@@ -172,7 +172,7 @@
                         </group>
                     </group>
                     
-                    <group string="📦 Item Details">
+                    <group string="Item Details">
                         <group>
                             <field name="item_id" readonly="state == 'locked'" 
                                    options="{'no_create': True, 'no_open': True}"
@@ -196,14 +196,14 @@
                     </group>
                     
                     <!-- AUTO-001: Justification (Mandatory) -->
-                    <group string="✍️ Justification (Required)">
+                    <group string="Justification (Required)">
                         <field name="justification" readonly="state in ['locked', 'rejected']" 
                                placeholder="Explain why this item is needed, its purpose, and impact if not procured (minimum 20 characters)..." 
                                required="1"/>
                     </group>
                     
                     <!-- SPO Review Section -->
-                    <group string="👁️ SPO Review" invisible="state == 'draft'">
+                    <group string="SPO Review" invisible="state == 'draft'">
                         <group>
                             <field name="reviewer_id" readonly="1"/>
                             <field name="review_timestamp" readonly="1"/>
@@ -217,7 +217,7 @@
                     </group>
                     
                     <!-- Rejection Info -->
-                    <group string="❌ Rejection Details" invisible="state != 'rejected'">
+                    <group string="Rejection Details" invisible="state != 'rejected'">
                         <field name="rejection_reason" readonly="1"/>
                     </group>
                     
