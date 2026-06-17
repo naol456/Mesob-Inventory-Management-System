@@ -2,6 +2,15 @@
 <odoo>
     <!-- AUTO-002: Intelligent Needs Consolidation Wizard Views -->
     
+    <!-- Action: Open Consolidation Group Needs (defined first, used later) -->
+    <record id="action_view_consolidation_group_needs" model="ir.actions.act_window">
+        <field name="name">Needs in Group</field>
+        <field name="res_model">mesob.procurement.need</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('id', 'in', context.get('default_need_ids', []))]</field>
+        <field name="context">{}</field>
+    </record>
+    
     <!-- Consolidation Group Preview Tree -->
     <record id="view_mesob_consolidation_group_preview_tree" model="ir.ui.view">
         <field name="name">mesob.consolidation.group.preview.tree</field>
@@ -101,15 +110,6 @@
                 </footer>
             </form>
         </field>
-    </record>
-    
-    <!-- Action: Open Consolidation Group Needs -->
-    <record id="action_view_consolidation_group_needs" model="ir.actions.act_window">
-        <field name="name">Needs in Group</field>
-        <field name="res_model">mesob.procurement.need</field>
-        <field name="view_mode">list,form</field>
-        <field name="domain">[('id', 'in', context.get('default_need_ids', []))]</field>
-        <field name="context">{}</field>
     </record>
     
     <!-- Action: Launch Intelligent Consolidation Wizard -->
