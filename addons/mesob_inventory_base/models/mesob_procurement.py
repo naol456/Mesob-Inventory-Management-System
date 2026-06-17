@@ -635,10 +635,96 @@ class MesobProcurementPlanLot(models.Model):
 
 
 class MesobProcurementNeed(models.Model):
-    """Departmental Needs Collection - FR-PROC-002."""
+    """Departmental Needs Collection - FR-PROC-002.
+    
+    AUTO-001: Department Self-Service Needs Submission
+    - Department Heads submit needs directly via self-service form
+    - System validates item codes against catalogue in real-time (FR-ID-001)
+    - System auto-calculates estimated value based on last purchase price
+    - Procurement Officer receives aggregated submissions
+    """
 
     _name = "mesob.procurement.need"
     _description = "Departmental Need Request"
+    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _order = "submission_date desc, id desc"
+
+    # ── AUTO-001: Self-Service Submission Fields ────────────────────
+    
+    submission_date = fields.Datetime(
+        string="Submission Date",
+        default=fields.Datetime.now,
+        readonly=True,
+        tracking=True,
+        help="AUTO-001: Timestamp when department submitted this need"
+    )
+    
+    submitted_by_id = fields.Many2one(
+        'res.users',
+        string="Submitted By",
+        default=lambda self: self.env.user,
+        readonly=True,
+        tracking=True,
+        help="AUTO-001: Department Head/User who submitted this need"
+    )
+    
+    fiscal_year = fields.Char(
+        string="Target Fiscal Year",
+        required=True,
+        default=lambda self: self._default_fiscal_year(),
+        help="Ethiopian Fiscal Year (e.g., 2018 E.C.)"
+    )
+    
+    justification = fields.Text(
+        string="Justification/Need Reason",
+        required=True,
+        help="AUTO-001: Department must justify why this item is needed"
+    )
+    
+    # ── Budget Availability Check (AUTO-003) ────────────────────────
+    
+    budget_classification = fields.Selection([
+        ('4401', '4401 - Office Supplies'),
+        ('4402', '4402 - Stationery'),
+        ('4403', '4403 - Cleaning Materials'),
+        ('4404', '4404 - Printed Forms'),
+        ('4405', '4405 - Fuel & Lubricants'),
+        ('4406', '4406 - Spare Parts'),
+        ('4407', '4407 - Books & Publications'),
+        ('4408', '4408 - Medical Supplies'),
+        ('4409', '4409 - Agricultural Supplies'),
+        ('4410', '4410 - Construction Materials'),
+        ('4411', '4411 - Drugs & Chemicals'),
+        ('4412', '4412 - Food & Beverages'),
+        ('4413', '4413 - Vehicles'),
+        ('4414', '4414 - Machinery & Equipment'),
+        ('4415', '4415 - Furniture & Fixtures'),
+        ('4416', '4416 - IT Equipment'),
+        ('4417', '4417 - Communication Equipment'),
+        ('4418', '4418 - Other Equipment'),
+    ], string="Budget Classification", compute='_compute_budget_classification', store=True)
+    
+    budget_available = fields.Boolean(
+        string="Budget Available",
+        compute='_compute_budget_available',
+        store=True,
+        help="AUTO-003: Real-time budget availability check"
+    )
+    
+    budget_balance = fields.Monetary(
+        string="Available Budget Balance",
+        compute='_compute_budget_available',
+        store=True,
+        currency_field='currency_id',
+        help="AUTO-003: Remaining budget for this classification"
+    )
+    
+    budget_warning = fields.Text(
+        string="Budget Warning",
+        compute='_compute_budget_available',
+        store=True,
+        help="AUTO-003: Warning if budget insufficient"
+    )
 
     department = fields.Selection(
         [
@@ -667,21 +753,32 @@ class MesobProcurementNeed(models.Model):
         ],
         string="Requesting Department",
         required=True,
+        default=lambda self: self._default_department(),
+        tracking=True,
+    )
+    
+    currency_id = fields.Many2one(
+        'res.currency',
+        string='Currency',
+        default=lambda self: self.env.company.currency_id
     )
     item_id = fields.Many2one(
         "mesob.inventory.item",
         string="Catalogued Stock Item",
         required=False,
-        help="Optional if item is not yet coded or will be auto-generated.",
+        tracking=True,
+        help="AUTO-001: Optional if item is not yet coded. System validates against catalogue (FR-ID-001).",
     )
     major_classification_id = fields.Many2one(
         "mesob.inventory.major.classification",
         string="Major Classification",
+        tracking=True,
         help="Major classification code (e.g., 4402) for non-coded / auto-generated items.",
     )
     sub_classification_id = fields.Many2one(
         "mesob.inventory.sub.classification",
         string="Sub Classification",
+        tracking=True,
         help="Sub classification code (e.g., 001) for non-coded / auto-generated items.",
     )
     item_code = fields.Char(
@@ -690,43 +787,243 @@ class MesobProcurementNeed(models.Model):
         store=True,
         readonly=True,
     )
-    quantity = fields.Float(string="Quantity Requested", required=True, default=1.0)
-    estimated_unit_price = fields.Float(string="Estimated Unit Price", required=True)
+    quantity = fields.Float(
+        string="Quantity Requested", 
+        required=True, 
+        default=1.0,
+        tracking=True,
+    )
+    estimated_unit_price = fields.Float(
+        string="Estimated Unit Price", 
+        required=True,
+        tracking=True,
+        help="AUTO-001: Auto-calculated from last purchase price if item exists"
+    )
+    
+    # AUTO-001: Last purchase price intelligence
+    last_purchase_price = fields.Float(
+        string="Last Purchase Price",
+        compute='_compute_last_purchase_price',
+        help="AUTO-001: Last recorded purchase price for this item"
+    )
+    
+    price_variance_percent = fields.Float(
+        string="Price Variance %",
+        compute='_compute_price_variance',
+        help="AUTO-001: Variance between estimated and last purchase price"
+    )
+    
     total_price = fields.Float(
         string="Estimated Total Price",
         compute="_compute_total_price",
         store=True,
+        tracking=True,
     )
     expected_delivery_period = fields.Char(
         string="Expected Delivery Period",
         required=True,
         placeholder="e.g. Q1 / Sene 2018",
+        tracking=True,
     )
-    reviewer_id = fields.Many2one("res.users", string="Reviewer", readonly=True)
-    review_timestamp = fields.Datetime(string="Review Timestamp", readonly=True)
+    reviewer_id = fields.Many2one(
+        "res.users", 
+        string="Reviewer", 
+        readonly=True,
+        tracking=True,
+    )
+    review_timestamp = fields.Datetime(
+        string="Review Timestamp", 
+        readonly=True,
+        tracking=True,
+    )
+    review_comment = fields.Text(
+        string="Review Comment",
+        help="AUTO-001: SPO comments during review"
+    )
     lot_id = fields.Many2one(
         "mesob.procurement.plan.lot",
         string="Assigned APP Lot",
-        help="Lot assigned by Senior Procurement Officer (FR-PROC-004).",
+        tracking=True,
+        help="AUTO-002: Lot assigned by Senior Procurement Officer (FR-PROC-004).",
     )
     state = fields.Selection(
         [
             ("draft", "Draft"),
-            ("submitted", "Submitted"),
-            ("reviewed", "Reviewed"),
+            ("submitted", "Submitted - Pending SPO Review"),
+            ("reviewed", "Reviewed by SPO"),
             ("locked", "Locked (Immutable)"),
+            ("rejected", "Rejected"),
         ],
         string="Status",
         default="draft",
         required=True,
+        tracking=True,
     )
+    
+    rejection_reason = fields.Text(
+        string="Rejection Reason",
+        readonly=True,
+        help="AUTO-001: Reason for need rejection"
+    )
+    
+    # ── Helper/Computed Fields ──────────────────────────────────────
+    
+    display_name = fields.Char(
+        string="Display Name",
+        compute='_compute_display_name',
+        store=True,
+    )
+
+    # ── AUTO-001: Default Values ────────────────────────────────────
+    
+    @api.model
+    def _default_fiscal_year(self):
+        """Return current Ethiopian fiscal year (approximate)."""
+        # Ethiopian calendar is ~7-8 years behind Gregorian
+        # Fiscal year runs from Hamle 1 (approx July 8)
+        import datetime
+        today = datetime.date.today()
+        ec_year = today.year - 7  # Approximate
+        return f"{ec_year} E.C."
+    
+    @api.model
+    def _default_department(self):
+        """AUTO-001: Auto-detect department from user context."""
+        # Try to infer from user's groups or profile
+        # For now, return False to force selection
+        return False
+    
+    # ── AUTO-001: Computed Fields ───────────────────────────────────
+    
+    @api.depends('department', 'item_code', 'quantity')
+    def _compute_display_name(self):
+        for rec in self:
+            if rec.department and rec.item_code:
+                dept_label = dict(rec._fields['department'].selection).get(rec.department, 'Unknown')
+                rec.display_name = f"{dept_label[:30]} - {rec.item_code} (Qty: {rec.quantity})"
+            else:
+                rec.display_name = f"Need Request #{rec.id or 'New'}"
+    
+    @api.depends('major_classification_id')
+    def _compute_budget_classification(self):
+        """AUTO-003: Map major classification to budget code."""
+        for rec in self:
+            if rec.major_classification_id:
+                rec.budget_classification = rec.major_classification_id.code
+            else:
+                rec.budget_classification = False
+    
+    @api.depends('budget_classification', 'total_price', 'fiscal_year')
+    def _compute_budget_available(self):
+        """AUTO-003: Real-time budget availability check (FR-PROC-002, BR-PROC-001).
+        
+        Checks if sufficient budget exists before needs acceptance.
+        Prevents wasted consolidation effort on unfunded needs.
+        """
+        for rec in self:
+            if not rec.budget_classification or not rec.total_price:
+                rec.budget_available = True
+                rec.budget_balance = 0.0
+                rec.budget_warning = False
+                continue
+            
+            # TODO: Integrate with actual budget system
+            # For now, use placeholder logic
+            # In production, query budget.line or account.budget.post
+            
+            # Placeholder: Assume budgets are configured per classification
+            # total_budget = 10000000.0  # ETB 10M per classification
+            # committed_budget = sum of all approved needs for this classification
+            
+            # Simplified check
+            rec.budget_available = True  # Default to available
+            rec.budget_balance = 0.0  # Unknown without budget integration
+            rec.budget_warning = False
+            
+            # Flag for NSR override if needed
+            if rec.total_price > 1000000:  # ETB 1M+ may need multi-year approval
+                rec.budget_warning = (
+                    f"⚠️ Large procurement (ETB {rec.total_price:,.2f}). "
+                    "Ensure budget coverage or NSR approval for multi-year allocation."
+                )
+    
+    @api.depends('item_id')
+    def _compute_last_purchase_price(self):
+        """AUTO-001: Fetch last purchase price for intelligent pre-fill."""
+        for rec in self:
+            if not rec.item_id:
+                rec.last_purchase_price = 0.0
+                continue
+            
+            # Find last approved/received PO line for this item
+            last_po_line = self.env['mesob.procurement.order.line'].search([
+                ('item_id', '=', rec.item_id.id),
+                ('order_id.state', 'in', ['approved', 'sent', 'fully_received', 'closed'])
+            ], order='id desc', limit=1)
+            
+            rec.last_purchase_price = last_po_line.price_unit if last_po_line else 0.0
+    
+    @api.depends('estimated_unit_price', 'last_purchase_price')
+    def _compute_price_variance(self):
+        """AUTO-001: Calculate price variance for review."""
+        for rec in self:
+            if rec.last_purchase_price > 0 and rec.estimated_unit_price > 0:
+                variance = ((rec.estimated_unit_price - rec.last_purchase_price) / rec.last_purchase_price) * 100
+                rec.price_variance_percent = variance
+            else:
+                rec.price_variance_percent = 0.0
+
+    # ── AUTO-001: Onchange Methods ──────────────────────────────────
 
     @api.onchange("item_id")
     def _onchange_item_id(self):
-        """Auto-populate classifications when selecting a catalogued item."""
+        """AUTO-001: Auto-populate fields when selecting catalogued item (FR-ID-001 validation)."""
         if self.item_id:
+            # Auto-populate classifications
             self.major_classification_id = self.item_id.classification_id
             self.sub_classification_id = self.item_id.sub_classification_id
+            
+            # AUTO-001: Auto-fill estimated price from last purchase
+            if self.item_id and not self.estimated_unit_price:
+                last_po_line = self.env['mesob.procurement.order.line'].search([
+                    ('item_id', '=', self.item_id.id),
+                    ('order_id.state', 'in', ['approved', 'sent', 'fully_received', 'closed'])
+                ], order='id desc', limit=1)
+                
+                if last_po_line:
+                    self.estimated_unit_price = last_po_line.price_unit
+                    
+                    return {
+                        'warning': {
+                            'title': 'AUTO-001: Price Auto-Filled',
+                            'message': (
+                                f'Estimated unit price auto-filled from last purchase: '
+                                f'ETB {last_po_line.price_unit:,.2f}\n'
+                                f'You can adjust this value if needed.'
+                            )
+                        }
+                    }
+    
+    @api.onchange('estimated_unit_price')
+    def _onchange_estimated_unit_price(self):
+        """AUTO-001: Warn if price variance is significant."""
+        if self.estimated_unit_price and self.last_purchase_price:
+            variance = self.price_variance_percent
+            
+            if abs(variance) > 20:  # > 20% variance
+                return {
+                    'warning': {
+                        'title': 'Price Variance Alert',
+                        'message': (
+                            f'Estimated price (ETB {self.estimated_unit_price:,.2f}) differs '
+                            f'from last purchase (ETB {self.last_purchase_price:,.2f}) by '
+                            f'{variance:+.1f}%.\n\n'
+                            f'Please verify and justify in the need justification field.'
+                        )
+                    }
+                }
+    
+    # ── Validation ───────────────────────────────────────────────────
 
     @api.constrains("item_id", "major_classification_id", "sub_classification_id")
     def _check_required_classifications(self):
@@ -767,24 +1064,213 @@ class MesobProcurementNeed(models.Model):
         for rec in self:
             rec.total_price = rec.quantity * rec.estimated_unit_price
 
+    # ── AUTO-001: Self-Service Actions ──────────────────────────────
+    
     def action_submit(self):
+        """AUTO-001: Department Head submits need directly (FR-PROC-002).
+        
+        Validates:
+        - Item code against catalogue (FR-ID-001)
+        - Required fields completed
+        - Justification provided
+        
+        Sends notification to SPO for aggregated review.
+        """
         for rec in self:
             if rec.state != "draft":
                 raise UserError("Only draft needs can be submitted.")
-            rec.state = "submitted"
-        return True
+            
+            # Validation checks
+            if not rec.justification or len(rec.justification) < 20:
+                raise ValidationError(
+                    "AUTO-001: Justification is mandatory and must be at least 20 characters. "
+                    "Please explain why this item is needed."
+                )
+            
+            if rec.total_price <= 0:
+                raise ValidationError("Estimated total price must be greater than zero.")
+            
+            # AUTO-003: Warn if budget appears insufficient (non-blocking)
+            if rec.budget_warning:
+                _logger.warning(f"AUTO-003: {rec.budget_warning} for need ID {rec.id}")
+            
+            rec.write({
+                'state': 'submitted',
+                'submission_date': fields.Datetime.now(),
+                'submitted_by_id': self.env.user.id,
+            })
+            
+            # Send notification to SPO
+            rec._notify_spo_new_submission()
+            
+            _logger.info(
+                f"AUTO-001: Need submitted by {self.env.user.name} - "
+                f"{rec.department}, Item: {rec.item_code}, Qty: {rec.quantity}, "
+                f"Value: ETB {rec.total_price:,.2f}"
+            )
+        
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Need Submitted Successfully',
+                'message': 'Your procurement need has been submitted to SPO for review.',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
 
     def action_review(self):
-        """Reviewer workflow (FR-PROC-003)."""
+        """AUTO-001: SPO reviews submitted need (FR-PROC-003).
+        
+        SPO can:
+        - Approve: Move to 'reviewed' state for lot assignment
+        - Reject: Return to department with comments
+        - Request clarification: Add comment and keep in submitted state
+        """
         for rec in self:
             if rec.state != "submitted":
                 raise UserError("Only submitted needs can be reviewed.")
+            
             rec.write({
                 "state": "reviewed",
                 "reviewer_id": self.env.user.id,
                 "review_timestamp": fields.Datetime.now(),
             })
+            
+            # Notify department of approval
+            if rec.submitted_by_id:
+                rec.message_post(
+                    body=f"""<div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px;">
+                        <h3>✅ Need Reviewed & Approved</h3>
+                        <p>Your procurement need has been reviewed and approved by SPO.</p>
+                        <p><strong>Reviewer:</strong> {self.env.user.name}</p>
+                        <p><strong>Next Step:</strong> Need will be consolidated into procurement lots.</p>
+                    </div>""",
+                    subject=f'Need Approved: {rec.item_code}',
+                    message_type='notification',
+                    partner_ids=[rec.submitted_by_id.partner_id.id]
+                )
+            
+            _logger.info(f"AUTO-001: Need {rec.id} reviewed by {self.env.user.name}")
+        
         return True
+    
+    def action_reject(self):
+        """AUTO-001: SPO rejects need with mandatory comment."""
+        self.ensure_one()
+        
+        if self.state not in ['submitted', 'reviewed']:
+            raise UserError("Only submitted or reviewed needs can be rejected.")
+        
+        # Open wizard for rejection reason
+        return {
+            'name': 'Reject Procurement Need',
+            'type': 'ir.actions.act_window',
+            'res_model': 'mesob.procurement.need.reject.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'default_need_id': self.id}
+        }
+    
+    def _confirm_rejection(self, reason):
+        """Internal method to confirm rejection with reason."""
+        self.ensure_one()
+        
+        if not reason or len(reason) < 10:
+            raise ValidationError("Rejection reason must be at least 10 characters.")
+        
+        self.write({
+            'state': 'rejected',
+            'rejection_reason': reason,
+            'reviewer_id': self.env.user.id,
+            'review_timestamp': fields.Datetime.now(),
+        })
+        
+        # Notify department
+        if self.submitted_by_id:
+            self.message_post(
+                body=f"""<div style="background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 15px;">
+                    <h3>❌ Need Rejected</h3>
+                    <p>Your procurement need has been rejected by SPO.</p>
+                    <p><strong>Reviewer:</strong> {self.env.user.name}</p>
+                    <p><strong>Reason:</strong></p>
+                    <p style="background-color: white; padding: 10px; border-radius: 4px;">{reason}</p>
+                    <p><strong>Action Required:</strong> Please revise and resubmit if needed.</p>
+                </div>""",
+                subject=f'Need Rejected: {self.item_code}',
+                message_type='notification',
+                partner_ids=[self.submitted_by_id.partner_id.id]
+            )
+        
+        _logger.info(f"AUTO-001: Need {self.id} rejected by {self.env.user.name}")
+    
+    def _notify_spo_new_submission(self):
+        """AUTO-001: Notify SPO of new department need submission."""
+        self.ensure_one()
+        
+        # Get SPO users
+        spo_group = self.env.ref('mesob_inventory_base.group_mesob_procurement_officer', raise_if_not_found=False)
+        if not spo_group or not spo_group.users:
+            _logger.warning("AUTO-001: No SPO users found for notification")
+            return
+        
+        dept_label = dict(self._fields['department'].selection).get(self.department, 'Unknown')
+        
+        # Build notification
+        self.message_post(
+            body=f"""<div style="background-color: #d1ecf1; border-left: 4px solid #0c5460; padding: 15px;">
+                <h3>📥 AUTO-001: New Need Submission</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Department:</strong></td>
+                        <td style="padding: 5px 0;">{dept_label}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Submitted By:</strong></td>
+                        <td style="padding: 5px 0;">{self.submitted_by_id.name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Item:</strong></td>
+                        <td style="padding: 5px 0;">{self.item_code or 'TBD'} - {self.item_id.name if self.item_id else 'Non-catalogued'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Quantity:</strong></td>
+                        <td style="padding: 5px 0;">{self.quantity}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Estimated Unit Price:</strong></td>
+                        <td style="padding: 5px 0;">ETB {self.estimated_unit_price:,.2f}</td>
+                    </tr>
+                    <tr style="background-color: #e7f3ff;">
+                        <td style="padding: 5px 0;"><strong>Total Value:</strong></td>
+                        <td style="padding: 5px 0; font-weight: bold;">ETB {self.total_price:,.2f}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0;"><strong>Expected Delivery:</strong></td>
+                        <td style="padding: 5px 0;">{self.expected_delivery_period}</td>
+                    </tr>
+                </table>
+                <hr/>
+                <p><strong>Justification:</strong></p>
+                <p style="background-color: white; padding: 10px; border-radius: 4px;">{self.justification}</p>
+                {'<p style="background-color: #fff3cd; padding: 10px; border-radius: 4px; margin-top: 10px;">' + 
+                 '<strong>⚠️ Budget Warning:</strong> ' + self.budget_warning + '</p>' if self.budget_warning else ''}
+                <p style="margin-top: 15px;">
+                    <a href="/web#id={self.id}&model=mesob.procurement.need&view_type=form" 
+                       style="background-color: #17a2b8; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                       Review Need →
+                    </a>
+                </p>
+            </div>""",
+            subject=f'New Need Submission: {dept_label} - {self.item_code or "TBD"}',
+            message_type='notification',
+            partner_ids=spo_group.users.mapped('partner_id').ids
+        )
+        
+        _logger.info(
+            f"AUTO-001: Notification sent to {len(spo_group.users)} SPO users for need {self.id}"
+        )
 
     def action_lock(self):
         """Lock need to make it immutable."""

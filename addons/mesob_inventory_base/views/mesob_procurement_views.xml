@@ -75,21 +75,29 @@
         </field>
     </record>
 
-    <!-- ==================== DEPARTMENT NEEDS ==================== -->
+    <!-- ==================== DEPARTMENT NEEDS - AUTO-001 Self-Service ==================== -->
     <record id="view_mesob_procurement_need_tree" model="ir.ui.view">
         <field name="name">mesob.procurement.need.tree</field>
         <field name="model">mesob.procurement.need</field>
         <field name="arch" type="xml">
-            <list string="Department Needs Requests">
+            <list string="Department Needs Requests - AUTO-001 Self-Service">
+                <field name="display_name"/>
+                <field name="submission_date"/>
                 <field name="department"/>
-                <field name="major_classification_id"/>
-                <field name="sub_classification_id"/>
+                <field name="fiscal_year"/>
                 <field name="item_code"/>
                 <field name="quantity"/>
-                <field name="estimated_unit_price"/>
-                <field name="total_price" sum="Total Cost"/>
+                <field name="estimated_unit_price" widget="monetary"/>
+                <field name="total_price" sum="Total Cost" widget="monetary"/>
+                <field name="budget_warning" optional="hide"/>
                 <field name="expected_delivery_period"/>
-                <field name="state" widget="badge"/>
+                <field name="submitted_by_id"/>
+                <field name="reviewer_id" optional="show"/>
+                <field name="state" widget="badge" 
+                       decoration-info="state == 'draft'" 
+                       decoration-warning="state == 'submitted'" 
+                       decoration-success="state in ['reviewed', 'locked']"
+                       decoration-danger="state == 'rejected'"/>
             </list>
         </field>
     </record>
@@ -98,11 +106,24 @@
         <field name="name">mesob.procurement.need.form</field>
         <field name="model">mesob.procurement.need</field>
         <field name="arch" type="xml">
-            <form string="Department Need Request">
+            <form string="Department Need Request - AUTO-001 Self-Service">
                 <header>
-                    <button name="action_submit" string="Submit to Review" type="object" class="oe_highlight" invisible="state != 'draft'"/>
-                    <button name="action_review" string="Review Need" type="object" class="oe_highlight" invisible="state != 'submitted'" groups="mesob_inventory_base.group_mesob_pao"/>
-                    <button name="action_lock" string="Lock (Immutable)" type="object" class="oe_highlight" invisible="state != 'reviewed'" groups="mesob_inventory_base.group_mesob_pao"/>
+                    <!-- AUTO-001: Department self-service submission -->
+                    <button name="action_submit" string="✅ Submit Need to SPO" type="object" class="oe_highlight" 
+                            invisible="state != 'draft'"
+                            confirm="Are you sure you want to submit this need? Please ensure all details are accurate."/>
+                    
+                    <!-- SPO Review Actions -->
+                    <button name="action_review" string="✓ Approve Need" type="object" class="oe_highlight" 
+                            invisible="state != 'submitted'" 
+                            groups="mesob_inventory_base.group_mesob_pao"/>
+                    <button name="action_reject" string="✗ Reject Need" type="object" class="btn-danger" 
+                            invisible="state not in ['submitted', 'reviewed']" 
+                            groups="mesob_inventory_base.group_mesob_pao"/>
+                    <button name="action_lock" string="🔒 Lock (Immutable)" type="object" class="oe_highlight" 
+                            invisible="state != 'reviewed'" 
+                            groups="mesob_inventory_base.group_mesob_pao"/>
+                    
                     <field name="state" widget="statusbar" statusbar_visible="draft,submitted,reviewed,locked"/>
                 </header>
                 <sheet>
@@ -114,31 +135,100 @@
                         </div>
                         <div class="mesob_header_bottom_row">
                             <div class="mesob_header_id">
-                                <field name="item_id" readonly="1"/>
+                                <field name="display_name" readonly="1"/>
                             </div>
-                            <div class="mesob_header_title">Department Need Request</div>
+                            <div class="mesob_header_title">Department Procurement Need - AUTO-001 Self-Service</div>
                         </div>
                     </div>
-                    <group>
+                    
+                    <!-- AUTO-001: Budget Warning Alert -->
+                    <div class="alert alert-warning" role="alert" invisible="not budget_warning">
+                        <i class="fa fa-exclamation-triangle"/> <strong>Budget Warning:</strong>
+                        <field name="budget_warning" class="oe_inline"/>
+                    </div>
+                    
+                    <!-- AUTO-001: Price Variance Alert -->
+                    <div class="alert alert-info" role="alert" invisible="price_variance_percent == 0 or abs(price_variance_percent) &lt; 10">
+                        <i class="fa fa-info-circle"/> <strong>Price Variance:</strong>
+                        Estimated price differs from last purchase by 
+                        <field name="price_variance_percent" class="oe_inline" widget="percentage"/>
+                    </div>
+                    
+                    <!-- Submission Tracking -->
+                    <group string="📥 Submission Information" invisible="state == 'draft'">
+                        <field name="submission_date"/>
+                        <field name="submitted_by_id"/>
+                    </group>
+                    
+                    <group string="🏛️ Department & Classification">
                         <group>
-                            <field name="department" readonly="state == 'locked'"/>
-                            <field name="major_classification_id" readonly="state == 'locked'"/>
-                            <field name="sub_classification_id" readonly="state == 'locked'" domain="[('major_classification_id', '=', major_classification_id)]"/>
-                            <field name="item_code"/>
+                            <field name="fiscal_year" readonly="state != 'draft'"/>
+                            <field name="department" readonly="state != 'draft'" required="1"/>
+                            <field name="budget_classification" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="budget_available" invisible="1"/>
+                            <field name="budget_balance" invisible="not budget_available" widget="monetary"/>
+                        </group>
+                    </group>
+                    
+                    <group string="📦 Item Details">
+                        <group>
+                            <field name="item_id" readonly="state == 'locked'" 
+                                   options="{'no_create': True, 'no_open': True}"
+                                   placeholder="Select catalogued item (AUTO-001: validates FR-ID-001)"/>
+                            <field name="major_classification_id" readonly="state == 'locked' or item_id" 
+                                   required="not item_id"/>
+                            <field name="sub_classification_id" readonly="state == 'locked' or item_id" 
+                                   required="not item_id"
+                                   domain="[('major_classification_id', '=', major_classification_id)]"/>
+                            <field name="item_code" readonly="1"/>
                         </group>
                         <group>
                             <field name="quantity" readonly="state == 'locked'"/>
-                            <field name="estimated_unit_price" readonly="state == 'locked'"/>
-                            <field name="total_price"/>
-                            <field name="expected_delivery_period" readonly="state == 'locked'"/>
+                            <field name="last_purchase_price" readonly="1" widget="monetary" 
+                                   invisible="not item_id or last_purchase_price == 0"/>
+                            <field name="estimated_unit_price" readonly="state == 'locked'" widget="monetary"/>
+                            <field name="total_price" readonly="1" widget="monetary"/>
+                            <field name="expected_delivery_period" readonly="state == 'locked'" 
+                                   placeholder="e.g., Q1 2018 E.C. or Sene 2018"/>
                         </group>
                     </group>
-                    <group string="SPO Consolidated Lot Mapping">
-                        <field name="lot_id" domain="[('state','=','draft')]"/>
-                        <field name="reviewer_id"/>
-                        <field name="review_timestamp"/>
+                    
+                    <!-- AUTO-001: Justification (Mandatory) -->
+                    <group string="✍️ Justification (Required)">
+                        <field name="justification" readonly="state in ['locked', 'rejected']" 
+                               placeholder="Explain why this item is needed, its purpose, and impact if not procured (minimum 20 characters)..." 
+                               required="1"/>
                     </group>
+                    
+                    <!-- SPO Review Section -->
+                    <group string="👁️ SPO Review" invisible="state == 'draft'">
+                        <group>
+                            <field name="reviewer_id" readonly="1"/>
+                            <field name="review_timestamp" readonly="1"/>
+                            <field name="review_comment" readonly="state == 'locked'"/>
+                        </group>
+                        <group>
+                            <field name="lot_id" readonly="state == 'locked'" 
+                                   domain="[('state','=','draft')]"
+                                   help="AUTO-002: SPO assigns this need to a procurement lot"/>
+                        </group>
+                    </group>
+                    
+                    <!-- Rejection Info -->
+                    <group string="❌ Rejection Details" invisible="state != 'rejected'">
+                        <field name="rejection_reason" readonly="1"/>
+                    </group>
+                    
+                    <!-- Hidden Fields -->
+                    <field name="currency_id" invisible="1"/>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" groups="base.group_user"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
             </form>
         </field>
     </record>
