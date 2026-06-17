@@ -213,10 +213,6 @@ class MesobProcurementPlan(models.Model):
             _logger.info(f"AUTO-004: APP {rec.name} approved by HOPE and published")
         
         return True
-                    lot.state = "rfq"
-                else:
-                    lot.state = "approved"
-        return True
 
     def action_reject(self, comment):
         """Reject and return to preceding actor with mandatory comments."""

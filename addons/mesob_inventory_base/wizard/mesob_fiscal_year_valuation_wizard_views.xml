@@ -56,22 +56,29 @@
                         </page>
                         
                         <page string="Detailed Lines">
-                            <field name="line_ids" readonly="1">
-                                <tree>
-                                    <field name="classification_id"/>
-                                    <field name="sub_classification_id"/>
-                                    <field name="item_code"/>
-                                    <field name="item_name"/>
-                                    <field name="balance_quantity" sum="Total Quantity"/>
-                                    <field name="average_unit_cost"/>
-                                    <field name="balance_value" sum="Total Value"/>
-                                    <field name="currency_id" column_invisible="1"/>
-                                </tree>
-                            </field>
+                            <field name="line_ids" readonly="1"/>
                         </page>
                     </notebook>
                 </sheet>
             </form>
+        </field>
+    </record>
+
+    <!-- Tree view for valuation lines -->
+    <record id="view_mesob_fiscal_year_valuation_line_tree" model="ir.ui.view">
+        <field name="name">mesob.fiscal.year.valuation.line.tree</field>
+        <field name="model">mesob.fiscal.year.valuation.line</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="classification_id"/>
+                <field name="sub_classification_id"/>
+                <field name="item_code"/>
+                <field name="item_name"/>
+                <field name="balance_quantity" sum="Total Quantity"/>
+                <field name="average_unit_cost"/>
+                <field name="balance_value" sum="Total Value"/>
+                <field name="currency_id" invisible="1"/>
+            </list>
         </field>
     </record>
 

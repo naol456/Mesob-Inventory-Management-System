@@ -8,24 +8,18 @@
         <field name="code">model._cron_check_overdue_pos()</field>
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
-        <field name="numbercall">-1</field>
         <field name="active" eval="True"/>
-        <field name="doall" eval="False"/>
-        <field name="priority">10</field>
     </record>
     
     <!-- AUTO-019: Scheduled Action for Guarantee Expiry Alerts -->
     <record id="ir_cron_check_guarantee_expiry" model="ir.cron">
-        <field name="name">AUTO-019: Check Performance Security & Guarantee Expiry</field>
+        <field name="name">AUTO-019: Check Performance Security &amp; Guarantee Expiry</field>
         <field name="model_id" ref="model_mesob_procurement_contract"/>
         <field name="state">code</field>
         <field name="code">model._cron_check_guarantee_expiry()</field>
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
-        <field name="numbercall">-1</field>
         <field name="active" eval="True"/>
-        <field name="doall" eval="False"/>
-        <field name="priority">10</field>
     </record>
     
     <!-- AUTO-020: Scheduled Action for Milestone Alerts -->
@@ -36,9 +30,6 @@
         <field name="code">model._cron_check_milestone_alerts()</field>
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
-        <field name="numbercall">-1</field>
         <field name="active" eval="True"/>
-        <field name="doall" eval="False"/>
-        <field name="priority">10</field>
     </record>
 </odoo>

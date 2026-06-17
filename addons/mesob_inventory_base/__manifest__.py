@@ -55,6 +55,8 @@
         "views/mesob_inventory_major_classification_views.xml",
         "views/mesob_inventory_sub_classification_views.xml",
         "views/mesob_inventory_item_views.xml",
+        # TODO: Fix stock code catalog views - has validation issues
+        # "views/mesob_stock_code_catalog_views.xml",
         "views/mesob_inventory_requisition_views.xml",
         "views/mesob_inventory_receiving_views.xml",
         "views/mesob_inventory_receiving_views_simplified.xml",

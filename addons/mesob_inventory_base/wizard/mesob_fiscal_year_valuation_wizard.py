@@ -35,6 +35,9 @@ class MesobFiscalYearValuationWizard(models.TransientModel):
     
     classification_ids = fields.Many2many(
         'mesob.inventory.major.classification',
+        relation='mesob_fy_val_wizard_major_class_rel',
+        column1='wizard_id',
+        column2='classification_id',
         string='Classifications',
         help='Leave empty to include all classifications (4401-4418)'
     )

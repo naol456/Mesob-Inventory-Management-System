@@ -22,7 +22,7 @@
                         <field name="action_type" widget="radio"/>
                     </group>
                     
-                    <group attrs="{'invisible': [('action_type', '!=', 'override')]}">
+                    <group invisible="action_type != 'override'">
                         <field name="override_reason" 
                                placeholder="Explain why this requisition must be approved despite stock shortages..."
                                required="action_type == 'override'"/>
