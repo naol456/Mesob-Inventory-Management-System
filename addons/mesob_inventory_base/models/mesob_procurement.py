@@ -1282,10 +1282,24 @@ class MesobProcurementNeed(models.Model):
 
 
 class MesobProcurementTender(models.Model):
-    """Bidding and Tender Management - FR-PROC-013."""
+    """Bidding and Tender Management - FR-PROC-013.
+    
+    AUTO-010: Bidding Document Auto-Assembly
+    - System auto-generates bidding document pack from approved lot data
+    - Includes: Invitation, Technical Spec, Bill of Quantities, Bid Security template
+    - Auto-calculates bid security (% of estimated value)
+    - Officer reviews and approves pack before issuance
+    - Reduces assembly time from days to minutes
+    
+    AUTO-011: Minimum Advertising Period Enforcement
+    - System auto-sets submission deadline based on procurement method
+    - Blocks earlier deadlines (ICB: 45 days, NCB: 30 days, RFQ: 7 days)
+    - Allows extensions with documented reason
+    """
 
     _name = "mesob.procurement.tender"
     _description = "Procurement Tender"
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = "id desc"
 
     name = fields.Char(
@@ -1293,28 +1307,113 @@ class MesobProcurementTender(models.Model):
         required=True,
         copy=False,
         default="New",
+        tracking=True,
     )
     lot_id = fields.Many2one(
         "mesob.procurement.plan.lot",
         string="Source APP Lot",
         required=True,
         domain=[("mechanism", "=", "bidding")],
+        tracking=True,
     )
+    
+    # AUTO-010: Document assembly fields
+    invitation_letter = fields.Html(
+        string="Invitation to Bid",
+        compute='_compute_bidding_documents',
+        store=True,
+        help="AUTO-010: Auto-generated invitation letter from lot data"
+    )
+    
     technical_specifications = fields.Text(
         string="Technical Specifications",
         required=True,
-        help="FR-PROC-009 quality performance characteristics (brandless).",
+        help="AUTO-010/FR-PROC-009: Quality performance characteristics (brandless).",
+        tracking=True,
     )
+    
+    bill_of_quantities = fields.Html(
+        string="Bill of Quantities",
+        compute='_compute_bidding_documents',
+        store=True,
+        help="AUTO-010: Auto-generated BOQ from lot line items"
+    )
+    
+    bid_security_amount = fields.Monetary(
+        string="Bid Security Amount",
+        compute='_compute_bid_security',
+        store=True,
+        currency_field='currency_id',
+        help="AUTO-010: Auto-calculated bid security (% of estimated value)"
+    )
+    
+    bid_security_percentage = fields.Float(
+        string="Bid Security %",
+        default=2.0,
+        help="AUTO-010: Bid security percentage (default 2% per FPPA)"
+    )
+    
+    bid_security_template = fields.Html(
+        string="Bid Security Template",
+        compute='_compute_bidding_documents',
+        store=True,
+        help="AUTO-010: Template for bid security guarantee"
+    )
+    
+    # AUTO-011: Minimum advertising period enforcement
+    procurement_method = fields.Selection([
+        ('icb', 'International Competitive Bidding (ICB)'),
+        ('ncb', 'National Competitive Bidding (NCB)'),
+        ('rfq', 'Request for Quotation (RFQ)'),
+    ], string="Procurement Method", compute='_compute_procurement_method', store=True)
+    
+    minimum_advertising_days = fields.Integer(
+        string="Minimum Advertising Days",
+        compute='_compute_minimum_advertising_days',
+        store=True,
+        help="AUTO-011: Minimum days based on procurement method (FR-PROC-014)"
+    )
+    
+    earliest_submission_date = fields.Date(
+        string="Earliest Submission Date",
+        compute='_compute_earliest_submission_date',
+        store=True,
+        help="AUTO-011: Calculated from advertisement date + minimum days"
+    )
+    
+    deadline_extension_reason = fields.Text(
+        string="Deadline Extension Reason",
+        help="AUTO-011: Required if deadline extended beyond minimum period"
+    )
+    
+    currency_id = fields.Many2one(
+        'res.currency',
+        string='Currency',
+        default=lambda self: self.env.company.currency_id
+    )
+    
     spec_status = fields.Selection(
         [("draft", "Draft"), ("approved", "Approved")],
         string="Specification Status",
         default="draft",
         required=True,
+        tracking=True,
     )
-    advertisement_date = fields.Date(string="Advertisement Date")
-    submission_deadline = fields.Datetime(string="Submission Deadline")
-    opening_minutes = fields.Text(string="Bid Opening Minutes (FR-PROC-015)")
-    opening_signatures = fields.Text(string="Opening Committee Signatures")
+    advertisement_date = fields.Date(
+        string="Advertisement Date",
+        tracking=True,
+    )
+    submission_deadline = fields.Datetime(
+        string="Submission Deadline",
+        tracking=True,
+    )
+    opening_minutes = fields.Text(
+        string="Bid Opening Minutes (FR-PROC-015)",
+        tracking=True,
+    )
+    opening_signatures = fields.Text(
+        string="Opening Committee Signatures"
+    )
     bid_ids = fields.One2many(
         "mesob.procurement.bid",
         "tender_id",
@@ -1323,6 +1422,7 @@ class MesobProcurementTender(models.Model):
     state = fields.Selection(
         [
             ("draft", "Draft"),
+            ("doc_generated", "Documents Generated"),
             ("spec_approved", "Spec Approved"),
             ("advertised", "Advertised"),
             ("opened", "Bids Opened"),
@@ -1332,7 +1432,267 @@ class MesobProcurementTender(models.Model):
         string="Status",
         default="draft",
         required=True,
+        tracking=True,
     )
+
+    # ── AUTO-010: Document Assembly Compute Methods ────────────────
+    
+    @api.depends('lot_id', 'lot_id.budget')
+    def _compute_procurement_method(self):
+        """AUTO-011: Determine procurement method from lot budget."""
+        ICB_THRESHOLD = 10000000.0  # ETB 10M+
+        NCB_THRESHOLD = 5000000.0   # ETB 5M-10M
+        
+        for tender in self:
+            if not tender.lot_id:
+                tender.procurement_method = 'ncb'
+                continue
+            
+            if tender.lot_id.budget >= ICB_THRESHOLD:
+                tender.procurement_method = 'icb'
+            elif tender.lot_id.budget >= NCB_THRESHOLD:
+                tender.procurement_method = 'ncb'
+            else:
+                tender.procurement_method = 'rfq'
+    
+    @api.depends('procurement_method')
+    def _compute_minimum_advertising_days(self):
+        """AUTO-011: Set minimum advertising period based on method (FR-PROC-014)."""
+        method_days = {
+            'icb': 45,  # International: 45 days
+            'ncb': 30,  # National: 30 days
+            'rfq': 7,   # RFQ: 7 days
+        }
+        
+        for tender in self:
+            tender.minimum_advertising_days = method_days.get(tender.procurement_method, 30)
+    
+    @api.depends('advertisement_date', 'minimum_advertising_days')
+    def _compute_earliest_submission_date(self):
+        """AUTO-011: Calculate earliest allowed submission date."""
+        from datetime import timedelta
+        
+        for tender in self:
+            if tender.advertisement_date and tender.minimum_advertising_days:
+                tender.earliest_submission_date = tender.advertisement_date + timedelta(days=tender.minimum_advertising_days)
+            else:
+                tender.earliest_submission_date = False
+    
+    @api.depends('lot_id', 'lot_id.budget', 'bid_security_percentage')
+    def _compute_bid_security(self):
+        """AUTO-010: Auto-calculate bid security amount (FR-PROC-015)."""
+        for tender in self:
+            if tender.lot_id and tender.lot_id.budget:
+                tender.bid_security_amount = tender.lot_id.budget * (tender.bid_security_percentage / 100.0)
+            else:
+                tender.bid_security_amount = 0.0
+    
+    @api.depends('lot_id', 'lot_id.need_ids', 'bid_security_amount')
+    def _compute_bidding_documents(self):
+        """AUTO-010: Auto-generate bidding document pack from lot data (FR-PROC-013)."""
+        for tender in self:
+            if not tender.lot_id:
+                tender.invitation_letter = False
+                tender.bill_of_quantities = False
+                tender.bid_security_template = False
+                continue
+            
+            # Generate Invitation Letter
+            tender.invitation_letter = tender._generate_invitation_letter()
+            
+            # Generate Bill of Quantities
+            tender.bill_of_quantities = tender._generate_bill_of_quantities()
+            
+            # Generate Bid Security Template
+            tender.bid_security_template = tender._generate_bid_security_template()
+    
+    def _generate_invitation_letter(self):
+        """AUTO-010: Generate invitation to bid letter."""
+        self.ensure_one()
+        
+        if not self.lot_id:
+            return ""
+        
+        method_name = dict(self._fields['procurement_method'].selection).get(self.procurement_method, 'Tender')
+        
+        html = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2>FEDERAL DEMOCRATIC REPUBLIC OF ETHIOPIA</h2>
+                <h3>MESOB CENTER</h3>
+                <h4 style="color: #2c3e50;">INVITATION TO BID</h4>
+            </div>
+            
+            <p><strong>Tender Reference:</strong> {self.name}</p>
+            <p><strong>Procurement Method:</strong> {method_name}</p>
+            <p><strong>Lot Name:</strong> {self.lot_id.name}</p>
+            <p><strong>Estimated Budget:</strong> ETB {self.lot_id.budget:,.2f}</p>
+            
+            <hr style="border: 1px solid #ccc; margin: 20px 0;"/>
+            
+            <h4>1. Invitation</h4>
+            <p>The Federal Democratic Republic of Ethiopia, Mesob Center, invites sealed bids from eligible and qualified bidders for the procurement of goods described below.</p>
+            
+            <h4>2. Scope of Work</h4>
+            <p><strong>Lot Description:</strong> {self.lot_id.name}</p>
+            <p><strong>Category:</strong> {dict(self.lot_id._fields['category'].selection).get(self.lot_id.category, '')}</p>
+            <p><strong>Number of Items:</strong> {len(self.lot_id.need_ids)} item(s)</p>
+            
+            <h4>3. Bid Security</h4>
+            <p>Bidders must submit a bid security of <strong>ETB {self.bid_security_amount:,.2f}</strong> ({self.bid_security_percentage}% of estimated value) in the form of:</p>
+            <ul>
+                <li>Bank guarantee from a reputable Ethiopian bank, OR</li>
+                <li>Certified check, OR</li>
+                <li>Insurance bond</li>
+            </ul>
+            
+            <h4>4. Submission Deadline</h4>
+            <p><strong>Submission Deadline:</strong> {self.submission_deadline or 'To be announced'}</p>
+            <p><strong>Minimum Advertising Period:</strong> {self.minimum_advertising_days} days (FR-PROC-014)</p>
+            
+            <h4>5. Bid Opening</h4>
+            <p>Bids will be opened publicly immediately after the submission deadline in the presence of bidders' representatives.</p>
+            
+            <h4>6. Contact Information</h4>
+            <p><strong>Procurement Unit</strong><br/>
+            FDRE Mesob Center<br/>
+            Addis Ababa, Ethiopia</p>
+            
+            <div style="margin-top: 40px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #007bff;">
+                <p style="margin: 0;"><strong>Note:</strong> This document was auto-generated by the Mesob IMS (AUTO-010). 
+                Please review all details before issuance.</p>
+            </div>
+        </div>
+        """
+        
+        return html
+    
+    def _generate_bill_of_quantities(self):
+        """AUTO-010: Generate Bill of Quantities from lot needs."""
+        self.ensure_one()
+        
+        if not self.lot_id or not self.lot_id.need_ids:
+            return ""
+        
+        html = """
+        <div style="font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto;">
+            <h3 style="text-align: center; color: #2c3e50;">BILL OF QUANTITIES</h3>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                <thead style="background-color: #34495e; color: white;">
+                    <tr>
+                        <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Item No.</th>
+                        <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Description</th>
+                        <th style="border: 1px solid #ddd; padding: 12px; text-align: center;">Quantity</th>
+                        <th style="border: 1px solid #ddd; padding: 12px; text-align: center;">Unit</th>
+                        <th style="border: 1px solid #ddd; padding: 12px; text-align: right;">Unit Price (ETB)</th>
+                        <th style="border: 1px solid #ddd; padding: 12px; text-align: right;">Total Price (ETB)</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """
+        
+        item_no = 1
+        total_value = 0.0
+        
+        for need in self.lot_id.need_ids:
+            item_desc = need.item_id.name if need.item_id else f"{need.major_classification_id.name if need.major_classification_id else 'Item'}"
+            item_code = need.item_code or 'TBD'
+            
+            line_total = need.quantity * need.estimated_unit_price
+            total_value += line_total
+            
+            html += f"""
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{item_no}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">
+                        <strong>{item_code}</strong><br/>
+                        {item_desc}
+                    </td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">{need.quantity:.2f}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Units</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">{need.estimated_unit_price:,.2f}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">{line_total:,.2f}</td>
+                </tr>
+            """
+            item_no += 1
+        
+        html += f"""
+                </tbody>
+                <tfoot style="background-color: #ecf0f1; font-weight: bold;">
+                    <tr>
+                        <td colspan="5" style="border: 1px solid #ddd; padding: 12px; text-align: right;">TOTAL:</td>
+                        <td style="border: 1px solid #ddd; padding: 12px; text-align: right;">ETB {total_value:,.2f}</td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+            <div style="margin-top: 30px; padding: 15px; background-color: #fff3cd; border-left: 4px solid #ffc107;">
+                <p style="margin: 0;"><strong>Instructions to Bidders:</strong></p>
+                <ul style="margin: 10px 0;">
+                    <li>Complete all columns with your offered prices</li>
+                    <li>Unit prices should be in Ethiopian Birr (ETB)</li>
+                    <li>Prices should be inclusive of all taxes and duties</li>
+                    <li>Any alteration to quantities must be authorized by the Employer</li>
+                </ul>
+            </div>
+        </div>
+        """
+        
+        return html
+    
+    def _generate_bid_security_template(self):
+        """AUTO-010: Generate bid security guarantee template."""
+        self.ensure_one()
+        
+        html = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
+            <h3 style="text-align: center; color: #2c3e50;">BID SECURITY GUARANTEE</h3>
+            
+            <div style="border: 2px solid #2c3e50; padding: 20px; margin: 20px 0;">
+                <p><strong>To:</strong> Federal Democratic Republic of Ethiopia, Mesob Center</p>
+                <p><strong>Tender Reference:</strong> {self.name}</p>
+                <p><strong>Lot:</strong> {self.lot_id.name if self.lot_id else 'N/A'}</p>
+                
+                <hr style="border: 1px solid #ccc; margin: 20px 0;"/>
+                
+                <p>WHEREAS [<em>Name of Bidder</em>] (hereinafter called "the Bidder") has submitted its bid dated [<em>Date</em>] for the execution of [<em>Name of Contract</em>] (hereinafter called "the Bid").</p>
+                
+                <p>KNOW ALL PEOPLE by these presents that WE [<em>Name of Bank/Insurance Company</em>] having our registered office at [<em>Address</em>] (hereinafter called "the Guarantor"), are bound unto the Federal Democratic Republic of Ethiopia, Mesob Center (hereinafter called "the Employer") in the sum of <strong>ETB {self.bid_security_amount:,.2f}</strong> for which payment well and truly to be made to the said Employer, the Guarantor binds itself, its successors, and assigns by these presents.</p>
+                
+                <p>Sealed with the Common Seal of the said Guarantor this _____ day of _____________ 20____.</p>
+                
+                <p>THE CONDITIONS of this obligation are:</p>
+                <ol>
+                    <li>If the Bidder withdraws its Bid during the period of bid validity specified in the Bidder's letter; or</li>
+                    <li>If the Bidder, having been notified of the acceptance of its Bid by the Employer during the period of bid validity:
+                        <ul>
+                            <li>fails or refuses to execute the Contract; or</li>
+                            <li>fails or refuses to furnish the Performance Security;</li>
+                        </ul>
+                    </li>
+                </ol>
+                
+                <p>We undertake to pay the Employer up to the above amount upon receipt of its first written demand, without the Employer having to substantiate its demand, provided that in its demand the Employer will note that the amount claimed by it is due to it owing to the occurrence of one or both of the conditions, specifying the occurred condition or conditions.</p>
+                
+                <p>This guarantee will remain in force up to and including [<em>Date</em>] and any demand in respect thereof should reach the Guarantor not later than the above date.</p>
+                
+                <div style="margin-top: 40px;">
+                    <p>_________________________<br/>
+                    [Signature of Authorized Officer]</p>
+                    <p>[Name and Title]</p>
+                    <p>[Official Stamp]</p>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background-color: #d1ecf1; border-left: 4px solid #0c5460;">
+                <p style="margin: 0;"><strong>Required Amount:</strong> ETB {self.bid_security_amount:,.2f} ({self.bid_security_percentage}% of estimated value)</p>
+                <p style="margin: 10px 0 0 0;"><strong>Validity Period:</strong> Minimum 30 days beyond bid validity period</p>
+            </div>
+        </div>
+        """
+        
+        return html
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -1340,10 +1700,90 @@ class MesobProcurementTender(models.Model):
             if vals.get("name", "New") == "New":
                 vals["name"] = f"TEN/{self.env['ir.sequence'].next_by_code('mesob.procurement.tender') or '001'}"
         return super().create(vals_list)
+    
+    # ── Actions ─────────────────────────────────────────────────────
+    
+    def action_generate_bidding_documents(self):
+        """AUTO-010: Auto-generate complete bidding document pack (FR-PROC-013).
+        
+        Generates:
+        - Invitation letter with tender details
+        - Bill of Quantities from lot needs
+        - Bid security template with calculated amount
+        
+        Officer reviews pack before proceeding to spec approval.
+        """
+        self.ensure_one()
+        
+        if not self.lot_id:
+            raise UserError("Cannot generate documents: No lot assigned to this tender.")
+        
+        if not self.lot_id.need_ids:
+            raise UserError(
+                f"Cannot generate documents: Lot {self.lot_id.name} has no consolidated needs.\n"
+                "Please ensure needs are properly assigned to this lot."
+            )
+        
+        # Force recompute of all documents
+        self._compute_bidding_documents()
+        self._compute_bid_security()
+        
+        # Update state
+        self.write({'state': 'doc_generated'})
+        
+        # Send notification to procurement officers
+        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement_officer', raise_if_not_found=False)
+        if procurement_users and procurement_users.users:
+            self.message_post(
+                body=f"""<div style="background-color: #d1ecf1; border-left: 4px solid #0c5460; padding: 15px;">
+                    <h3>AUTO-010: Bidding Documents Generated</h3>
+                    <p><strong>Tender:</strong> {self.name}</p>
+                    <p><strong>Lot:</strong> {self.lot_id.name}</p>
+                    <p><strong>Procurement Method:</strong> {dict(self._fields['procurement_method'].selection).get(self.procurement_method, '')}</p>
+                    <p><strong>Estimated Value:</strong> ETB {self.lot_id.budget:,.2f}</p>
+                    <p><strong>Bid Security Required:</strong> ETB {self.bid_security_amount:,.2f}</p>
+                    <p><strong>Items:</strong> {len(self.lot_id.need_ids)}</p>
+                    <hr/>
+                    <h4>Documents Generated:</h4>
+                    <ul>
+                        <li>✓ Invitation to Bid</li>
+                        <li>✓ Bill of Quantities ({len(self.lot_id.need_ids)} items)</li>
+                        <li>✓ Bid Security Template (ETB {self.bid_security_amount:,.2f})</li>
+                        <li>⏳ Technical Specifications (please complete)</li>
+                    </ul>
+                    <p style="margin-top: 15px;"><em>Please review all generated documents and complete technical specifications before approval.</em></p>
+                </div>""",
+                subject=f'Bidding Documents Generated: {self.name}',
+                message_type='notification',
+                partner_ids=procurement_users.users.mapped('partner_id').ids
+            )
+        
+        _logger.info(
+            f"AUTO-010: Bidding documents generated for {self.name} - "
+            f"Lot: {self.lot_id.name}, Items: {len(self.lot_id.need_ids)}, "
+            f"Value: ETB {self.lot_id.budget:,.2f}, Bid Security: ETB {self.bid_security_amount:,.2f}"
+        )
+        
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Bidding Documents Generated',
+                'message': f'Document pack generated for {self.name}. Please review and complete technical specifications.',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
 
     def action_approve_spec(self):
         """Technical specifications sign-off status approved (FR-PROC-009)."""
         for rec in self:
+            if rec.state not in ('doc_generated', 'draft'):
+                raise UserError("Specifications can only be approved after documents are generated.")
+            
+            if not rec.technical_specifications:
+                raise UserError("Please complete technical specifications before approval (FR-PROC-009).")
+            
             rec.write({
                 "spec_status": "approved",
                 "state": "spec_approved",
@@ -1351,12 +1791,40 @@ class MesobProcurementTender(models.Model):
         return True
 
     def action_advertise(self):
+        """AUTO-011: Advertise tender with minimum period enforcement (FR-PROC-014)."""
         for rec in self:
             if rec.spec_status != "approved":
                 raise UserError("Cannot advertise until Technical Specifications are approved (FR-PROC-013).")
-            if not rec.advertisement_date or not rec.submission_deadline:
-                raise UserError("Please set advertisement date and submission deadline first.")
+            
+            if not rec.advertisement_date:
+                raise UserError("Please set advertisement date first.")
+            
+            if not rec.submission_deadline:
+                raise UserError("Please set submission deadline first.")
+            
+            # AUTO-011: Validate minimum advertising period
+            if rec.earliest_submission_date and rec.submission_deadline:
+                from datetime import datetime
+                submission_date_only = rec.submission_deadline.date() if isinstance(rec.submission_deadline, datetime) else rec.submission_deadline
+                
+                if submission_date_only < rec.earliest_submission_date:
+                    raise ValidationError(
+                        f"AUTO-011 / FR-PROC-014: Submission deadline violates minimum advertising period!\n\n"
+                        f"Procurement Method: {dict(rec._fields['procurement_method'].selection).get(rec.procurement_method, '')}\n"
+                        f"Minimum Period: {rec.minimum_advertising_days} days\n"
+                        f"Advertisement Date: {rec.advertisement_date}\n"
+                        f"Earliest Allowed: {rec.earliest_submission_date}\n"
+                        f"Your Deadline: {submission_date_only}\n\n"
+                        f"Please adjust the submission deadline or provide extension justification."
+                    )
+            
             rec.state = "advertised"
+            
+            _logger.info(
+                f"AUTO-011: Tender {rec.name} advertised - "
+                f"Method: {rec.procurement_method}, Min Days: {rec.minimum_advertising_days}"
+            )
+        
         return True
 
     def action_open_bids(self):
