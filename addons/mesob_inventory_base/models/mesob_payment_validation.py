@@ -242,12 +242,12 @@ class MesobPaymentValidation(models.Model):
     
     # ── Computed Fields ─────────────────────────────────────────────
     
-    @api.depends('model19_id', 'model19_id.confirmation_date')
+    @api.depends('model19_id', 'model19_id.date')
     def _compute_actual_delivery_date(self):
         """AUTO-030: Get actual delivery date from Model 19 acceptance."""
         for rec in self:
-            if rec.model19_id and rec.model19_id.confirmation_date:
-                rec.actual_delivery_date = rec.model19_id.confirmation_date
+            if rec.model19_id and rec.model19_id.date:
+                rec.actual_delivery_date = rec.model19_id.date
             else:
                 rec.actual_delivery_date = False
     

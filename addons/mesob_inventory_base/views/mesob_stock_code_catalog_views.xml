@@ -82,10 +82,7 @@
                 <field name="total_items"/>
                 <field name="new_codes"/>
                 <field name="retired_codes"/>
-                <field name="state" widget="badge" 
-                       decoration-success="state == 'published'" 
-                       decoration-info="state == 'draft'"
-                       decoration-muted="state == 'superseded'"/>
+                <field name="state" widget="badge"/>
             </list>
         </field>
     </record>
@@ -95,14 +92,12 @@
         <field name="name">mesob.stock.code.catalog.search</field>
         <field name="model">mesob.stock.code.catalog</field>
         <field name="arch" type="xml">
-            <search string="Search Stock Code Catalogs">
-                <field name="version_name" string="Version Name"/>
-                <field name="version_number" string="Version Number"/>
-                <separator/>
+            <search>
+                <field name="version_name"/>
+                <field name="version_number"/>
                 <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
                 <filter name="filter_published" string="Published" domain="[('state', '=', 'published')]"/>
                 <filter name="filter_superseded" string="Superseded" domain="[('state', '=', 'superseded')]"/>
-                <separator/>
                 <group expand="0" string="Group By">
                     <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
                     <filter name="group_effective_date" string="Effective Date" context="{'group_by': 'effective_date'}"/>
