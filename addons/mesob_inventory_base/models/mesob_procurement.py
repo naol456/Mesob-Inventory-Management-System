@@ -989,31 +989,22 @@ class MesobProcurementNeed(models.Model):
         Prevents wasted consolidation effort on unfunded needs.
         """
         for rec in self:
-            if not rec.budget_classification or not rec.total_price:
+            if not rec.budget_classification or not rec.total_price or not rec.fiscal_year:
                 rec.budget_available = True
                 rec.budget_balance = 0.0
                 rec.budget_warning = False
                 continue
             
-            # TODO: Integrate with actual budget system
-            # For now, use placeholder logic
-            # In production, query budget.line or account.budget.post
+            # AUTO-003: Check real-time budget availability
+            budget_check = self.env['mesob.budget.allocation'].check_budget_availability(
+                rec.budget_classification,
+                rec.fiscal_year,
+                rec.total_price
+            )
             
-            # Placeholder: Assume budgets are configured per classification
-            # total_budget = 10000000.0  # ETB 10M per classification
-            # committed_budget = sum of all approved needs for this classification
-            
-            # Simplified check
-            rec.budget_available = True  # Default to available
-            rec.budget_balance = 0.0  # Unknown without budget integration
-            rec.budget_warning = False
-            
-            # Flag for NSR override if needed
-            if rec.total_price > 1000000:  # ETB 1M+ may need multi-year approval
-                rec.budget_warning = (
-                    f"⚠️ Large procurement (ETB {rec.total_price:,.2f}). "
-                    "Ensure budget coverage or NSR approval for multi-year allocation."
-                )
+            rec.budget_available = budget_check['available']
+            rec.budget_balance = budget_check['balance']
+            rec.budget_warning = budget_check['warning'] or False
     
     @api.depends('item_id')
     def _compute_last_purchase_price(self):
