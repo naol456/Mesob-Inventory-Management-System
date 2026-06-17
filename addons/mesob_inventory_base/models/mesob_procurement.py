@@ -369,6 +369,46 @@ class MesobProcurementPlan(models.Model):
                 message_type='notification',
                 partner_ids=procurement_users.users.mapped('partner_id').ids
             )
+    
+    def action_intelligent_consolidation(self):
+        """AUTO-002: Launch intelligent needs consolidation wizard.
+        
+        Opens a wizard that helps SPO consolidate department needs into lots using:
+        - Keyword similarity matching
+        - Classification-based grouping
+        - Budget-based mechanism suggestions
+        """
+        self.ensure_one()
+        
+        # Count unassigned reviewed needs
+        unassigned_needs = self.env['mesob.procurement.need'].search_count([
+            ('state', '=', 'reviewed'),
+            ('lot_id', '=', False),
+            '|',
+            ('item_id', '!=', False),
+            ('sub_classification_id', '!=', False)
+        ])
+        
+        if unassigned_needs == 0:
+            raise UserError(
+                "No reviewed needs available for consolidation.\n\n"
+                "Please ensure department needs are submitted and reviewed before using intelligent consolidation."
+            )
+        
+        # Create wizard and return action
+        wizard = self.env['mesob.intelligent.consolidation.wizard'].create({
+            'plan_id': self.id,
+        })
+        
+        return {
+            'name': 'AUTO-002: Intelligent Needs Consolidation',
+            'type': 'ir.actions.act_window',
+            'res_model': 'mesob.intelligent.consolidation.wizard',
+            'res_id': wizard.id,
+            'view_mode': 'form',
+            'target': 'new',
+            'context': self.env.context,
+        }
 
 
 class MesobProcurementPlanLot(models.Model):
@@ -846,6 +886,34 @@ class MesobProcurementNeed(models.Model):
         tracking=True,
         help="AUTO-002: Lot assigned by Senior Procurement Officer (FR-PROC-004).",
     )
+    
+    # AUTO-002: Intelligent consolidation fields
+    similar_needs_count = fields.Integer(
+        string="Similar Needs",
+        compute='_compute_similar_needs',
+        help="AUTO-002: Count of similar needs for consolidation"
+    )
+    
+    consolidation_group = fields.Char(
+        string="Consolidation Group",
+        compute='_compute_consolidation_group',
+        store=True,
+        help="AUTO-002: Auto-generated grouping key for similar items"
+    )
+    
+    suggested_lot_name = fields.Char(
+        string="Suggested Lot Name",
+        compute='_compute_suggested_lot',
+        help="AUTO-002: System-suggested lot assignment"
+    )
+    
+    consolidation_keywords = fields.Char(
+        string="Keywords",
+        compute='_compute_consolidation_keywords',
+        store=True,
+        help="AUTO-002: Extracted keywords for similarity matching"
+    )
+    
     state = fields.Selection(
         [
             ("draft", "Draft"),
@@ -1063,6 +1131,83 @@ class MesobProcurementNeed(models.Model):
     def _compute_total_price(self):
         for rec in self:
             rec.total_price = rec.quantity * rec.estimated_unit_price
+    
+    # ── AUTO-002: Intelligent Consolidation Compute Methods ─────────
+    
+    @api.depends('item_id', 'major_classification_id', 'sub_classification_id', 'justification')
+    def _compute_consolidation_keywords(self):
+        """AUTO-002: Extract keywords from item description and justification."""
+        import re
+        
+        # Common words to exclude
+        STOP_WORDS = {
+            'the', 'a', 'an', 'and', 'or', 'of', 'in', 'for', 'with', 'to', 'from', 
+            'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had',
+            'this', 'that', 'these', 'those', 'it', 'its', 'we', 'our', 'you', 'your'
+        }
+        
+        for rec in self:
+            keywords = []
+            
+            # Extract from item name
+            if rec.item_id and rec.item_id.name:
+                words = re.findall(r'\b\w+\b', rec.item_id.name.lower())
+                keywords.extend([w for w in words if len(w) > 2 and w not in STOP_WORDS])
+            
+            # Extract from justification
+            if rec.justification:
+                words = re.findall(r'\b\w+\b', rec.justification.lower())
+                keywords.extend([w for w in words[:10] if len(w) > 3 and w not in STOP_WORDS])  # First 10 meaningful words
+            
+            # Remove duplicates and join
+            rec.consolidation_keywords = ' '.join(list(dict.fromkeys(keywords))[:10])  # Top 10 unique keywords
+    
+    @api.depends('item_id', 'major_classification_id', 'sub_classification_id')
+    def _compute_consolidation_group(self):
+        """AUTO-002: Generate grouping key for automatic consolidation."""
+        for rec in self:
+            if rec.item_id:
+                # Group by exact item code
+                rec.consolidation_group = f"ITEM_{rec.item_id.id}"
+            elif rec.sub_classification_id:
+                # Group by sub-classification
+                rec.consolidation_group = f"SUB_{rec.sub_classification_id.id}"
+            elif rec.major_classification_id:
+                # Group by major classification
+                rec.consolidation_group = f"MAJ_{rec.major_classification_id.id}"
+            else:
+                rec.consolidation_group = f"UNGROUPED_{rec.id}"
+    
+    @api.depends('consolidation_group', 'state')
+    def _compute_similar_needs(self):
+        """AUTO-002: Count similar reviewed needs for consolidation."""
+        for rec in self:
+            if rec.state != 'reviewed' or not rec.consolidation_group:
+                rec.similar_needs_count = 0
+                continue
+            
+            # Count other reviewed needs in same group without lot assignment
+            similar = self.search_count([
+                ('consolidation_group', '=', rec.consolidation_group),
+                ('state', '=', 'reviewed'),
+                ('lot_id', '=', False),
+                ('id', '!=', rec.id)
+            ])
+            
+            rec.similar_needs_count = similar
+    
+    @api.depends('consolidation_group', 'item_id', 'sub_classification_id')
+    def _compute_suggested_lot(self):
+        """AUTO-002: Suggest lot name based on grouping."""
+        for rec in self:
+            if rec.item_id:
+                rec.suggested_lot_name = f"Lot: {rec.item_id.name}"
+            elif rec.sub_classification_id:
+                rec.suggested_lot_name = f"Lot: {rec.sub_classification_id.name}"
+            elif rec.major_classification_id:
+                rec.suggested_lot_name = f"Lot: {rec.major_classification_id.name}"
+            else:
+                rec.suggested_lot_name = "Uncategorized Lot"
 
     # ── AUTO-001: Self-Service Actions ──────────────────────────────
     
