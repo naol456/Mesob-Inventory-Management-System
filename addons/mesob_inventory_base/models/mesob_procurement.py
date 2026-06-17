@@ -198,6 +198,146 @@ class MesobProcurementPlan(models.Model):
                 'hope_approval_date': fields.Datetime.now()
             })
             
+            # AUTO-004: Calculate total approval time
+            if rec.submitted_date and rec.hope_approval_date:
+                approval_duration = (rec.hope_approval_date - rec.submitted_date).days
+                
+                rec.message_post(
+                    body=f"""<div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px;">
+                        <h3>✅ AUTO-004: APP Approved and Published</h3>
+                        <p><strong>APP Reference:</strong> {rec.name}</p>
+                        <p><strong>Fiscal Year:</strong> {rec.fiscal_year}</p>
+                        <p><strong>Total Lots:</strong> {len(rec.lot_ids)}</p>
+                        <hr/>
+                        <h4>Approval Timeline:</h4>
+                        <table style="width: 100%; margin-top: 10px;">
+                            <tr>
+                                <td style="padding: 5px;"><strong>Submitted:</strong></td>
+                                <td style="padding: 5px;">{rec.submitted_date}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px;"><strong>PUH Approved:</strong></td>
+                                <td style="padding: 5px;">{rec.puh_approval_date or 'N/A'}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px;"><strong>PEC Approved:</strong></td>
+                                <td style="padding: 5px;">{rec.pec_approval_date or 'N/A'}</td>
+                            </tr>
+                            <tr style="background-color: #d4edda;">
+                                <td style="padding: 5px;"><strong>HOPE Approved:</strong></td>
+                                <td style="padding: 5px; font-weight: bold;">{rec.hope_approval_date}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px;"><strong>Total Duration:</strong></td>
+                                <td style="padding: 5px; font-weight: bold;">{approval_duration} days</td>
+                            </tr>
+                        </table>
+                        <hr/>
+                        <p><em>FR-PROC-005: APP is now authorized and published. Procurement can proceed.</em></p>
+                    </div>""",
+                    subject=f'APP Published: {rec.name}',
+                    message_type='comment'
+                )
+                
+                _logger.info(
+                    f"AUTO-004: APP {rec.name} fully approved in {approval_duration} days - "
+                    f"PUH: {(rec.puh_approval_date - rec.submitted_date).days if rec.puh_approval_date else 0}d, "
+                    f"PEC: {(rec.pec_approval_date - rec.puh_approval_date).days if rec.pec_approval_date and rec.puh_approval_date else 0}d, "
+                    f"HOPE: {(rec.hope_approval_date - rec.pec_approval_date).days if rec.hope_approval_date and rec.pec_approval_date else 0}d"
+                )
+            
+            # Notify procurement officers
+            rec._send_approval_notification('published')
+        
+        return True
+    
+    def _send_approval_notification(self, stage):
+        """AUTO-004: Send approval workflow notifications with SLA tracking.
+        
+        Args:
+            stage: 'puh', 'pec', 'hope', or 'published'
+        """
+        self.ensure_one()
+        
+        # Determine recipient group and message based on stage
+        if stage == 'puh':
+            group_ref = 'mesob_inventory_base.group_mesob_puh'
+            title = 'APP Submitted for PUH Approval'
+            action_text = 'Please review and approve this Annual Procurement Plan.'
+            color = '#ffc107'
+        elif stage == 'pec':
+            group_ref = 'mesob_inventory_base.group_mesob_pec'
+            title = 'APP Ready for PEC Approval'
+            action_text = 'PUH has approved. Please review and approve for PEC level.'
+            color = '#fd7e14'
+        elif stage == 'hope':
+            group_ref = 'mesob_inventory_base.group_mesob_hope'
+            title = 'APP Ready for HOPE Final Authorization'
+            action_text = 'PEC has approved. Please review and authorize publication.'
+            color = '#dc3545'
+        else:  # published
+            group_ref = 'mesob_inventory_base.group_mesob_procurement'
+            title = 'APP Published - Procurement Authorized'
+            action_text = 'You may now proceed with procurement activities per this approved plan.'
+            color = '#28a745'
+        
+        # Get recipients
+        recipient_group = self.env.ref(group_ref, raise_if_not_found=False)
+        if not recipient_group or not recipient_group.users:
+            _logger.warning(f"AUTO-004: No users found in group {group_ref}")
+            return
+        
+        # Build lots summary
+        lots_summary = '<ul>'
+        for lot in self.lot_ids[:10]:  # Show first 10 lots
+            estimated_value = sum(item.estimated_value for item in lot.item_ids)
+            lots_summary += f'<li><strong>{lot.name}</strong>: {lot.method} - ETB {estimated_value:,.2f}</li>'
+        lots_summary += '</ul>'
+        
+        if len(self.lot_ids) > 10:
+            lots_summary += f'<p><em>...and {len(self.lot_ids) - 10} more lots</em></p>'
+        
+        # SLA warning if overdue
+        sla_warning = ''
+        if self.approval_sla_status == 'overdue':
+            sla_warning = f'''<div style="background-color: #f8d7da; padding: 10px; border-radius: 5px; margin-top: 15px;">
+                <p style="margin: 0; color: #dc3545;"><strong>⚠ SLA ALERT:</strong> This APP has been in approval for {self.days_in_approval} days (OVERDUE)</p>
+            </div>'''
+        elif self.approval_sla_status == 'warning':
+            sla_warning = f'''<div style="background-color: #fff3cd; padding: 10px; border-radius: 5px; margin-top: 15px;">
+                <p style="margin: 0; color: #856404;"><strong>⚠ SLA WARNING:</strong> This APP has been in approval for {self.days_in_approval} days (approaching deadline)</p>
+            </div>'''
+        
+        # Send notification
+        self.message_post(
+            body=f"""<div style="background-color: #f8f9fa; border-left: 4px solid {color}; padding: 15px;">
+                <h3 style="color: {color};">AUTO-004: {title}</h3>
+                <p><strong>APP Reference:</strong> {self.name}</p>
+                <p><strong>Fiscal Year:</strong> {self.fiscal_year}</p>
+                <p><strong>Planning Type:</strong> {dict(self._fields['planning_type'].selection).get(self.planning_type)}</p>
+                <p><strong>Stream:</strong> {dict(self._fields['procurement_stream'].selection).get(self.procurement_stream)}</p>
+                <p><strong>Total Lots:</strong> {len(self.lot_ids)}</p>
+                {f'<p><strong>Days in Approval:</strong> {self.days_in_approval}</p>' if self.submitted_date and stage != 'published' else ''}
+                <hr/>
+                <h4>Procurement Lots:</h4>
+                {lots_summary}
+                {sla_warning}
+                <hr/>
+                <p style="margin-top: 15px;"><strong>{action_text}</strong></p>
+                <p><a href="/web#id={self.id}&model=mesob.procurement.plan&view_type=form" 
+                   style="background-color: {color}; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                   View APP →
+                </a></p>
+            </div>""",
+            subject=f'AUTO-004: {title} - {self.name}',
+            message_type='notification',
+            partner_ids=recipient_group.users.mapped('partner_id').ids
+        )
+        
+        _logger.info(
+            f"AUTO-004: Notification sent to {len(recipient_group.users)} {stage.upper()} users - "
+            f"APP: {self.name}, SLA Status: {self.approval_sla_status}"
+        )
             # Route lots to correct execution workflow (FR-PROC-006)
             for lot in rec.lot_ids:
                 if lot.mechanism == "bidding":

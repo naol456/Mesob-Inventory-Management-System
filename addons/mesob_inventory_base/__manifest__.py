@@ -49,6 +49,7 @@
         "data/mesob_procurement_sequences.xml",
         "data/mesob_payment_validation_sequence.xml",
         "data/mesob_overdue_po_cron.xml",
+        "data/mesob_auto_reorder_cron.xml",
         # Company data
         "data/mesob_company_data.xml",
         # Views (Base)

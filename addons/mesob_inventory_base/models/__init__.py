@@ -3,6 +3,8 @@ from . import mesob_inventory_sub_classification
 from . import mesob_item_code_sequence
 from . import mesob_inventory_item
 from . import mesob_stock_code_catalog
+from . import mesob_stock_movement_mixin
+from . import mesob_auto_po_generator
 from . import mesob_inventory_requisition
 from . import mesob_inventory_requisition_line
 from . import mesob_inventory_receiving

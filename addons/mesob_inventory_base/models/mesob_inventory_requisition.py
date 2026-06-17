@@ -445,9 +445,39 @@ class MesobInventoryRequisition(models.Model):
         self.ensure_one()
         warnings = []
         
-        BinCard = self.env['mesob.bin.card']
-        Requisition = self.env['mesob.inventory.requisition']
-        PurchaseOrder = self.env['mesob.procurement.order']
+        StockMixin = self.env['mesob.stock.movement.mixin']
+        
+        for line in self.line_ids:
+            if not line.item_id:
+                continue
+            
+            # AUTO-049: Get real-time stock level
+            current_stock = StockMixin.get_current_stock_level(line.item_id.id)
+            
+            if current_stock < line.quantity_requested:
+                shortfall = line.quantity_requested - current_stock
+                
+                # Check pending requisitions
+                pending_qty = sum(
+                    self.env['mesob.inventory.requisition.line'].search([
+                        ('item_id', '=', line.item_id.id),
+                        ('requisition_id.state', 'in', ['approved']),
+                        ('requisition_id.id', '!=', self.id),
+                    ]).mapped('quantity_requested')
+                )
+                
+                warnings.append({
+                    'item_id': line.item_id.id,
+                    'item_name': line.item_id.name,
+                    'item_code': line.item_id.code or '',
+                    'requested': line.quantity_requested,
+                    'available': current_stock,
+                    'shortfall': shortfall,
+                    'pending_requisitions_qty': pending_qty,
+                    'expected_delivery_date': None,  # TODO: From open POs
+                })
+        
+        return warnings
         
         for line in self.line_ids:
             if not line.item_id:
