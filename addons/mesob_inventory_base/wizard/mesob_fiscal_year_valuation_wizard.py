@@ -43,6 +43,7 @@ class MesobFiscalYearValuationWizard(models.TransientModel):
     
     classification_ids = fields.Many2many(
         'mesob.inventory.major.classification',
+        relation='mesob_fy_val_wiz_major_class_rel',  # Custom short table name
         string='Classifications',
         help='Leave empty to include all classifications'
     )
