@@ -148,6 +148,8 @@
                                    options="{'no_open': True, 'no_create': True}" 
                                    class="mb-3"/>
                             <field name="requested_on" readonly="state != 'draft'" class="mb-3"/>
+                            <field name="requester_role" readonly="1" class="mb-3"/>
+                            <field name="submitted_on" invisible="state == 'draft'" readonly="1" class="mb-3"/>
 
                             <!-- Dynamic Informational Tip Helper -->
                             <div class="mt-2 text-muted small border-top pt-2 w-100" colspan="2" style="font-size: 0.9em; opacity: 0.85;">
@@ -156,6 +158,16 @@
                                 <span invisible="issue_mode != 'replacement'"><strong>Replacement Issue:</strong> Requisition a new item by returning a consumed or broken item (e.g. empty ink cartridge, dead bulb).</span>
                                 <span invisible="issue_mode != 'non_stock'"><strong>Non-Stock Issue:</strong> A one-time, special requisition for items not regularly stocked.</span>
                             </div>
+                        </group>
+                        
+                        <group string="Purpose/Justification (AUTO-042)" col="1" class="glass-card p-4 rounded shadow-sm border w-100">
+                            <div class="alert alert-info mb-2" role="alert">
+                                <strong>Required:</strong> Explain why these items are needed (min. 20 characters)
+                            </div>
+                            <field name="purpose" nolabel="1"
+                                   placeholder="E.g. Needed for upcoming audit preparation, quarterly report printing, equipment maintenance..."
+                                   readonly="state != 'draft'"
+                                   class="w-100 border p-3 rounded" style="min-height: 80px;"/>
                         </group>
                     </group>
 
@@ -169,7 +181,10 @@
                     </group>
 
                     <notebook class="mt-4">
-                        <page string="Requisition Lines" name="lines">
+                        <page string="📝 Requisition Lines (AUTO-042)" name="lines">
+                            <div class="alert alert-success mb-3" role="alert">
+                                <strong>AUTO-042 Features:</strong> Real-time stock display • Last issued quantity • Smart suggestions • Controlled item alerts
+                            </div>
                             <field name="line_ids" readonly="state != 'draft'">
                                 <list editable="bottom" class="glass-table border-0 rounded shadow-sm">
                                     <field name="major_classification_id" class="fw-semibold" options="{'no_open': True, 'no_create': True}"/>
@@ -177,9 +192,53 @@
                                            domain="[('major_classification_id', '=', major_classification_id), ('active', '=', True)]"
                                            class="fw-semibold text-muted"
                                            options="{'no_open': True, 'no_create': True}"/>
+                                    <field name="item_id" 
+                                           domain="[('sub_classification_id', '=', sub_classification_id), ('active', '=', True)]"
+                                           class="fw-bold"
+                                           options="{'no_open': True, 'no_create': True}"/>
+                                    <field name="current_stock" string="Stock" class="text-end fw-bold font-monospace" optional="show"/>
+                                    <field name="stock_status" widget="badge" optional="show"/>
+                                    <field name="last_issued_quantity" string="Last Qty" class="text-end font-monospace text-muted" optional="show"/>
+                                    <field name="suggested_quantity" string="Suggested" class="text-end font-monospace text-info" optional="show"/>
                                     <field name="quantity" class="text-end fw-bold font-monospace text-primary" style="font-size: 1.1em;" placeholder="Quantity..."/>
+                                    <field name="uom_id" options="{'no_open': True, 'no_create': True}"/>
+                                    <field name="is_controlled_item" string="🔒" widget="boolean" optional="show"/>
                                     <field name="note" placeholder="E.g. requested specifications, brand, size..."/>
                                 </list>
+                                <form string="Requisition Line Details">
+                                    <sheet>
+                                        <div class="alert alert-info mb-3" role="alert">
+                                            <strong>AUTO-042:</strong> Stock information updates in real-time as you select items
+                                        </div>
+                                        <group>
+                                            <group string="Item Selection" class="mb-3">
+                                                <field name="major_classification_id" options="{'no_open': True, 'no_create': True}"/>
+                                                <field name="sub_classification_id"
+                                                       domain="[('major_classification_id', '=', major_classification_id), ('active', '=', True)]"
+                                                       options="{'no_open': True, 'no_create': True}"/>
+                                                <field name="item_id"
+                                                       domain="[('sub_classification_id', '=', sub_classification_id), ('active', '=', True)]"
+                                                       options="{'no_open': True, 'no_create': True}"/>
+                                                <field name="is_controlled_item" widget="boolean"/>
+                                            </group>
+                                            <group string="Stock Intelligence (AUTO-042)" class="mb-3">
+                                                <field name="current_stock" class="fw-bold"/>
+                                                <field name="stock_status" widget="badge"/>
+                                                <field name="last_issued_quantity" class="text-muted"/>
+                                                <field name="suggested_quantity" class="text-info fw-semibold"/>
+                                            </group>
+                                        </group>
+                                        <group>
+                                            <group string="Requested Quantity">
+                                                <field name="quantity" class="fw-bold text-primary"/>
+                                                <field name="uom_id" options="{'no_open': True, 'no_create': True}"/>
+                                            </group>
+                                        </group>
+                                        <group>
+                                            <field name="note" placeholder="Additional specifications, remarks, or special requirements..."/>
+                                        </group>
+                                    </sheet>
+                                </form>
                             </field>
                         </page>
                         <page string="Additional Notes" name="notes">

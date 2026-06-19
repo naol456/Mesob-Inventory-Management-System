@@ -7,6 +7,14 @@
               groups="mesob_inventory_base.group_mesob_inventory_user,mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao"
               sequence="10"/>
 
+    <!-- AUTO-025: Expected Deliveries Dashboard for Storekeepers -->
+    <menuitem id="menu_mesob_expected_deliveries"
+              name="📦 Expected Deliveries"
+              parent="menu_mesob_inventory_operations"
+              action="action_mesob_expected_deliveries"
+              groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_pao"
+              sequence="1"/>
+
     <menuitem id="menu_mesob_inventory_receiving"
               name="Receiving Orders"
               parent="menu_mesob_inventory_operations"

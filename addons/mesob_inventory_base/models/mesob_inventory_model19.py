@@ -1,6 +1,9 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 from lxml import etree
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class MesobInventoryModel19(models.Model):
