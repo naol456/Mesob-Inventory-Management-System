@@ -16,7 +16,7 @@ class MesobGatePass(models.Model):
 
     _name = "mesob.gate.pass"
     _description = "Gate Pass for Material Dispatch"
-    _inherit = ["mail.thread", "mail.activity.mixin", "mesob.notification.mixin"]  # Task 7: Add notification mixin
+    _inherit = ["mail.thread", "mail.activity.mixin", "mesob.notification.mixin", "mesob.signable.mixin"]  # Task 7: notification, Task 11: digital signature
     _order = "dispatch_date desc, id desc"
     _rec_name = "name"
 
@@ -519,6 +519,12 @@ class MesobGatePass(models.Model):
                 "authorized_by_id": self.env.user.id,
                 "authorized_on": fields.Datetime.now(),
             })
+            
+            # Task 11: Create digital signature for PAO authorization
+            record.action_create_digital_signature(
+                signature_type='authorization',
+                reason=f'PAO Authorization of Gate Pass {record.name} for dispatch to {record.receiver_name}'
+            )
             
             # AUTO-047: Send three-copy distribution notifications
             record._send_three_copy_notifications()

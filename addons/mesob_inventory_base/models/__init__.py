@@ -7,6 +7,8 @@ from . import mesob_stock_code_catalog_publication
 from . import mesob_stock_movement_mixin
 from . import mesob_notification_mixin  # Task 7: Push Notification System
 from . import mesob_notification_preference  # Task 7: User notification preferences
+from . import mesob_signable_mixin  # Task 11: Digital Signature Enhancement
+from . import mesob_digital_signature  # Task 11: Digital Signature Storage
 from . import mesob_inventory_requisition
 from . import mesob_inventory_requisition_line
 from . import mesob_inventory_receiving

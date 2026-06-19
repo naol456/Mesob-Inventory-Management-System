@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Task 11: Digital Signature Views -->
+<odoo>
+    
+    <!-- Digital Signature Tree View -->
+    <record id="view_mesob_digital_signature_tree" model="ir.ui.view">
+        <field name="name">mesob.digital.signature.tree</field>
+        <field name="model">mesob.digital.signature</field>
+        <field name="arch" type="xml">
+            <tree string="Digital Signatures" decoration-success="is_valid" decoration-danger="not is_valid">
+                <field name="document_name"/>
+                <field name="signature_type"/>
+                <field name="signed_by_id"/>
+                <field name="signed_on"/>
+                <field name="is_valid" widget="boolean"/>
+                <field name="document_model" invisible="1"/>
+                <field name="document_id" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+    
+    <!-- Digital Signature Form View -->
+    <record id="view_mesob_digital_signature_form" model="ir.ui.view">
+        <field name="name">mesob.digital.signature.form</field>
+        <field name="model">mesob.digital.signature</field>
+        <field name="arch" type="xml">
+            <form string="Digital Signature" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_verify_signature" string="Verify Signature" type="object" class="btn-primary"/>
+                    <field name="is_valid" widget="statusbar" statusbar_colors='{"1":"green","0":"red"}' invisible="1"/>
+                </header>
+                <sheet>
+                    <!-- Verification Status Banner -->
+                    <div class="alert alert-success" role="alert" invisible="not is_valid">
+                        <strong>✅ Signature Valid</strong><br/>
+                        This document has not been tampered with since signing.
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="is_valid">
+                        <strong>❌ Signature Invalid</strong><br/>
+                        <field name="verification_message" readonly="1"/>
+                    </div>
+                    
+                    <div class="oe_title">
+                        <h1>
+                            <i class="fa fa-certificate"/> Digital Signature
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group string="Document Information">
+                            <field name="document_name"/>
+                            <field name="document_model"/>
+                            <field name="document_id"/>
+                            <field name="document_state"/>
+                        </group>
+                        <group string="Signature Details">
+                            <field name="signature_type"/>
+                            <field name="signed_by_id" widget="many2one_avatar_user"/>
+                            <field name="signed_on"/>
+                            <field name="signer_ip"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group string="Cryptographic Details">
+                            <field name="signature_hash" widget="char" readonly="1" class="font-monospace"/>
+                        </group>
+                        <group string="Metadata">
+                            <field name="signature_reason"/>
+                            <field name="notes"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Document Snapshot" name="snapshot">
+                            <field name="document_content_hash" widget="text" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Digital Signature Search View -->
+    <record id="view_mesob_digital_signature_search" model="ir.ui.view">
+        <field name="name">mesob.digital.signature.search</field>
+        <field name="model">mesob.digital.signature</field>
+        <field name="arch" type="xml">
+            <search string="Search Signatures">
+                <field name="document_name"/>
+                <field name="signed_by_id"/>
+                <field name="document_model"/>
+                <field name="signature_type"/>
+                <filter name="filter_valid" string="Valid Signatures" domain="[('is_valid','=',True)]"/>
+                <filter name="filter_invalid" string="Invalid Signatures" domain="[('is_valid','=',False)]"/>
+                <separator/>
+                <filter name="filter_approval" string="Approvals" domain="[('signature_type','=','approval')]"/>
+                <filter name="filter_authorization" string="Authorizations" domain="[('signature_type','=','authorization')]"/>
+                <separator/>
+                <filter name="filter_today" string="Today" domain="[('signed_on','&gt;=',context_today().strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter name="filter_this_week" string="This Week" domain="[('signed_on','&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_document_model" string="Document Type" context="{'group_by':'document_model'}"/>
+                    <filter name="group_by_signature_type" string="Signature Type" context="{'group_by':'signature_type'}"/>
+                    <filter name="group_by_signed_by" string="Signed By" context="{'group_by':'signed_by_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- Digital Signature Action -->
+    <record id="action_mesob_digital_signature" model="ir.actions.act_window">
+        <field name="name">Digital Signatures</field>
+        <field name="res_model">mesob.digital.signature</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_filter_valid': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No digital signatures found
+            </p>
+            <p>
+                Digital signatures are automatically created when documents are approved or authorized.
+                They provide cryptographic proof of document integrity and signer identity.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Menu Item -->
+    <menuitem id="menu_mesob_digital_signatures"
+              name="Digital Signatures"
+              parent="menu_mesob_inventory_root"
+              action="action_mesob_digital_signature"
+              sequence="99"
+              groups="mesob_inventory_base.group_mesob_pao"/>
+
+</odoo>

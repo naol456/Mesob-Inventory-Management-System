@@ -97,6 +97,8 @@
         "wizard/mesob_barcode_scanner_wizard_views.xml",  # Task 9
         # Notification preferences (Task 7)
         "views/mesob_notification_preference_views.xml",
+        # Digital Signatures (Task 11)
+        "views/mesob_digital_signature_views.xml",
         # Reports
         "reports/mesob_gate_pass_report.xml",
     ],

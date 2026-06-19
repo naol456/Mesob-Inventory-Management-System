@@ -11,7 +11,7 @@ class MesobBinCard(models.Model):
     """
     _name = 'mesob.bin.card'
     _description = 'Bin Card (Physical Storage Location)'
-    _inherit = ['mail.thread', 'mail.activity.mixin', 'mesob.notification.mixin']  # Task 7: Add notification
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'mesob.notification.mixin', 'mesob.signable.mixin']  # Task 7: notification, Task 11: digital signature
     _order = 'date desc, id desc'
     _rec_name = 'display_name'
 
@@ -294,7 +294,10 @@ class MesobBinCard(models.Model):
             record.state = 'pending'
     
     def action_pao_approve(self):
-        """AUTO-050: PAO approves manual adjustment."""
+        """AUTO-050: PAO approves manual adjustment.
+        
+        Task 11: Enhanced with digital signature.
+        """
         for record in self:
             # Verify PAO role
             if not self.env.user.has_group("mesob_inventory_base.group_mesob_pao"):
@@ -314,6 +317,12 @@ class MesobBinCard(models.Model):
                 'approved_by_id': self.env.user.id,
                 'approved_on': fields.Datetime.now(),
             })
+            
+            # Task 11: Create digital signature for PAO approval
+            record.action_create_digital_signature(
+                signature_type='approval',
+                reason=f'PAO Approval of Manual Stock Adjustment: {record.adjustment_reason[:100]}'
+            )
             
             # Log approval in chatter
             record.message_post(

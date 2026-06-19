@@ -29,7 +29,7 @@ class MesobInventoryRequisition(models.Model):
 
     _name = "mesob.inventory.requisition"
     _description = "Stores Requisition (Model 20)"
-    _inherit = ['mail.thread', 'mail.activity.mixin', 'mesob.notification.mixin']  # Task 7: Add notification mixin
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'mesob.notification.mixin', 'mesob.signable.mixin']  # Task 7: notification, Task 11: digital signature
     _order = "requested_on desc, id desc"
 
     name = fields.Char(
@@ -495,6 +495,12 @@ class MesobInventoryRequisition(models.Model):
             record.approved_by_id = self.env.user
             record.approved_on = fields.Date.today()
             record.state = "approved"
+            
+            # Task 11: Create digital signature for PAO approval
+            record.action_create_digital_signature(
+                signature_type='approval',
+                reason=f'PAO Approval of Requisition {record.name}'
+            )
             
             # Task 7: Mark approval activity as done
             activity_type = record._get_activity_type('mesob_activity_requisition_approval')
