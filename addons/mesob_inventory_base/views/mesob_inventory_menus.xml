@@ -119,6 +119,13 @@
               groups="mesob_inventory_base.group_mesob_pao"
               sequence="40"/>
 
+    <!-- ── Settings ───────────────────────────────────────────────── -->
+    <menuitem id="menu_mesob_inventory_settings"
+              name="Settings"
+              parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_pao"
+              sequence="100"/>
+
     <!-- ── Stock Control ──────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_stock_control"
               name="Stock Control"

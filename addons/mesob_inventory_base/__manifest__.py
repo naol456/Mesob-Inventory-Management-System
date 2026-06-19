@@ -51,6 +51,7 @@
         "data/mesob_catalog_publication_sequence.xml",
         "data/mesob_overdue_po_cron.xml",
         "data/mesob_auto_reorder_cron.xml",
+        "data/mesob_notification_activity_types.xml",  # Task 7: Activity types for notifications
         # Company data
         "data/mesob_company_data.xml",
         # Views (Base)
@@ -92,6 +93,8 @@
         "wizard/mesob_manual_adjustment_wizard_views.xml",  # AUTO-050
         "wizard/mesob_duplicate_item_wizard_views.xml",  # AUTO-038
         "wizard/mesob_quarterly_movement_report_wizard_views.xml",  # AUTO-054
+        # Notification preferences (Task 7)
+        "views/mesob_notification_preference_views.xml",
         # Reports
         "reports/mesob_gate_pass_report.xml",
     ],

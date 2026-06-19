@@ -189,6 +189,30 @@ class MesobManualAdjustmentWizard(models.TransientModel):
         
         bin_card = BinCard.create(bin_card_vals)
         
+        # Task 7: Send activity notification to PAO for approval
+        pao_group = self.env.ref('mesob_inventory_base.group_mesob_pao', raise_if_not_found=False)
+        if pao_group and pao_group.users:
+            bin_card._schedule_activity(
+                activity_code='mesob_activity_manual_adjustment_approval',
+                user_ids=pao_group.users.ids,
+                summary=_('Manual Stock Adjustment Approval Required'),
+                note=_(
+                    '<p><strong>Item:</strong> %s</p>'
+                    '<p><strong>Location:</strong> %s</p>'
+                    '<p><strong>Current Balance:</strong> %s</p>'
+                    '<p><strong>Physical Count:</strong> %s</p>'
+                    '<p><strong>Adjustment:</strong> %+.2f</p>'
+                    '<p><strong>Reason:</strong> %s</p>'
+                ) % (
+                    self.sub_classification_id.name,
+                    self.location,
+                    self.current_balance,
+                    self.physical_count,
+                    self.adjustment_quantity,
+                    self.adjustment_reason or 'Not specified',
+                ),
+            )
+        
         # Post message to chatter
         bin_card.message_post(
             body=_(

@@ -16,7 +16,7 @@ class MesobGatePass(models.Model):
 
     _name = "mesob.gate.pass"
     _description = "Gate Pass for Material Dispatch"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "mesob.notification.mixin"]  # Task 7: Add notification mixin
     _order = "dispatch_date desc, id desc"
     _rec_name = "name"
 
@@ -441,6 +441,8 @@ class MesobGatePass(models.Model):
         - Original → Receiver (PDF with QR code)
         - Duplicate → Storekeeper (notification)
         - Triplicate → Security Guard (gate alert)
+        
+        Task 7: Enhanced with activity notification for Security.
         """
         self.ensure_one()
         
@@ -466,8 +468,19 @@ class MesobGatePass(models.Model):
                 partner_ids=storekeeper_group.users.mapped("partner_id").ids,
             )
         
-        # Notification to Security (Triplicate)
+        # Task 7: Schedule activity for Security Guard (Triplicate)
         if security_group and security_group.users:
+            self._schedule_activity(
+                activity_code='mesob_activity_gate_pass_authorization',
+                user_ids=security_group.users.ids,
+                summary=f'Gate Pass Ready for Dispatch: {self.name}',
+                note=f"""<p><strong>Status:</strong> Authorized - Ready to Dispatch</p>
+                    <p><strong>Receiver:</strong> {self.receiver_name}</p>
+                    <p><strong>Destination:</strong> {self.destination}</p>
+                    <p><strong>Vehicle:</strong> {self.vehicle_plate or "Not specified"}</p>""",
+            )
+            
+            # Also send chatter notification
             self.message_post(
                 body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px;">
                     <h3>🚨 AUTO-047: Gate Pass Alert for Security</h3>

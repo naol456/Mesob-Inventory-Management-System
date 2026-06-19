@@ -29,7 +29,7 @@ class MesobInventoryRequisition(models.Model):
 
     _name = "mesob.inventory.requisition"
     _description = "Stores Requisition (Model 20)"
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'mesob.notification.mixin']  # Task 7: Add notification mixin
     _order = "requested_on desc, id desc"
 
     name = fields.Char(
@@ -332,7 +332,10 @@ class MesobInventoryRequisition(models.Model):
         return unauthorized_items
     
     def _notify_pao_new_requisition(self):
-        """AUTO-042: Send notification to PAO of new requisition submission."""
+        """AUTO-042: Send notification to PAO of new requisition submission.
+        
+        Task 7: Enhanced with activity notification for real-time alerts.
+        """
         self.ensure_one()
         
         # Get PAO users
@@ -351,7 +354,18 @@ class MesobInventoryRequisition(models.Model):
                 items_html += f'<li>{line.major_classification_id.name if line.major_classification_id else "Unknown"}: Qty {line.quantity}</li>'
         items_html += '</ul>'
         
-        # Send notification
+        # Task 7: Schedule activity for PAO users
+        self._schedule_activity(
+            activity_code='mesob_activity_requisition_approval',
+            user_ids=pao_group.users.ids,
+            summary=f'Requisition Approval Required: {self.name}',
+            note=f"""<p><strong>Department:</strong> {dept_label}</p>
+                <p><strong>Requested by:</strong> {self.requested_by_id.name}</p>
+                <p><strong>Items:</strong> {len(self.line_ids)}</p>
+                <p><strong>Purpose:</strong> {self.purpose or 'Not specified'}</p>""",
+        )
+        
+        # Send chatter notification (for audit trail)
         self.message_post(
             body=f"""<div style="background-color: #d1ecf1; border-left: 4px solid #0c5460; padding: 15px;">
                 <h3>📝 AUTO-042: New Requisition Submitted</h3>
@@ -399,6 +413,7 @@ class MesobInventoryRequisition(models.Model):
         """PAO approves the requisition (FR-ISSUE-002).
         
         AUTO-043: Enhanced with stock availability alert before approval.
+        Task 7: Mark notification activity as done.
         """
         for record in self:
             if record.state != "submitted":
@@ -429,6 +444,14 @@ class MesobInventoryRequisition(models.Model):
             record.approved_by_id = self.env.user
             record.approved_on = fields.Date.today()
             record.state = "approved"
+            
+            # Task 7: Mark approval activity as done
+            activity_type = record._get_activity_type('mesob_activity_requisition_approval')
+            activities = record.activity_ids.filtered(
+                lambda a: a.activity_type_id == activity_type and a.user_id == self.env.user
+            )
+            if activities:
+                activities.action_done()
         
         return True
     

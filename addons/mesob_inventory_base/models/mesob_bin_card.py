@@ -11,6 +11,7 @@ class MesobBinCard(models.Model):
     """
     _name = 'mesob.bin.card'
     _description = 'Bin Card (Physical Storage Location)'
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'mesob.notification.mixin']  # Task 7: Add notification
     _order = 'date desc, id desc'
     _rec_name = 'display_name'
 
