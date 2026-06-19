@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- AUTO-053: Fiscal Year-End Valuation Wizard Form -->
+    <record id="view_mesob_fiscal_year_valuation_wizard_form" model="ir.ui.view">
+        <field name="name">mesob.fiscal.year.valuation.wizard.form</field>
+        <field name="model">mesob.fiscal.year.valuation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Fiscal Year-End Valuation Report">
+                <header>
+                    <button name="action_generate_report" 
+                            string="Generate Report" 
+                            type="object" 
+                            class="oe_highlight"
+                            invisible="report_generated"/>
+                    <button name="action_export_excel" 
+                            string="Export to Excel" 
+                            type="object"
+                            invisible="not report_generated"/>
+                    <button name="action_send_to_accounts" 
+                            string="Send to Accounts Unit" 
+                            type="object" 
+                            class="oe_highlight"
+                            invisible="not report_generated"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="fiscal_year" placeholder="e.g., 2018 E.C." required="1"/>
+                        </h1>
+                        <h3>Fiscal Year-End Stock Valuation Report</h3>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="valuation_date"/>
+                            <field name="classification_ids" widget="many2many_tags"/>
+                        </group>
+                        <group>
+                            <field name="include_zero_balance"/>
+                            <field name="group_by_sub_classification"/>
+                            <field name="report_generated" invisible="1"/>
+                        </group>
+                    </group>
+                    
+                    <notebook invisible="not report_generated">
+                        <page string="Summary">
+                            <group>
+                                <group>
+                                    <field name="total_quantity" widget="integer"/>
+                                    <field name="total_value" widget="monetary"/>
+                                </group>
+                                <group>
+                                    <field name="currency_id" invisible="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Detailed Lines">
+                            <field name="line_ids" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree view for valuation lines -->
+    <record id="view_mesob_fiscal_year_valuation_line_tree" model="ir.ui.view">
+        <field name="name">mesob.fiscal.year.valuation.line.tree</field>
+        <field name="model">mesob.fiscal.year.valuation.line</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="classification_id"/>
+                <field name="sub_classification_id"/>
+                <field name="item_code"/>
+                <field name="item_name"/>
+                <field name="balance_quantity" sum="Total Quantity"/>
+                <field name="average_unit_cost"/>
+                <field name="balance_value" sum="Total Value"/>
+                <field name="currency_id" invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Menu Action -->
+    <record id="action_mesob_fiscal_year_valuation_wizard" model="ir.actions.act_window">
+        <field name="name">Fiscal Year-End Valuation</field>
+        <field name="res_model">mesob.fiscal.year.valuation.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{}</field>
+    </record>
+
+</odoo>
