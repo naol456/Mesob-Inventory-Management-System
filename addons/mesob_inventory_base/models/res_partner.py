@@ -136,7 +136,14 @@ class ResPartner(models.Model):
     def _compute_performance_metrics(self):
         """AUTO-009: Calculate component performance metrics from PO/delivery/DSR/complaint history."""
         for partner in self:
-            if not partner.is_company or not partner.supplier_rank:
+            # Check if partner is a supplier (use supplier field or supplier_rank if available)
+            is_supplier = False
+            if hasattr(partner, 'supplier_rank'):
+                is_supplier = partner.supplier_rank > 0
+            elif hasattr(partner, 'supplier'):
+                is_supplier = partner.supplier
+            
+            if not partner.is_company or not is_supplier:
                 # Not a supplier - skip
                 partner.on_time_delivery_rate = 0.0
                 partner.dsr_rejection_rate = 0.0

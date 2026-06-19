@@ -28,7 +28,7 @@ class MesobLiquidatedDamagesCalculation(models.Model):
     # Contract/PO Reference
     contract_ref = fields.Char(string='Contract Reference', required=True)
     po_ref = fields.Char(string='Purchase Order Reference')
-    supplier_id = fields.Many2one('res.partner', string='Supplier', required=True, domain=[('supplier_rank', '>', 0)])
+    supplier_id = fields.Many2one('res.partner', string='Supplier', required=True, domain=[('supplier', '=', True)])
     
     # Contract Terms
     contract_value = fields.Monetary(

@@ -27,7 +27,7 @@ class MesobProcurementStockReconciliation(models.Model):
     period_to = fields.Date(string='Period To', required=True)
     
     # Scope Filters
-    supplier_id = fields.Many2one('res.partner', string='Supplier (Optional)', domain=[('supplier_rank', '>', 0)])
+    supplier_id = fields.Many2one('res.partner', string='Supplier (Optional)', domain=[('supplier', '=', True)])
     classification_id = fields.Many2one('mesob.inventory.major.classification', string='Classification (Optional)')
     
     # Reconciliation Lines
