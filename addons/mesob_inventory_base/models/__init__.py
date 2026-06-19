@@ -9,6 +9,7 @@ from . import mesob_notification_mixin  # Task 7: Push Notification System
 from . import mesob_notification_preference  # Task 7: User notification preferences
 from . import mesob_signable_mixin  # Task 11: Digital Signature Enhancement
 from . import mesob_digital_signature  # Task 11: Digital Signature Storage
+from . import mesob_dashboard_kpi  # Task 12: Dashboard KPIs
 from . import mesob_inventory_requisition
 from . import mesob_inventory_requisition_line
 from . import mesob_inventory_receiving

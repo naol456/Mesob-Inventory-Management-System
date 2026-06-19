@@ -139,12 +139,14 @@
               action="action_mesob_stock_reorder_alert"
               sequence="10"/>
 
+    <!-- TODO: Uncomment after wizard views are loaded before menus
     <menuitem id="menu_mesob_quarterly_movement_report"
               name="Quarterly Movement Report"
               parent="menu_mesob_inventory_stock_control"
-              action="mesob_inventory_base.action_mesob_quarterly_movement_report_wizard"
+              action="action_mesob_quarterly_movement_report_wizard"
               groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_stock_clerk"
               sequence="20"/>
+    -->
 
     <!-- ── Procurement (Section 4.13) ────────────────────────────── -->
     <menuitem id="menu_mesob_procurement"

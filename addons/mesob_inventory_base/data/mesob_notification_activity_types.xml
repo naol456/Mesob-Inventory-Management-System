@@ -39,7 +39,7 @@
     <record id="mesob_activity_reorder_alert" model="mail.activity.type">
         <field name="name">Stock Reorder Alert</field>
         <field name="summary">Stock below reorder level - action required</field>
-        <field name="category">warning</field>
+        <field name="category">default</field>
         <field name="icon">fa-exclamation-triangle</field>
         <field name="delay_count">1</field>
         <field name="delay_unit">days</field>
@@ -50,7 +50,7 @@
     <record id="mesob_activity_po_overdue" model="mail.activity.type">
         <field name="name">Overdue Purchase Order</field>
         <field name="summary">Follow up on overdue purchase order</field>
-        <field name="category">warning</field>
+        <field name="category">default</field>
         <field name="icon">fa-clock-o</field>
         <field name="delay_count">1</field>
         <field name="delay_unit">days</field>

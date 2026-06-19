@@ -46,11 +46,15 @@ class MesobSignableMixin(models.AbstractModel):
         help='Most recent digital signature'
     )
     
-    @api.depends('id')
     def _compute_signature_ids(self):
-        """Compute signatures for this document."""
+        """Compute signatures for this document.
+        
+        Note: No @api.depends decorator because we search by document_id,
+        which requires the record to be saved first.
+        """
         for record in self:
-            if not record.id:
+            # Check if record is saved (has a real database ID)
+            if not record.id or not isinstance(record.id, int):
                 record.signature_ids = False
                 record.signature_count = 0
                 record.is_digitally_signed = False

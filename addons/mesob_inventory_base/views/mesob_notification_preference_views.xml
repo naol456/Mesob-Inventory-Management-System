@@ -7,11 +7,11 @@
         <field name="name">mesob.notification.preference.tree</field>
         <field name="model">mesob.notification.preference</field>
         <field name="arch" type="xml">
-            <tree string="Notification Preferences" editable="bottom">
+            <list string="Notification Preferences" editable="bottom">
                 <field name="user_id" readonly="1"/>
                 <field name="activity_type_code"/>
-                <field name="enabled" widget="boolean_toggle"/>
-            </tree>
+                <field name="enabled"/>
+            </list>
         </field>
     </record>
     
