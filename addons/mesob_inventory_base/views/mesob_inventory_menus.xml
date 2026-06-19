@@ -186,6 +186,13 @@
               parent="menu_mesob_procurement"
               action="action_mesob_budget_allocation"
               sequence="15"/>
+    
+    <!-- AUTO-007: Technical Specification Templates -->
+    <menuitem id="menu_mesob_technical_spec_templates"
+              name="Technical Spec Templates"
+              parent="menu_mesob_procurement"
+              action="action_mesob_technical_spec_template"
+              sequence="25"/>
 
     <!-- ── Master Data ────────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_master_data"

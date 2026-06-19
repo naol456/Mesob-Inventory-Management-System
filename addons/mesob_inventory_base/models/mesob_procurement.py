@@ -3167,6 +3167,7 @@ class MesobProcurementBid(models.Model):
 
     _name = "mesob.procurement.bid"
     _description = "Procurement Bid Submission"
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     tender_id = fields.Many2one("mesob.procurement.tender", string="Tender", required=True, ondelete="cascade")
     supplier_id = fields.Many2one(
@@ -3198,6 +3199,14 @@ class MesobProcurementBid(models.Model):
     )
     
     bid_price = fields.Float(string="Original Bid Price (ETB)", required=True)
+    
+    currency_id = fields.Many2one(
+        'res.currency',
+        string='Currency',
+        default=lambda self: self.env.company.currency_id,
+        help='Currency for bid amounts'
+    )
+    
     local_content = fields.Float(
         string="Local Content (%)",
         default=0.0,
@@ -3658,6 +3667,7 @@ class MesobBidEvaluationChecklist(models.Model):
     
     _name = 'mesob.bid.evaluation.checklist'
     _description = 'Bid Preliminary Evaluation Checklist'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'bid_id, id'
     
     bid_id = fields.Many2one(
@@ -3680,6 +3690,13 @@ class MesobBidEvaluationChecklist(models.Model):
         related='bid_id.supplier_id',
         string='Supplier',
         store=True
+    )
+    
+    bid_price = fields.Float(
+        string='Bid Price',
+        related='bid_id.bid_price',
+        readonly=True,
+        help='Original bid price from the bid'
     )
     
     # ── AUTO-014: Auto-Populated Criteria ──────────────────────────

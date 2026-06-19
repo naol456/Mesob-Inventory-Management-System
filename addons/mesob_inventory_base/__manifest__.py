@@ -69,10 +69,11 @@
         "views/mesob_bin_card_views.xml",
         "views/mesob_stock_record_card_views.xml",
         "views/mesob_stock_reorder_alert_views.xml",
-        # Menus (must be loaded before views that reference menu parents)
-        "views/mesob_inventory_menus.xml",
+        # Budget and Procurement views (must be loaded before menus that reference their actions)
         "views/mesob_budget_views.xml",
         "views/mesob_procurement_views.xml",
+        # Menus (loaded after actions are defined)
+        "views/mesob_inventory_menus.xml",
         # TODO: Fix stock code catalog publication views - model not loaded
         # "views/mesob_stock_code_catalog_publication_views.xml",
         "views/mesob_stock_taking_handover_views.xml",

@@ -665,4 +665,289 @@
         <field name="res_model">mesob.procurement.complaint</field>
         <field name="view_mode">list,form</field>
     </record>
+
+    <!-- ==================== BIDS (Standalone Views for AUTO-012, AUTO-014, AUTO-016) ==================== -->
+    <record id="view_mesob_procurement_bid_tree" model="ir.ui.view">
+        <field name="name">mesob.procurement.bid.tree</field>
+        <field name="model">mesob.procurement.bid</field>
+        <field name="arch" type="xml">
+            <list string="Bids">
+                <field name="tender_id"/>
+                <field name="supplier_id"/>
+                <field name="bid_price" widget="monetary"/>
+                <field name="submission_timestamp"/>
+                <field name="is_late" decoration-danger="is_late == True"/>
+                <field name="preliminary_passed" decoration-success="preliminary_passed == True" decoration-danger="preliminary_passed == False"/>
+                <field name="evaluated_rank"/>
+                <field name="evaluated_price" widget="monetary"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_procurement_bid_form" model="ir.ui.view">
+        <field name="name">mesob.procurement.bid.form</field>
+        <field name="model">mesob.procurement.bid</field>
+        <field name="arch" type="xml">
+            <form string="Bid Submission">
+                <header>
+                    <button name="action_generate_evaluation_checklist" string="Generate Evaluation Checklist" type="object" class="oe_highlight" invisible="has_evaluation_checklist"/>
+                    <button name="action_generate_preference_worksheet" string="Generate Preference Worksheet" type="object" invisible="local_content &lt; 40"/>
+                    <field name="preliminary_passed" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-danger" role="alert" invisible="not is_late">
+                        <h4>🚫 AUTO-012: Late Submission - Automatically Rejected</h4>
+                        <p><strong>This bid was submitted after the deadline and has been automatically rejected.</strong></p>
+                        <field name="late_rejection_reason" readonly="1" widget="text"/>
+                    </div>
+                    
+                    <group>
+                        <group string="Bid Information">
+                            <field name="tender_id" readonly="1"/>
+                            <field name="supplier_id"/>
+                            <field name="bid_price" widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Submission Details (AUTO-012)">
+                            <field name="submission_timestamp" readonly="1"/>
+                            <field name="is_late" readonly="1" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group string="Domestic Preference (AUTO-015)">
+                            <field name="local_content"/>
+                            <field name="preference_percentage" readonly="1"/>
+                            <field name="preference_amount" readonly="1" widget="monetary"/>
+                        </group>
+                        <group string="Evaluation Results (AUTO-016)">
+                            <field name="evaluated_price" readonly="1" widget="monetary"/>
+                            <field name="evaluated_rank" readonly="1"/>
+                            <field name="ranking" readonly="1"/>
+                            <field name="is_winner" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Evaluation Status" name="evaluation">
+                            <group>
+                                <field name="has_evaluation_checklist" readonly="1" invisible="1"/>
+                                <field name="preliminary_passed" widget="boolean_toggle"/>
+                                <field name="technical_score"/>
+                                <field name="financial_score"/>
+                            </group>
+                        </page>
+                        
+                        <page string="Evaluation Checklist (AUTO-014)" name="checklist" invisible="not has_evaluation_checklist">
+                            <group>
+                                <p>Preliminary evaluation checklist has been generated. Click the button in the header to open it for review.</p>
+                            </group>
+                        </page>
+                        
+                        <page string="Bid Lines" name="lines">
+                            <p>Add individual items and prices quoted in this bid.</p>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mesob_procurement_bid" model="ir.actions.act_window">
+        <field name="name">Bids</field>
+        <field name="res_model">mesob.procurement.bid</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- ==================== BID EVALUATION CHECKLIST (AUTO-014) ==================== -->
+    <record id="view_mesob_bid_evaluation_checklist_form" model="ir.ui.view">
+        <field name="name">mesob.bid.evaluation.checklist.form</field>
+        <field name="model">mesob.bid.evaluation.checklist</field>
+        <field name="arch" type="xml">
+            <form string="Preliminary Evaluation Checklist">
+                <header>
+                    <button name="action_complete_evaluation" string="Complete Evaluation" type="object" class="oe_highlight" invisible="preliminary_pass == False and not evaluator_override"/>
+                    <field name="preliminary_pass" widget="statusbar" statusbar_visible="pass,fail"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="bid_id" readonly="1"/>
+                        </h1>
+                        <h3>
+                            <field name="supplier_id" readonly="1"/>
+                        </h3>
+                    </div>
+                    
+                    <group>
+                        <group string="Bid Information">
+                            <field name="bid_price" readonly="1" widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="tender_id" readonly="1"/>
+                        </group>
+                        <group string="Evaluation Status">
+                            <field name="preliminary_pass" readonly="1" widget="badge" decoration-success="preliminary_pass == True" decoration-danger="preliminary_pass == False"/>
+                            <field name="evaluator_override" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Bid Security Checks" name="bid_security">
+                            <group>
+                                <group string="Bid Security Amount">
+                                    <field name="bid_security_submitted" widget="monetary"/>
+                                    <field name="bid_security_amount_required" readonly="1" widget="monetary"/>
+                                    <field name="bid_security_amount_ok" readonly="1" widget="boolean_toggle"/>
+                                </group>
+                                <group string="Bid Security Validity">
+                                    <field name="bid_security_validity_date"/>
+                                    <field name="bid_security_validity_ok" readonly="1" widget="boolean_toggle"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Supplier Checks" name="supplier">
+                            <group>
+                                <group string="Supplier Eligibility">
+                                    <field name="supplier_registration_valid" readonly="1" widget="boolean_toggle"/>
+                                    <field name="supplier_not_blacklisted" readonly="1" widget="boolean_toggle"/>
+                                    <field name="supplier_category_matches" readonly="1" widget="boolean_toggle"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Document Completeness" name="documents">
+                            <group>
+                                <group string="Core Documents">
+                                    <field name="technical_proposal_submitted" widget="boolean_toggle"/>
+                                    <field name="financial_proposal_submitted" widget="boolean_toggle"/>
+                                    <field name="company_profile_submitted" widget="boolean_toggle"/>
+                                </group>
+                                <group string="Legal Documents">
+                                    <field name="tax_clearance_submitted" widget="boolean_toggle"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Critical Failures &amp; Override" name="failures">
+                            <group>
+                                <field name="critical_failures" readonly="1" widget="text"/>
+                                <field name="disqualification_reason" readonly="not evaluator_override" widget="text" 
+                                       placeholder="Provide detailed reason for disqualification..."/>
+                                <field name="override_justification" readonly="not evaluator_override" widget="text"
+                                       placeholder="Required: Provide detailed justification for overriding auto-disqualification..."
+                                       invisible="not evaluator_override"/>
+                            </group>
+                            <div class="alert alert-warning" role="alert" invisible="not evaluator_override">
+                                <p><strong>⚠️ Evaluator Override Active</strong></p>
+                                <p>You are overriding the automatic preliminary evaluation result. This action will be logged for audit trail per NFR-QUAL-001.</p>
+                                <p><strong>Override justification is mandatory and must explain:</strong></p>
+                                <ul>
+                                    <li>Which criteria failed and why the failure can be waived</li>
+                                    <li>Supporting evidence or documentation</li>
+                                    <li>Compliance with FR-PROC-017 despite the violation</li>
+                                </ul>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== TECHNICAL SPECIFICATION TEMPLATES (AUTO-007) ==================== -->
+    <record id="view_mesob_technical_spec_template_tree" model="ir.ui.view">
+        <field name="name">mesob.technical.spec.template.tree</field>
+        <field name="model">mesob.technical.spec.template</field>
+        <field name="arch" type="xml">
+            <list string="Technical Specification Templates">
+                <field name="name"/>
+                <field name="major_classification_id"/>
+                <field name="classification_code"/>
+                <field name="usage_count"/>
+                <field name="last_used_date"/>
+                <field name="is_active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_technical_spec_template_form" model="ir.ui.view">
+        <field name="name">mesob.technical.spec.template.form</field>
+        <field name="model">mesob.technical.spec.template</field>
+        <field name="arch" type="xml">
+            <form string="Technical Specification Template">
+                <header>
+                    <button name="action_apply_to_lot" string="Apply to Lot" type="object" class="oe_highlight"/>
+                    <button name="create_default_templates" string="Create Default Templates" type="object" class="oe_highlight"/>
+                    <field name="is_active" widget="boolean_button" options="{'terminology': 'archive'}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g., Standard Office Furniture Specifications"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="major_classification_id" options="{'no_create': True}"/>
+                            <field name="classification_code" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="usage_count" readonly="1"/>
+                            <field name="last_used_date" readonly="1"/>
+                            <field name="created_by_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Specification Content" name="content">
+                            <field name="specification_text" widget="html" placeholder="Enter function/performance-based technical specifications..."/>
+                        </page>
+                        <page string="Brand Name Filter (AUTO-007)" name="brand_filter">
+                            <group>
+                                <field name="brand_name_keywords" widget="text" 
+                                       placeholder="Enter brand names to detect (comma-separated)&#10;Example: Dell, HP, Lenovo, Toyota, Samsung"/>
+                            </group>
+                            <div class="alert alert-info" role="alert">
+                                <p><strong>AUTO-007: Brand Name Detection (FR-PROC-009)</strong></p>
+                                <p>This filter helps ensure compliance with function/performance-based specification requirements.</p>
+                                <ul>
+                                    <li>Brand names listed here will be detected in lot technical specifications</li>
+                                    <li>System allows brand names only if followed by "or equivalent" (BR-PROC-004)</li>
+                                    <li>Violations are flagged in the lot form for procurement officer review</li>
+                                </ul>
+                            </div>
+                        </page>
+                        <page string="Usage Notes" name="notes">
+                            <field name="notes" widget="text" placeholder="Guidelines for when and how to use this template..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mesob_technical_spec_template" model="ir.actions.act_window">
+        <field name="name">Technical Spec Templates</field>
+        <field name="res_model">mesob.technical.spec.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_mesob_technical_spec_template_tree"/>
+        <field name="context">{'default_is_active': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Technical Specification Template
+            </p>
+            <p>
+                AUTO-007: Build a library of reusable technical specifications organized by item classification.
+                Templates ensure function/performance-based specs and help prevent brand-name violations (FR-PROC-009).
+            </p>
+        </field>
+    </record>
+
 </odoo>
