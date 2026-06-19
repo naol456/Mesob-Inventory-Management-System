@@ -1,6 +1,6 @@
 {
     "name": "Mesob Inventory Management System",
-    "version": "19.0.1.5.0",
+    "version": "19.0.1.6.0",
     "category": "Inventory/Inventory",
     "summary": "FDRE Mesob Center - Complete inventory management system with "
                "classifications (4401–4418), requisitions, receiving, inspection, "
