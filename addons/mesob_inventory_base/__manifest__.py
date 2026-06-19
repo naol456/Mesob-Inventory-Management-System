@@ -91,6 +91,7 @@
         "wizard/mesob_gate_pass_override_wizard_views.xml",  # AUTO-046
         "wizard/mesob_manual_adjustment_wizard_views.xml",  # AUTO-050
         "wizard/mesob_duplicate_item_wizard_views.xml",  # AUTO-038
+        "wizard/mesob_quarterly_movement_report_wizard_views.xml",  # AUTO-054
         # Reports
         "reports/mesob_gate_pass_report.xml",
     ],

@@ -7,3 +7,4 @@ from . import mesob_intelligent_consolidation_wizard
 from . import mesob_gate_pass_override_wizard  # AUTO-046
 from . import mesob_manual_adjustment_wizard  # AUTO-050
 from . import mesob_duplicate_item_wizard  # AUTO-038
+from . import mesob_quarterly_movement_report_wizard  # AUTO-054
