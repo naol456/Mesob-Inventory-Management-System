@@ -1,6 +1,9 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 from lxml import etree
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class MesobInventoryRequisition(models.Model):
@@ -299,6 +302,11 @@ class MesobInventoryRequisition(models.Model):
             # AUTO-042: Send notification to PAO
             record._notify_pao_new_requisition()
             
+            _logger.info(
+                f"AUTO-042: Requisition {record.name} submitted by {record.requested_by_id.name} - "
+                f"Department: {record.department}, Items: {len(record.line_ids)}"
+            )
+            
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
@@ -393,6 +401,10 @@ class MesobInventoryRequisition(models.Model):
             subject=f'New Requisition: {self.name} - {dept_label}',
             message_type='notification',
             partner_ids=pao_group.users.mapped('partner_id').ids
+        )
+        
+        _logger.info(
+            f"AUTO-042: Notification sent to {len(pao_group.users)} PAO users for requisition {self.name}"
         )
 
     def action_approve(self):
@@ -631,11 +643,69 @@ class MesobInventoryRequisition(models.Model):
         return True
 
     def action_reject(self):
-        """PAO rejects the requisition with reason."""
-        for record in self:
-            if record.state != "submitted":
-                raise UserError("Only submitted requisitions can be rejected.")
-            record.state = "rejected"
+        """AUTO-042: PAO rejects requisition with mandatory comment (returns to requester)."""
+        self.ensure_one()
+        
+        if self.state != "submitted":
+            raise UserError("Only submitted requisitions can be rejected.")
+        
+        # Open wizard for rejection reason
+        return {
+            'name': 'Reject Requisition',
+            'type': 'ir.actions.act_window',
+            'res_model': 'mesob.requisition.reject.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'default_requisition_id': self.id}
+        }
+    
+    def _confirm_rejection(self, reason):
+        """AUTO-042: Internal method to confirm rejection with reason and notify requester."""
+        self.ensure_one()
+        
+        if not reason or len(reason) < 10:
+            raise UserError("Rejection reason must be at least 10 characters.")
+        
+        self.write({
+            'state': 'rejected',
+            'rejection_reason': reason,
+            'approved_by_id': self.env.user.id,
+            'approved_on': fields.Date.today(),
+        })
+        
+        # AUTO-042: Notify requester of rejection
+        if self.requested_by_id:
+            dept_label = dict(self._fields['department'].selection).get(self.department, 'Unknown')
+            
+            self.message_post(
+                body=f"""<div style="background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 15px;">
+                    <h3>❌ AUTO-042: Requisition Rejected</h3>
+                    <p><strong>Requisition:</strong> {self.name}</p>
+                    <p><strong>Department:</strong> {dept_label}</p>
+                    <p><strong>Rejected By:</strong> {self.env.user.name} (PAO)</p>
+                    <p><strong>Rejected On:</strong> {fields.Date.today()}</p>
+                    <hr/>
+                    <h4>Rejection Reason:</h4>
+                    <p style="background-color: white; padding: 10px; border-radius: 4px; color: #dc3545; font-weight: bold;">{reason}</p>
+                    <hr/>
+                    <p><em>You may reset this requisition to draft, make corrections, and resubmit.</em></p>
+                    <p style="margin-top: 15px;">
+                        <a href="/web#id={self.id}&model=mesob.inventory.requisition&view_type=form" 
+                           style="background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                           View Rejection Details →
+                        </a>
+                    </p>
+                </div>""",
+                subject=f'Requisition Rejected: {self.name}',
+                message_type='notification',
+                partner_ids=[self.requested_by_id.partner_id.id]
+            )
+            
+            _logger.info(
+                f"AUTO-042: Requisition {self.name} rejected by {self.env.user.name} - "
+                f"Requester: {self.requested_by_id.name}, Reason: {reason[:50]}..."
+            )
+        
         return True
 
     def action_set_to_draft(self):

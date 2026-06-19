@@ -1,5 +1,6 @@
 import re
 import logging
+from datetime import timedelta
 
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
@@ -212,6 +213,64 @@ class MesobInventoryItem(models.Model):
         help="Mark seldom-required/non-repetitive items excluded from the coding catalog.",
     )
     
+    # ── AUTO-067: Procurement Suspension (BR-PROC-008) ──────────────────
+    
+    procurement_suspended = fields.Boolean(
+        string="Procurement Suspended",
+        default=False,
+        tracking=True,
+        help="AUTO-067: When True, blocks new PO approval for this item (BR-PROC-008). "
+             "Set automatically when item flagged as surplus or manually by PAO."
+    )
+    
+    suspension_reason = fields.Selection([
+        ('surplus', 'Surplus Stock - Exceeds 24 months consumption'),
+        ('dormant', 'Dormant - No movement in 24 months'),
+        ('obsolete', 'Obsolete - Superseded by newer item'),
+        ('manual', 'Manual Suspension - PAO Decision'),
+    ], string="Suspension Reason", tracking=True,
+       help="AUTO-067: Reason for procurement suspension")
+    
+    suspension_date = fields.Date(
+        string="Suspension Date",
+        readonly=True,
+        tracking=True,
+        help="AUTO-067: Date when procurement was suspended"
+    )
+    
+    suspended_by_id = fields.Many2one(
+        'res.users',
+        string="Suspended By",
+        readonly=True,
+        tracking=True,
+        help="AUTO-067: User who suspended procurement (system or PAO)"
+    )
+    
+    suspension_notes = fields.Text(
+        string="Suspension Notes",
+        help="AUTO-067: Additional notes about procurement suspension"
+    )
+    
+    clearance_date = fields.Date(
+        string="Clearance Date",
+        readonly=True,
+        tracking=True,
+        help="AUTO-067: Date when suspension was cleared"
+    )
+    
+    cleared_by_id = fields.Many2one(
+        'res.users',
+        string="Cleared By",
+        readonly=True,
+        tracking=True,
+        help="AUTO-067: PAO who cleared the suspension flag"
+    )
+    
+    clearance_reason = fields.Text(
+        string="Clearance Reason",
+        help="AUTO-067: Documented reason for clearing suspension (e.g., anticipated demand surge)"
+    )
+    
     # ── AUTO-036: Auto-Generation Tracking ──────────────────────────────
     
     code_auto_generated = fields.Boolean(
@@ -238,6 +297,170 @@ class MesobInventoryItem(models.Model):
 
     @api.depends("item_code", "name")
     def _compute_display_name(self):
+        for rec in self:
+            if rec.item_code and rec.name:
+                rec.display_name = f"{rec.item_code} - {rec.name}"
+            else:
+                rec.display_name = rec.name or rec.item_code or "Unnamed Item"
+    
+    # ── AUTO-067: Procurement Suspension Methods ────────────────────────
+    
+    def action_suspend_procurement(self, reason='manual', notes=None):
+        """AUTO-067: Suspend procurement for this item (BR-PROC-008).
+        
+        Blocks new PO approval until:
+        - Surplus consumed (stock falls below max level) OR
+        - PAO explicitly clears flag with documented reason
+        
+        Args:
+            reason: One of 'surplus', 'dormant', 'obsolete', 'manual'
+            notes: Additional notes about suspension
+        """
+        for rec in self:
+            if rec.procurement_suspended:
+                _logger.warning(f"AUTO-067: Procurement already suspended for item {rec.item_code}")
+                continue
+            
+            rec.write({
+                'procurement_suspended': True,
+                'suspension_reason': reason,
+                'suspension_date': fields.Date.today(),
+                'suspended_by_id': self.env.user.id,
+                'suspension_notes': notes or f"Procurement suspended due to {reason}",
+            })
+            
+            # Log in chatter
+            reason_label = dict(rec._fields['suspension_reason'].selection).get(reason, reason)
+            rec.message_post(
+                body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #f57c00; padding: 15px;">
+                    <h3>🚫 AUTO-067: Procurement Suspended</h3>
+                    <p><strong>Reason:</strong> {reason_label}</p>
+                    <p><strong>Suspended By:</strong> {self.env.user.name}</p>
+                    <p><strong>Date:</strong> {fields.Date.today()}</p>
+                    {f'<p><strong>Notes:</strong> {notes}</p>' if notes else ''}
+                    <p><strong>Effect:</strong> New PO approval blocked until suspension cleared (BR-PROC-008)</p>
+                </div>""",
+                subject=f'Procurement Suspended: {rec.item_code}'
+            )
+            
+            _logger.info(
+                f"AUTO-067: Procurement suspended for item {rec.item_code} - "
+                f"Reason: {reason}, By: {self.env.user.name}"
+            )
+    
+    def action_clear_procurement_suspension(self, clearance_reason=None):
+        """AUTO-067: Clear procurement suspension with documented reason.
+        
+        PAO can clear suspension flag to allow procurement when:
+        - Surplus has been consumed (stock < max level)
+        - Anticipated demand surge requires restocking
+        - Other justified business reason
+        
+        Args:
+            clearance_reason: Mandatory documented reason for clearing
+        """
+        self.ensure_one()
+        
+        if not clearance_reason or len(clearance_reason) < 20:
+            raise ValidationError(
+                "AUTO-067: Clearance reason is mandatory and must be at least 20 characters. "
+                "Please document why procurement suspension is being lifted."
+            )
+        
+        if not self.procurement_suspended:
+            raise ValidationError("Procurement is not currently suspended for this item.")
+        
+        # Check if user is PAO
+        if not self.env.user.has_group('mesob_inventory_base.group_mesob_pao'):
+            raise ValidationError(
+                "Only PAO (Property Administration Officer) can clear procurement suspension."
+            )
+        
+        self.write({
+            'procurement_suspended': False,
+            'clearance_date': fields.Date.today(),
+            'cleared_by_id': self.env.user.id,
+            'clearance_reason': clearance_reason,
+        })
+        
+        # Log in chatter
+        self.message_post(
+            body=f"""<div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px;">
+                <h3>✅ AUTO-067: Procurement Suspension Cleared</h3>
+                <p><strong>Cleared By:</strong> {self.env.user.name} (PAO)</p>
+                <p><strong>Date:</strong> {fields.Date.today()}</p>
+                <p><strong>Reason for Clearance:</strong></p>
+                <p style="background-color: white; padding: 10px; border-radius: 4px;">{clearance_reason}</p>
+                <p><strong>Effect:</strong> New PO approval now allowed for this item</p>
+            </div>""",
+            subject=f'Procurement Suspension Cleared: {self.item_code}'
+        )
+        
+        _logger.info(
+            f"AUTO-067: Procurement suspension cleared for item {self.item_code} - "
+            f"By: {self.env.user.name}, Reason: {clearance_reason[:50]}..."
+        )
+        
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Procurement Suspension Cleared',
+                'message': f'Procurement for {self.item_code} is now allowed.',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+    
+    def _auto_check_surplus_and_suspend(self):
+        """AUTO-067: Auto-check if item should be suspended due to surplus.
+        
+        Called by AUTO-066 disposal flagging system.
+        Suspends procurement if:
+        - Stock > maximum level AND
+        - Surplus > 24 months consumption
+        """
+        for rec in self:
+            if rec.procurement_suspended:
+                continue  # Already suspended
+            
+            # Check if item has surplus flag
+            if not rec.is_surplus:
+                continue
+            
+            # Get current stock
+            rec._compute_current_stock()
+            
+            # Check if stock exceeds maximum level
+            if rec.maximum_level > 0 and rec.current_stock > rec.maximum_level:
+                # Calculate surplus months
+                # Get last 12 months consumption
+                twelve_months_ago = fields.Date.today() - timedelta(days=365)
+                issue_lines = self.env['mesob.inventory.issue.voucher.line'].search([
+                    ('item_id', '=', rec.id),
+                    ('issue_date', '>=', twelve_months_ago)
+                ])
+                
+                total_issued = sum(line.quantity_issued for line in issue_lines)
+                monthly_consumption = total_issued / 12 if total_issued > 0 else 0
+                
+                if monthly_consumption > 0:
+                    surplus_qty = rec.current_stock - rec.maximum_level
+                    surplus_months = surplus_qty / monthly_consumption
+                    
+                    if surplus_months >= 24:
+                        # Auto-suspend procurement
+                        notes = (
+                            f"AUTO-067: Auto-suspended due to surplus stock. "
+                            f"Current: {rec.current_stock}, Max: {rec.maximum_level}, "
+                            f"Surplus: {surplus_qty:,.2f} ({surplus_months:.1f} months of consumption)"
+                        )
+                        rec.action_suspend_procurement(reason='surplus', notes=notes)
+                        
+                        _logger.info(
+                            f"AUTO-067: Auto-suspended procurement for {rec.item_code} - "
+                            f"Surplus: {surplus_months:.1f} months"
+                        )
         for rec in self:
             if rec.item_code and rec.name:
                 rec.display_name = f"[{rec.item_code}] {rec.name}"
