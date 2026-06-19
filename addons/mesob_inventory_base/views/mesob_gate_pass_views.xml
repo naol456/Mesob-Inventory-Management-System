@@ -97,6 +97,11 @@
                             class="btn-primary" 
                             invisible="state != 'draft'"
                             groups="mesob_inventory_base.group_mesob_pao"/>
+                    <!-- AUTO-046: PAO Emergency Override Button -->
+                    <button name="action_pao_emergency_override" string="⚠️ Emergency Override" type="object"
+                            class="btn-warning"
+                            invisible="state != 'draft' or pao_override"
+                            groups="mesob_inventory_base.group_mesob_pao"/>
                     <button name="action_dispatch" string="✓ Dispatch" type="object" 
                             class="btn-success" 
                             invisible="state != 'authorized'"
@@ -131,6 +136,17 @@
                                 <span class="o_stat_text">Issue Voucher</span>
                             </div>
                         </button>
+                    </div>
+                    
+                    <!-- AUTO-046: PAO Override Warning Banner -->
+                    <div class="alert alert-warning mb-4" role="alert" invisible="not pao_override">
+                        <h4 class="alert-heading">⚠️ PAO Emergency Override Active</h4>
+                        <p class="mb-0">
+                            <strong>Prerequisite validation has been bypassed by PAO.</strong><br/>
+                            Override granted by: <field name="pao_override_by_id" readonly="1" nolabel="1"/> 
+                            on <field name="pao_override_on" readonly="1" nolabel="1"/><br/>
+                            <strong>Reason:</strong> <field name="pao_override_reason" readonly="1" nolabel="1"/>
+                        </p>
                     </div>
                     
                     <!-- Symmetrical Information: Multi-Column layout w/ No-Clutter Dropdowns -->
@@ -201,6 +217,26 @@
                             <div class="p-3">
                                 <label for="note" class="fw-semibold text-muted mb-2 d-block">Transit Comments &amp; Security Remarks</label>
                                 <field name="note" placeholder="Write any specific security checks, gate-entry clearance notes, or transport remarks..." nolabel="1" class="w-100 border p-3 rounded" style="min-height: 100px;"/>
+                            </div>
+                        </page>
+                        
+                        <!-- AUTO-046: PAO Override Details Page -->
+                        <page string="⚠️ PAO Override" name="pao_override" invisible="not pao_override">
+                            <group class="p-3" col="2">
+                                <group string="Override Authorization" col="2" class="glass-card p-4 rounded shadow-sm border w-100 bg-warning bg-opacity-10">
+                                    <field name="pao_override" readonly="1" widget="boolean_toggle" class="mb-3"/>
+                                    <field name="pao_override_by_id" readonly="1" class="mb-3"/>
+                                    <field name="pao_override_on" readonly="1" class="mb-3 font-monospace"/>
+                                </group>
+                                <group string="Justification" col="1" class="glass-card p-4 rounded shadow-sm border w-100 bg-warning bg-opacity-10">
+                                    <field name="pao_override_reason" readonly="1" nolabel="1" class="mb-3"/>
+                                </group>
+                            </group>
+                            <div class="alert alert-info mt-3" role="alert">
+                                <p class="mb-0">
+                                    <strong>Note:</strong> This override bypassed Item validation against Issue Voucher. 
+                                    All overrides are logged and subject to audit.
+                                </p>
                             </div>
                         </page>
                     </notebook>

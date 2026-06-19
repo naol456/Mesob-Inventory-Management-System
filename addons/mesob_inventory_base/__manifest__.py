@@ -88,6 +88,7 @@
         # "wizard/mesob_requisition_stock_alert_wizard_views.xml",
         "wizard/mesob_procurement_need_reject_wizard_views.xml",
         "wizard/mesob_intelligent_consolidation_wizard_views.xml",
+        "wizard/mesob_gate_pass_override_wizard_views.xml",  # AUTO-046
         # Reports
         "reports/mesob_gate_pass_report.xml",
     ],

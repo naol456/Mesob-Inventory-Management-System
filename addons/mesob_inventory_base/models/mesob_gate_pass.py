@@ -223,14 +223,60 @@ class MesobGatePass(models.Model):
         help="Internal notes (editable even after dispatch).",
     )
 
+    # ── AUTO-046: PAO Override Fields ───────────────────────────────
+
+    pao_override = fields.Boolean(
+        string="PAO Emergency Override",
+        default=False,
+        readonly=True,
+        copy=False,
+        tracking=True,
+        help="PAO can override prerequisite validation in emergencies.",
+    )
+
+    pao_override_reason = fields.Text(
+        string="Override Justification",
+        readonly=True,
+        copy=False,
+        tracking=True,
+        help="Required justification when PAO overrides prerequisite validation.",
+    )
+
+    pao_override_by_id = fields.Many2one(
+        "res.users",
+        string="Override By",
+        readonly=True,
+        copy=False,
+        tracking=True,
+        help="PAO who authorized the override.",
+    )
+
+    pao_override_on = fields.Datetime(
+        string="Override Timestamp",
+        readonly=True,
+        copy=False,
+        tracking=True,
+        help="When the override was granted.",
+    )
+
     # ── Constraints ─────────────────────────────────────────────────
 
     @api.constrains("issue_voucher_id", "written_authorization")
     def _check_authorization_documents(self):
-        """Enforce XOR constraint: exactly one authorization method required."""
+        """Enforce XOR constraint: exactly one authorization method required.
+        
+        AUTO-046: Gate Pass Prerequisite Validation
+        - Blocks Gate Pass creation without proper authorization
+        - Enforces FR-DISP-003 compliance
+        - PAO can override in emergencies
+        """
         for record in self:
             if record.state in ("draft", "cancelled"):
                 continue  # Skip validation for draft and cancelled states
+            
+            # Skip validation if PAO override is active
+            if record.pao_override:
+                continue
             
             has_voucher = bool(record.issue_voucher_id)
             has_written = bool(record.written_authorization and record.written_authorization.strip())
@@ -238,7 +284,8 @@ class MesobGatePass(models.Model):
             if not (has_voucher or has_written):
                 raise ValidationError(
                     "Gate Pass requires authorization documents. "
-                    "Please link an Issue Voucher (Model 22) or provide written authorization reference."
+                    "Please link an Issue Voucher (Model 22) or provide written authorization reference.\n\n"
+                    "If this is an emergency, PAO can use 'Emergency Override' action."
                 )
             
             if has_voucher and has_written:
@@ -246,15 +293,27 @@ class MesobGatePass(models.Model):
                     "Gate Pass must have exactly one authorization method: "
                     "Issue Voucher OR written authorization (not both)."
                 )
+            
+            # AUTO-046: Validate Issue Voucher if linked
+            if has_voucher:
+                record._validate_issue_voucher_prerequisites()
 
     @api.constrains("line_ids")
     def _check_line_items(self):
-        """Ensure at least one line item exists."""
+        """Ensure at least one line item exists.
+        
+        AUTO-046: Validate line items match Issue Voucher.
+        """
         for record in self:
             if record.state not in ("draft", "cancelled") and not record.line_ids:
                 raise ValidationError(
                     "Gate Pass must have at least one line item."
                 )
+            
+            # AUTO-046: If Issue Voucher is linked, validate items match
+            # Skip validation if PAO override is active
+            if record.issue_voucher_id and record.line_ids and not record.pao_override:
+                record._validate_items_match_issue_voucher()
 
     @api.constrains("dispatch_date")
     def _check_dispatch_date(self):
@@ -433,6 +492,100 @@ class MesobGatePass(models.Model):
                 raise ValidationError(
                     f"Issue Voucher {issue_voucher.name} is not properly signed."
                 )
+
+    # ── AUTO-046: Enhanced Validation Methods ───────────────────────
+
+    def _validate_issue_voucher_prerequisites(self):
+        """AUTO-046: Validate Issue Voucher is properly signed and in valid state.
+        
+        This method is called by the constraint to ensure Issue Voucher
+        meets all prerequisites before Gate Pass can be authorized.
+        """
+        self.ensure_one()
+        
+        if not self.issue_voucher_id:
+            return
+        
+        issue_voucher = self.issue_voucher_id
+        
+        # Verify Issue Voucher state
+        if issue_voucher.state not in ("issued", "received"):
+            raise ValidationError(
+                f"Issue Voucher {issue_voucher.name} is not in valid state.\n"
+                f"Current state: {issue_voucher.state}\n"
+                f"Required state: 'issued' or 'received'\n\n"
+                f"The Issue Voucher must be signed and issued before creating a Gate Pass."
+            )
+        
+        # Verify Issue Voucher is properly signed
+        if not issue_voucher.issued_by_id:
+            raise ValidationError(
+                f"Issue Voucher {issue_voucher.name} is not properly signed.\n"
+                f"A signed Issue Voucher (Model 22) is required as authorization for dispatch."
+            )
+    
+    def _validate_items_match_issue_voucher(self):
+        """AUTO-046: Validate that Gate Pass items match Issue Voucher items.
+        
+        Ensures materials on Gate Pass correspond to items authorized
+        in the linked Issue Voucher, preventing unauthorized dispatch.
+        """
+        self.ensure_one()
+        
+        if not self.issue_voucher_id or not self.line_ids:
+            return
+        
+        # Get Issue Voucher items
+        voucher_items = self.issue_voucher_id.line_ids.mapped('item_id')
+        
+        if not voucher_items:
+            raise ValidationError(
+                f"Issue Voucher {self.issue_voucher_id.name} has no line items.\n"
+                f"Cannot validate Gate Pass items against an empty Issue Voucher."
+            )
+        
+        # Check each Gate Pass line item
+        unauthorized_items = []
+        for line in self.line_ids:
+            if line.item_id not in voucher_items:
+                unauthorized_items.append(line.item_id.item_code or line.item_id.name)
+        
+        if unauthorized_items:
+            raise ValidationError(
+                f"Gate Pass contains items not authorized in Issue Voucher {self.issue_voucher_id.name}:\n\n"
+                f"Unauthorized items: {', '.join(unauthorized_items)}\n\n"
+                f"Gate Pass items must match Issue Voucher items exactly.\n"
+                f"If this is an emergency, PAO can use 'Emergency Override' action."
+            )
+
+    # ── AUTO-046: PAO Override Action ───────────────────────────────
+
+    def action_pao_emergency_override(self):
+        """AUTO-046: PAO can override prerequisite validation in emergencies.
+        
+        This action allows PAO to bypass Item validation when there is a
+        legitimate emergency requiring immediate dispatch without full documentation.
+        Requires justification and creates audit trail.
+        """
+        self.ensure_one()
+        
+        # Verify PAO role
+        if not self.env.user.has_group("mesob_inventory_base.group_mesob_pao"):
+            raise UserError(
+                "Only Property Administration Officers (PAO) can grant emergency overrides."
+            )
+        
+        # Open wizard to collect justification
+        return {
+            'name': 'PAO Emergency Override',
+            'type': 'ir.actions.act_window',
+            'res_model': 'mesob.gate.pass.override.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_gate_pass_id': self.id,
+            },
+        }
 
     # ── Override Write for Immutability ─────────────────────────────
 
