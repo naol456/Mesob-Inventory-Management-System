@@ -1,8 +1,9 @@
 import re
 import logging
+from datetime import timedelta
 
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError, UserError
 
 _logger = logging.getLogger(__name__)
 _ITEM_CODE_PATTERN = re.compile(r"^(?P<major>\d{4})-(?P<sub>\d{3})-(?P<specific>\d{3})$")
@@ -160,6 +161,58 @@ class MesobInventoryItem(models.Model):
         string="ABC Class",
         help="ABC analysis classification by usage value to prioritize management attention.",
     )
+    
+    # ── AUTO-062: Control Levels Auto-Calculation ──────────────────────
+    
+    auto_reorder_enabled = fields.Boolean(
+        string="Enable Auto-Reorder Calculation",
+        default=False,
+        help="AUTO-062: Enable automatic calculation of reorder levels from historical usage"
+    )
+    
+    historical_period_months = fields.Integer(
+        string="Historical Period (Months)",
+        default=6,
+        help="AUTO-062: Number of months to analyze for usage calculation"
+    )
+    
+    average_monthly_usage = fields.Float(
+        string="Avg Monthly Usage",
+        compute="_compute_usage_statistics",
+        store=True,
+        help="AUTO-062: Average monthly usage calculated from history"
+    )
+    
+    max_monthly_usage = fields.Float(
+        string="Max Monthly Usage",
+        compute="_compute_usage_statistics",
+        store=True,
+        help="AUTO-062: Maximum monthly usage in historical period"
+    )
+    
+    last_calculation_date = fields.Datetime(
+        string="Last Auto-Calculation",
+        readonly=True,
+        help="AUTO-062: Last time control levels were auto-calculated"
+    )
+    
+    suggested_reorder_level = fields.Float(
+        string="Suggested Reorder Level",
+        compute="_compute_suggested_levels",
+        help="AUTO-062: System-calculated reorder level based on usage + lead time"
+    )
+    
+    suggested_minimum_level = fields.Float(
+        string="Suggested Minimum Level",
+        compute="_compute_suggested_levels",
+        help="AUTO-062: System-calculated minimum level (safety stock)"
+    )
+    
+    suggested_maximum_level = fields.Float(
+        string="Suggested Maximum Level",
+        compute="_compute_suggested_levels",
+        help="AUTO-062: System-calculated maximum level"
+    )
 
     # ── Stock Status & Monitoring ───────────────────────────────────────
 
@@ -202,6 +255,52 @@ class MesobInventoryItem(models.Model):
         default=False,
         help="If checked, issue restricted to authorized individuals only "
              "(e.g. drugs, chemicals, explosives).",
+    )
+    
+    # ── AUTO-066: Dormant/Damaged/Obsolete Item Flagging ────────────────
+    
+    is_dormant = fields.Boolean(
+        string="Dormant Item",
+        compute="_compute_item_flags",
+        store=True,
+        help="AUTO-066: Auto-flagged if no issues in configured dormant period"
+    )
+    
+    is_slow_moving = fields.Boolean(
+        string="Slow Moving",
+        compute="_compute_item_flags",
+        store=True,
+        help="AUTO-066: Auto-flagged if usage below threshold"
+    )
+    
+    is_damaged = fields.Boolean(
+        string="Damaged",
+        default=False,
+        help="AUTO-066: Manually flagged damaged items (FR-DISP2-001)"
+    )
+    
+    is_obsolete = fields.Boolean(
+        string="Obsolete",
+        default=False,
+        help="AUTO-066: Manually flagged obsolete items (FR-DISP2-001)"
+    )
+    
+    days_since_last_issue = fields.Integer(
+        string="Days Since Last Issue",
+        compute="_compute_item_flags",
+        store=True,
+        help="AUTO-066: Number of days since last issue"
+    )
+    
+    dormant_threshold_days = fields.Integer(
+        string="Dormant Threshold (Days)",
+        default=365,
+        help="AUTO-066: Days of no activity before flagging as dormant"
+    )
+    
+    item_condition_notes = fields.Text(
+        string="Condition Notes",
+        help="AUTO-066: Notes about item condition/status"
     )
 
     # ── Catalog Exclusion (FR-ID-006) ───────────────────────────────────
@@ -680,3 +779,270 @@ class MesobInventoryItem(models.Model):
             else:
                 rec.current_holder = ""
 
+
+
+    # ═══════════════════════════════════════════════════════════════════
+    # AUTO-062: Control Levels Auto-Calculation from Historical Usage
+    # ═══════════════════════════════════════════════════════════════════
+    
+    @api.depends('item_code', 'sub_classification_id')
+    def _compute_usage_statistics(self):
+        """AUTO-062: Calculate average and max monthly usage from issue history (FR-SC-002)"""
+        for item in self:
+            if not item.sub_classification_id:
+                item.average_monthly_usage = 0.0
+                item.max_monthly_usage = 0.0
+                continue
+            
+            # Get issue history for the configured period
+            months_back = item.historical_period_months or 6
+            start_date = fields.Date.today() - timedelta(days=months_back * 30)
+            
+            # Query issue voucher lines for this item
+            issue_lines = self.env['mesob.inventory.issue.voucher.line'].search([
+                ('item_id', '=', item.id),
+                ('voucher_id.state', 'in', ['issued', 'received']),
+                ('voucher_id.issue_date', '>=', start_date)
+            ])
+            
+            if not issue_lines:
+                item.average_monthly_usage = 0.0
+                item.max_monthly_usage = 0.0
+                continue
+            
+            # Group by month and calculate usage
+            from collections import defaultdict
+            monthly_usage = defaultdict(float)
+            
+            for line in issue_lines:
+                issue_date = line.voucher_id.issue_date
+                month_key = issue_date.strftime('%Y-%m')
+                monthly_usage[month_key] += line.quantity
+            
+            if monthly_usage:
+                usage_values = list(monthly_usage.values())
+                item.average_monthly_usage = sum(usage_values) / len(usage_values)
+                item.max_monthly_usage = max(usage_values)
+            else:
+                item.average_monthly_usage = 0.0
+                item.max_monthly_usage = 0.0
+    
+    @api.depends('average_monthly_usage', 'total_lead_time', 'safety_stock')
+    def _compute_suggested_levels(self):
+        """AUTO-062: Calculate suggested control levels based on usage and lead time (FR-SC-001, FR-SC-002)"""
+        for item in self:
+            if item.average_monthly_usage == 0:
+                item.suggested_reorder_level = 0.0
+                item.suggested_minimum_level = 0.0
+                item.suggested_maximum_level = 0.0
+                continue
+            
+            # Convert lead time to months
+            lead_time_months = item.total_lead_time / 30.0 if item.total_lead_time > 0 else 0.5
+            
+            # Suggested minimum = safety stock (1 week of average usage as default)
+            item.suggested_minimum_level = (item.average_monthly_usage / 4.0) if item.safety_stock == 0 else item.safety_stock
+            
+            # Suggested reorder = (avg usage × lead time) + safety stock
+            item.suggested_reorder_level = (item.average_monthly_usage * lead_time_months) + item.suggested_minimum_level
+            
+            # Suggested maximum = 2 × reorder level (standard practice)
+            item.suggested_maximum_level = item.suggested_reorder_level * 2
+    
+    def action_apply_suggested_levels(self):
+        """AUTO-062: Apply system-calculated levels to actual control levels"""
+        self.ensure_one()
+        
+        if self.suggested_reorder_level == 0:
+            raise UserError(
+                "AUTO-062: Cannot apply suggested levels. No historical usage data found. "
+                "Please enter control levels manually or wait for usage history to accumulate."
+            )
+        
+        self.write({
+            'minimum_level': self.suggested_minimum_level,
+            'reorder_level': self.suggested_reorder_level,
+            'maximum_level': self.suggested_maximum_level,
+            'last_calculation_date': fields.Datetime.now()
+        })
+        
+        self.message_post(
+            body=f"""<div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px;">
+                <h3>✅ AUTO-062: Control Levels Auto-Applied</h3>
+                <table style="width: 100%; margin-top: 10px;">
+                    <tr><td><strong>Minimum Level:</strong></td><td>{self.minimum_level:.2f}</td></tr>
+                    <tr><td><strong>Reorder Level:</strong></td><td>{self.reorder_level:.2f}</td></tr>
+                    <tr><td><strong>Maximum Level:</strong></td><td>{self.maximum_level:.2f}</td></tr>
+                </table>
+                <p style="margin-top: 10px; font-size: 12px; color: #666;">
+                    Based on {self.historical_period_months} months of usage history:<br/>
+                    Average monthly usage: {self.average_monthly_usage:.2f}<br/>
+                    Lead time: {self.total_lead_time} days
+                </p>
+            </div>""",
+            subject='Control Levels Updated',
+            message_type='notification'
+        )
+        
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Control Levels Applied',
+                'message': f'Auto-calculated levels applied successfully for {self.item_code}',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+    
+    @api.model
+    def cron_recalculate_control_levels(self):
+        """AUTO-062 + AUTO-065: Scheduled action to recalculate control levels for enabled items"""
+        items = self.search([('auto_reorder_enabled', '=', True)])
+        
+        for item in items:
+            try:
+                # Force recomputation
+                item._compute_usage_statistics()
+                item._compute_suggested_levels()
+                
+                # Auto-apply if configured (optional flag can be added)
+                if item.suggested_reorder_level > 0:
+                    item.write({
+                        'reorder_level': item.suggested_reorder_level,
+                        'minimum_level': item.suggested_minimum_level,
+                        'maximum_level': item.suggested_maximum_level,
+                        'last_calculation_date': fields.Datetime.now()
+                    })
+                    
+                    _logger.info(
+                        f"AUTO-062: Auto-updated control levels for {item.item_code} - "
+                        f"Reorder: {item.reorder_level:.2f}, Min: {item.minimum_level:.2f}, Max: {item.maximum_level:.2f}"
+                    )
+            except Exception as e:
+                _logger.error(f"AUTO-062: Failed to recalculate levels for {item.item_code}: {str(e)}")
+        
+        _logger.info(f"AUTO-062: Completed control level recalculation for {len(items)} items")
+
+
+    # ═══════════════════════════════════════════════════════════════════
+    # AUTO-066: Dormant/Damaged/Obsolete Item Auto-Flagging
+    # ═══════════════════════════════════════════════════════════════════
+    
+    @api.depends('item_code', 'average_monthly_usage')
+    def _compute_item_flags(self):
+        """AUTO-066: Auto-flag dormant and slow-moving items (FR-REP-003, FR-DISP2-001)"""
+        for item in self:
+            # Find last issue date
+            last_issue = self.env['mesob.inventory.issue.voucher.line'].search([
+                ('item_id', '=', item.id),
+                ('voucher_id.state', 'in', ['issued', 'received'])
+            ], order='voucher_id.issue_date desc', limit=1)
+            
+            if last_issue:
+                last_issue_date = last_issue.voucher_id.issue_date
+                today = fields.Date.today()
+                delta = (today - last_issue_date).days
+                item.days_since_last_issue = delta
+                
+                # Flag as dormant if no issues beyond threshold
+                item.is_dormant = delta >= item.dormant_threshold_days
+            else:
+                # Never issued
+                item.days_since_last_issue = 9999
+                item.is_dormant = True
+            
+            # Flag as slow-moving if average monthly usage is very low (< 1 unit/month)
+            item.is_slow_moving = (0 < item.average_monthly_usage < 1.0) and not item.is_dormant
+    
+    def action_flag_damaged(self):
+        """AUTO-066: Manually flag item as damaged"""
+        self.ensure_one()
+        self.is_damaged = True
+        
+        self.message_post(
+            body=f"""<div style="background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 15px;">
+                <h3>⚠️ AUTO-066: Item Flagged as Damaged</h3>
+                <p><strong>Item:</strong> {self.item_code} - {self.name}</p>
+                <p><strong>Current Stock:</strong> {self.current_stock}</p>
+                <p><strong>Action Required:</strong> Review for disposal per FR-DISP2-001</p>
+            </div>""",
+            subject='Item Flagged as Damaged',
+            message_type='notification'
+        )
+        
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
+    
+    def action_flag_obsolete(self):
+        """AUTO-066: Manually flag item as obsolete"""
+        self.ensure_one()
+        self.is_obsolete = True
+        
+        self.message_post(
+            body=f"""<div style="background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 15px;">
+                <h3>⚠️ AUTO-066: Item Flagged as Obsolete</h3>
+                <p><strong>Item:</strong> {self.item_code} - {self.name}</p>
+                <p><strong>Current Stock:</strong> {self.current_stock}</p>
+                <p><strong>Action Required:</strong> Review for disposal per FR-DISP2-001</p>
+            </div>""",
+            subject='Item Flagged as Obsolete',
+            message_type='notification'
+        )
+        
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
+    
+    def action_clear_flags(self):
+        """AUTO-066: Clear damage/obsolete flags"""
+        self.ensure_one()
+        self.write({
+            'is_damaged': False,
+            'is_obsolete': False
+        })
+        
+        self.message_post(
+            body=f"<p>Damage/Obsolete flags cleared for {self.item_code}</p>",
+            subject='Flags Cleared',
+            message_type='comment'
+        )
+        
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
+    
+    @api.model
+    def cron_flag_dormant_items(self):
+        """AUTO-066: Scheduled action to identify and flag dormant/slow-moving items"""
+        all_items = self.search([('active', '=', True)])
+        
+        dormant_count = 0
+        slow_count = 0
+        
+        for item in all_items:
+            item._compute_item_flags()
+            
+            if item.is_dormant:
+                dormant_count += 1
+            if item.is_slow_moving:
+                slow_count += 1
+        
+        _logger.info(
+            f"AUTO-066: Dormant/Slow-Moving scan complete. "
+            f"Dormant: {dormant_count}, Slow-moving: {slow_count}"
+        )
+        
+        # Notify PAO if significant dormant items found
+        if dormant_count > 0:
+            pao_group = self.env.ref('mesob_inventory_base.group_mesob_pao', raise_if_not_found=False)
+            if pao_group:
+                # Create a system notification
+                self.env['mail.message'].create({
+                    'message_type': 'notification',
+                    'subject': f'AUTO-066: Dormant Items Alert ({dormant_count} items)',
+                    'body': f"""<div style="background-color: #fff3cd; padding: 15px;">
+                        <h3>📊 AUTO-066: Dormant & Slow-Moving Items Report</h3>
+                        <ul>
+                            <li><strong>Dormant Items:</strong> {dormant_count}</li>
+                            <li><strong>Slow-Moving Items:</strong> {slow_count}</li>
+                        </ul>
+                        <p>Review these items for potential disposal (FR-DISP2-001, FR-REP-003)</p>
+                    </div>""",
+                    'partner_ids': [(6, 0, pao_group.users.mapped('partner_id').ids)]
+                })
