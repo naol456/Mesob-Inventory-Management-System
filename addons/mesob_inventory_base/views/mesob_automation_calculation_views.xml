@@ -1,0 +1,530 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ==================== AUTO-015: DOMESTIC PREFERENCE CALCULATION ==================== -->
+    <record id="view_mesob_domestic_preference_calc_tree" model="ir.ui.view">
+        <field name="name">mesob.domestic.preference.calculation.tree</field>
+        <field name="model">mesob.domestic.preference.calculation</field>
+        <field name="arch" type="xml">
+            <list string="Domestic Preference Calculations">
+                <field name="name"/>
+                <field name="tender_ref"/>
+                <field name="calculation_date"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'calculated'" decoration-warning="state == 'approved'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_domestic_preference_calc_form" model="ir.ui.view">
+        <field name="name">mesob.domestic.preference.calculation.form</field>
+        <field name="model">mesob.domestic.preference.calculation</field>
+        <field name="arch" type="xml">
+            <form string="Domestic Preference Calculation">
+                <header>
+                    <button name="action_calculate" 
+                            string="Calculate Preference" 
+                            type="object" 
+                            class="oe_highlight" 
+                            invisible="state != 'draft'"/>
+                    <button name="action_approve" 
+                            string="Approve" 
+                            type="object" 
+                            class="oe_highlight" 
+                            invisible="state != 'calculated'" 
+                            groups="mesob_inventory_base.group_mesob_pao"/>
+                    <button name="action_reset" 
+                            string="Reset to Draft" 
+                            type="object" 
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,calculated,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="tender_ref" readonly="state != 'draft'"/>
+                            <field name="calculation_date" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="recommended_winner" readonly="1"/>
+                            <field name="created_by" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Bids" name="bids">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="bidder_name"/>
+                                    <field name="bidder_id"/>
+                                    <field name="bid_amount"/>
+                                    <field name="is_domestic"/>
+                                    <field name="preference_percent" readonly="1"/>
+                                    <field name="preference_amount" readonly="1"/>
+                                    <field name="adjusted_bid_amount" readonly="1"/>
+                                    <field name="rank" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Audit Trail" name="audit">
+                            <group>
+                                <field name="calculation_notes"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mesob_domestic_preference_calculation" model="ir.actions.act_window">
+        <field name="name">Domestic Preference Calculator</field>
+        <field name="res_model">mesob.domestic.preference.calculation</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Calculate domestic preference per FPPA Article 27(4)
+            </p>
+        </field>
+    </record>
+
+    <!-- ==================== AUTO-030: LIQUIDATED DAMAGES CALCULATION ==================== -->
+    <record id="view_mesob_liquidated_damages_calc_tree" model="ir.ui.view">
+        <field name="name">mesob.liquidated.damages.calculation.tree</field>
+        <field name="model">mesob.liquidated.damages.calculation</field>
+        <field name="arch" type="xml">
+            <list string="Liquidated Damages Calculations">
+                <field name="name"/>
+                <field name="contract_ref"/>
+                <field name="supplier_id"/>
+                <field name="delay_days" decoration-danger="delay_days > 10"/>
+                <field name="damages_amount"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'calculated'" decoration-warning="state == 'approved'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_liquidated_damages_calc_form" model="ir.ui.view">
+        <field name="name">mesob.liquidated.damages.calculation.form</field>
+        <field name="model">mesob.liquidated.damages.calculation</field>
+        <field name="arch" type="xml">
+            <form string="Liquidated Damages Calculation">
+                <header>
+                    <button name="action_calculate" 
+                            string="Calculate Damages" 
+                            type="object" 
+                            class="oe_highlight" 
+                            invisible="state != 'draft'"/>
+                    <button name="action_approve" 
+                            string="Approve" 
+                            type="object" 
+                            class="oe_highlight" 
+                            invisible="state != 'calculated'" 
+                            groups="mesob_inventory_base.group_mesob_pao"/>
+                    <button name="action_reset" 
+                            string="Reset to Draft" 
+                            type="object" 
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,calculated,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="contract_ref" readonly="state != 'draft'"/>
+                            <field name="supplier_id" readonly="state != 'draft'"/>
+                            <field name="contract_value" readonly="state != 'draft'"/>
+                            <field name="penalty_rate_per_day" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="contract_delivery_date" readonly="state != 'draft'"/>
+                            <field name="actual_delivery_date" readonly="state != 'draft'"/>
+                            <field name="delay_days" readonly="1"/>
+                            <field name="damages_amount" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Calculation Details" name="details">
+                            <group>
+                                <field name="is_cap_applied" readonly="1"/>
+                                <field name="calculation_date" readonly="1"/>
+                                <field name="calculated_by" readonly="1"/>
+                                <field name="calculation_notes"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mesob_liquidated_damages_calculation" model="ir.actions.act_window">
+        <field name="name">Liquidated Damages Calculator</field>
+        <field name="res_model">mesob.liquidated.damages.calculation</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Calculate liquidated damages for delayed deliveries
+            </p>
+        </field>
+    </record>
+
+    <!-- ==================== AUTO-031: PRICE ADJUSTMENT CALCULATION ==================== -->
+    <record id="view_mesob_price_adjustment_calc_tree" model="ir.ui.view">
+        <field name="name">mesob.price.adjustment.calculation.tree</field>
+        <field name="model">mesob.price.adjustment.calculation</field>
+        <field name="arch" type="xml">
+            <list string="Price Adjustment Calculations">
+                <field name="name"/>
+                <field name="contract_ref"/>
+                <field name="supplier_id"/>
+                <field name="adjustment_amount" decoration-danger="adjustment_amount > 0" decoration-success="adjustment_amount < 0"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'calculated'" decoration-warning="state == 'approved'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_price_adjustment_calc_form" model="ir.ui.view">
+        <field name="name">mesob.price.adjustment.calculation.form</field>
+        <field name="model">mesob.price.adjustment.calculation</field>
+        <field name="arch" type="xml">
+            <form string="Price Adjustment Calculation">
+                <header>
+                    <button name="action_calculate" 
+                            string="Calculate Adjustment" 
+                            type="object" 
+                            class="oe_highlight" 
+                            invisible="state != 'draft'"/>
+                    <button name="action_approve" 
+                            string="Approve" 
+                            type="object" 
+                            class="oe_highlight" 
+                            invisible="state != 'calculated'" 
+                            groups="mesob_inventory_base.group_mesob_pao"/>
+                    <button name="action_reset" 
+                            string="Reset to Draft" 
+                            type="object" 
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,calculated,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="contract_ref" readonly="state != 'draft'"/>
+                            <field name="supplier_id" readonly="state != 'draft'"/>
+                            <field name="base_contract_value" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="adjustment_amount" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name="adjusted_contract_value" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Index Weightings" name="weightings">
+                            <group>
+                                <group>
+                                    <label for="labor_weight"/>
+                                    <div>
+                                        <field name="labor_weight" readonly="state != 'draft'" class="oe_inline"/> %
+                                    </div>
+                                    <label for="material_weight"/>
+                                    <div>
+                                        <field name="material_weight" readonly="state != 'draft'" class="oe_inline"/> %
+                                    </div>
+                                    <label for="fixed_weight"/>
+                                    <div>
+                                        <field name="fixed_weight" readonly="state != 'draft'" class="oe_inline"/> %
+                                    </div>
+                                </group>
+                                <group>
+                                    <field name="base_labor_index" readonly="state != 'draft'"/>
+                                    <field name="current_labor_index" readonly="state != 'draft'"/>
+                                    <field name="base_material_index" readonly="state != 'draft'"/>
+                                    <field name="current_material_index" readonly="state != 'draft'"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Calculation Details" name="details">
+                            <group>
+                                <field name="calculation_date" readonly="1"/>
+                                <field name="calculated_by" readonly="1"/>
+                                <field name="calculation_notes"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mesob_price_adjustment_calculation" model="ir.actions.act_window">
+        <field name="name">Price Adjustment Calculator</field>
+        <field name="res_model">mesob.price.adjustment.calculation</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Calculate price adjustments using weighted indices
+            </p>
+        </field>
+    </record>
+
+    <!-- ==================== AUTO-035: PROCUREMENT-STOCK RECONCILIATION ==================== -->
+    <record id="view_mesob_procurement_stock_reconciliation_tree" model="ir.ui.view">
+        <field name="name">mesob.procurement.stock.reconciliation.tree</field>
+        <field name="model">mesob.procurement.stock.reconciliation</field>
+        <field name="arch" type="xml">
+            <list string="Procurement-Stock Reconciliations">
+                <field name="name"/>
+                <field name="period_from"/>
+                <field name="period_to"/>
+                <field name="reconciliation_rate" widget="progressbar"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'reconciled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_procurement_stock_reconciliation_form" model="ir.ui.view">
+        <field name="name">mesob.procurement.stock.reconciliation.form</field>
+        <field name="model">mesob.procurement.stock.reconciliation</field>
+        <field name="arch" type="xml">
+            <form string="Procurement-Stock Reconciliation">
+                <header>
+                    <button name="action_reconcile" 
+                            string="Run Reconciliation" 
+                            type="object" 
+                            class="oe_highlight" 
+                            invisible="state != 'draft'"/>
+                    <button name="action_export_report" 
+                            string="Export Report" 
+                            type="object" 
+                            invisible="state != 'reconciled'"/>
+                    <button name="action_reset" 
+                            string="Reset to Draft" 
+                            type="object" 
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,reconciled"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="period_from" readonly="state != 'draft'"/>
+                            <field name="period_to" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="reconciliation_rate" readonly="1" widget="percentage"/>
+                            <field name="reconciliation_date" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Reconciliation Lines" name="lines">
+                            <field name="line_ids" readonly="1">
+                                <list decoration-danger="has_gap == True">
+                                    <field name="po_ref"/>
+                                    <field name="item_code"/>
+                                    <field name="po_qty"/>
+                                    <field name="received_qty"/>
+                                    <field name="stock_qty"/>
+                                    <field name="payment_qty"/>
+                                    <field name="qty_gap"/>
+                                    <field name="cost_gap"/>
+                                    <field name="has_gap" invisible="1"/>
+                                    <field name="gap_description"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Summary" name="summary">
+                            <group>
+                                <group>
+                                    <field name="total_po_value" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="total_received_value" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                </group>
+                                <group>
+                                    <field name="total_payment_value" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="currency_id" invisible="1"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mesob_procurement_stock_reconciliation" model="ir.actions.act_window">
+        <field name="name">Procurement-Stock Reconciliation</field>
+        <field name="res_model">mesob.procurement.stock.reconciliation</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Five-way reconciliation: PO → Model19 → BinCard → StockRecord → Payment
+            </p>
+        </field>
+    </record>
+
+    <!-- ==================== AUTO-055: STOCK ACCURACY SCORECARD ==================== -->
+    <record id="view_mesob_stock_accuracy_scorecard_tree" model="ir.ui.view">
+        <field name="name">mesob.stock.accuracy.scorecard.tree</field>
+        <field name="model">mesob.stock.accuracy.scorecard</field>
+        <field name="arch" type="xml">
+            <list string="Stock Accuracy Scorecards">
+                <field name="name"/>
+                <field name="period_month"/>
+                <field name="period_year"/>
+                <field name="accuracy_rate" widget="progressbar" decoration-success="accuracy_rate >= 95" decoration-warning="accuracy_rate >= 85 and accuracy_rate < 95" decoration-danger="accuracy_rate < 85"/>
+                <field name="trend" widget="badge" decoration-success="trend == 'improving'" decoration-info="trend == 'stable'" decoration-danger="trend == 'declining'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_stock_accuracy_scorecard_form" model="ir.ui.view">
+        <field name="name">mesob.stock.accuracy.scorecard.form</field>
+        <field name="model">mesob.stock.accuracy.scorecard</field>
+        <field name="arch" type="xml">
+            <form string="Stock Accuracy Scorecard">
+                <header>
+                    <button name="action_generate_scorecard" 
+                            string="Generate Scorecard" 
+                            type="object" 
+                            class="oe_highlight" 
+                            invisible="state != 'draft'"/>
+                    <button name="action_export_scorecard" 
+                            string="Export Scorecard" 
+                            type="object" 
+                            invisible="state != 'generated'"/>
+                    <button name="action_reset" 
+                            string="Reset to Draft" 
+                            type="object" 
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,generated"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="period_month" readonly="state != 'draft'"/>
+                            <field name="period_year" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="accuracy_rate" readonly="1" widget="percentage"/>
+                            <field name="trend" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Metrics" name="metrics">
+                            <group>
+                                <group string="Counts">
+                                    <field name="total_items" readonly="1"/>
+                                    <field name="items_checked" readonly="1"/>
+                                    <field name="accurate_items" readonly="1"/>
+                                    <field name="discrepancies_found" readonly="1"/>
+                                </group>
+                                <group string="Values">
+                                    <field name="total_value" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="discrepancy_value" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="currency_id" invisible="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Top Discrepancies" name="discrepancies">
+                            <field name="line_ids" readonly="1">
+                                <list>
+                                    <field name="item_code"/>
+                                    <field name="item_name"/>
+                                    <field name="expected_qty"/>
+                                    <field name="actual_qty"/>
+                                    <field name="discrepancy_qty" decoration-danger="discrepancy_qty != 0"/>
+                                    <field name="discrepancy_value" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="currency_id" invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mesob_stock_accuracy_scorecard" model="ir.actions.act_window">
+        <field name="name">Stock Accuracy Scorecard</field>
+        <field name="res_model">mesob.stock.accuracy.scorecard</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Monthly stock accuracy tracking and trend analysis
+            </p>
+        </field>
+    </record>
+
+    <!-- ==================== AUTO-009: SUPPLIER PERFORMANCE (res.partner enhancement) ==================== -->
+    <record id="view_res_partner_supplier_performance_form" model="ir.ui.view">
+        <field name="name">res.partner.supplier.performance.form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='internal_notes']" position="after">
+                <page string="Supplier Performance" name="supplier_performance" invisible="not supplier">
+                    <group>
+                        <group string="Performance Metrics">
+                            <field name="on_time_delivery_rate" widget="percentage"/>
+                            <field name="dsr_rate" widget="percentage"/>
+                            <field name="complaint_count"/>
+                            <field name="performance_score" widget="gauge" options="{'max_field': 'max_score_100'}"/>
+                        </group>
+                        <group string="Rating">
+                            <field name="performance_rating" widget="badge" decoration-success="performance_rating == 'excellent'" decoration-info="performance_rating == 'good'" decoration-warning="performance_rating == 'satisfactory'" decoration-danger="performance_rating == 'poor'"/>
+                            <field name="last_performance_update"/>
+                            <button name="action_refresh_performance_score" 
+                                    string="Refresh Score" 
+                                    type="object" 
+                                    class="oe_highlight" 
+                                    groups="mesob_inventory_base.group_mesob_pao"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

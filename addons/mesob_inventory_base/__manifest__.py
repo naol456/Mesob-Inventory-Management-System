@@ -72,6 +72,7 @@
         "views/mesob_stock_reorder_alert_views.xml",
         "views/mesob_budget_views.xml",
         "views/mesob_procurement_views.xml",
+        "views/mesob_automation_calculation_views.xml",
         # Menus (must be loaded AFTER views that define actions)
         "views/mesob_inventory_menus.xml",
         # TODO: Fix stock code catalog publication views - model not loaded
