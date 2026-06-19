@@ -31,7 +31,7 @@
         <field name="category">default</field>
         <field name="icon">fa-unlock</field>
         <field name="delay_count">1</field>
-        <field name="delay_unit">hours</field>
+        <field name="delay_unit">days</field>
         <field name="res_model">mesob.gate.pass</field>
     </record>
     

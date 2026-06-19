@@ -119,6 +119,9 @@
                         </button>
                     </div>
                     
+                    <!-- Task 9: QR Code Display -->
+                    <field name="qr_code" widget="image" class="oe_avatar" invisible="not qr_code"/>
+                    
                     <!-- Premium Corporate Form Header: Centered Letterhead with Symmetrical Split -->
                     <div class="mesob_corporate_header">
                         <!-- Top Center: Logo & Company Name -->

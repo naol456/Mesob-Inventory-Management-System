@@ -223,6 +223,64 @@ class MesobGatePass(models.Model):
         help="AUTO-047: When security scanned the QR code",
     )
 
+    # ── AUTO-048: Gate Pass Expiry Tracking ─────────────────────────
+
+    validity_hours = fields.Integer(
+        string="Validity Period (Hours)",
+        default=24,
+        required=True,
+        readonly=True,
+        states={"draft": [("readonly", False)]},
+        help="AUTO-048: Number of hours this gate pass remains valid after authorization (default: 24 hours)",
+    )
+
+    expiry_datetime = fields.Datetime(
+        string="Expires On",
+        compute="_compute_expiry_datetime",
+        store=True,
+        readonly=True,
+        help="AUTO-048: Date and time when this gate pass expires",
+    )
+
+    is_expired = fields.Boolean(
+        string="Expired",
+        compute="_compute_is_expired",
+        store=False,
+        help="AUTO-048: True if gate pass has expired",
+    )
+
+    expiry_status = fields.Selection(
+        [
+            ("valid", "Valid"),
+            ("expiring_soon", "Expiring Soon (< 2 hours)"),
+            ("expired", "Expired"),
+        ],
+        string="Expiry Status",
+        compute="_compute_expiry_status",
+        store=False,
+        help="AUTO-048: Current expiry status",
+    )
+
+    extension_count = fields.Integer(
+        string="Extension Count",
+        default=0,
+        readonly=True,
+        help="AUTO-048: Number of times PAO has extended this gate pass",
+    )
+
+    last_extended_by_id = fields.Many2one(
+        "res.users",
+        string="Last Extended By",
+        readonly=True,
+        help="AUTO-048: PAO who last extended the validity",
+    )
+
+    last_extended_on = fields.Datetime(
+        string="Last Extended On",
+        readonly=True,
+        help="AUTO-048: When the gate pass was last extended",
+    )
+
     # ── Relations ───────────────────────────────────────────────────
 
     line_ids = fields.One2many(
@@ -323,6 +381,43 @@ class MesobGatePass(models.Model):
                 record.qr_code = qr_code_binary
             else:
                 record.qr_code = False
+
+    @api.depends("authorized_on", "validity_hours")
+    def _compute_expiry_datetime(self):
+        """AUTO-048: Calculate expiry datetime based on authorization time and validity period."""
+        for record in self:
+            if record.authorized_on and record.validity_hours > 0:
+                from datetime import timedelta
+                record.expiry_datetime = record.authorized_on + timedelta(hours=record.validity_hours)
+            else:
+                record.expiry_datetime = False
+
+    @api.depends("expiry_datetime", "state")
+    def _compute_is_expired(self):
+        """AUTO-048: Check if gate pass has expired."""
+        now = fields.Datetime.now()
+        for record in self:
+            if record.state == "authorized" and record.expiry_datetime:
+                record.is_expired = now > record.expiry_datetime
+            else:
+                record.is_expired = False
+
+    @api.depends("expiry_datetime", "state", "is_expired")
+    def _compute_expiry_status(self):
+        """AUTO-048: Determine expiry status for visual warnings."""
+        now = fields.Datetime.now()
+        for record in self:
+            if record.state != "authorized" or not record.expiry_datetime:
+                record.expiry_status = "valid"
+            elif record.is_expired:
+                record.expiry_status = "expired"
+            else:
+                from datetime import timedelta
+                time_remaining = record.expiry_datetime - now
+                if time_remaining <= timedelta(hours=2):
+                    record.expiry_status = "expiring_soon"
+                else:
+                    record.expiry_status = "valid"
 
     @api.constrains("issue_voucher_id", "written_authorization")
     def _check_authorization_documents(self):
@@ -520,6 +615,7 @@ class MesobGatePass(models.Model):
         """Security guard verifies and dispatches materials at gate.
         
         AUTO-047: Records QR code scan timestamp and confirms three-copy distribution.
+        AUTO-048: Validates gate pass has not expired.
         """
         for record in self:
             # Verify state
@@ -527,6 +623,17 @@ class MesobGatePass(models.Model):
                 raise UserError(
                     f"Gate Pass must be authorized by PAO before dispatch. "
                     f"Current state: {record.state}. Required state: authorized."
+                )
+            
+            # AUTO-048: Check if gate pass has expired
+            if record.is_expired:
+                raise UserError(
+                    f"AUTO-048: This Gate Pass has EXPIRED!\n\n"
+                    f"Authorized on: {record.authorized_on}\n"
+                    f"Expired on: {record.expiry_datetime}\n"
+                    f"Validity period: {record.validity_hours} hours\n\n"
+                    f"This gate pass cannot be used for dispatch. "
+                    f"Please contact PAO to extend validity or create a new gate pass."
                 )
             
             # Verify security guard role
@@ -591,11 +698,87 @@ class MesobGatePass(models.Model):
             
             # Cancel
             record.state = "cancelled"
-            
-            # Post message to chatter
-            record.message_post(
-                body=f"Gate Pass cancelled by {self.env.user.name}"
+
+    def action_extend_validity(self):
+        """AUTO-048: PAO extends gate pass validity period.
+        
+        Requires PAO authorization and justification.
+        """
+        self.ensure_one()
+        
+        # Verify PAO role
+        if not self.env.user.has_group("mesob_inventory_base.group_mesob_pao"):
+            raise UserError(
+                "AUTO-048: Only Property Administration Officers (PAO) can extend gate pass validity. "
+                "Please contact your PAO."
             )
+        
+        # Verify state
+        if self.state != "authorized":
+            raise UserError(
+                f"AUTO-048: Cannot extend validity. Gate Pass is not in authorized state (current: {self.state})."
+            )
+        
+        # Verify not already dispatched
+        if self.state == "dispatched":
+            raise UserError(
+                "AUTO-048: Cannot extend validity of already dispatched gate pass."
+            )
+        
+        # Open wizard for extension
+        return {
+            'name': 'Extend Gate Pass Validity',
+            'type': 'ir.actions.act_window',
+            'res_model': 'mesob.gate.pass.extend.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_gate_pass_id': self.id,
+                'default_current_expiry': self.expiry_datetime,
+                'default_current_validity_hours': self.validity_hours,
+            },
+        }
+
+    def _do_extend_validity(self, additional_hours, extension_reason):
+        """AUTO-048: Internal method to perform validity extension.
+        
+        Called by wizard after PAO provides justification.
+        """
+        self.ensure_one()
+        
+        from datetime import timedelta
+        
+        # Calculate new expiry (from current expiry, not now)
+        if self.expiry_datetime:
+            new_expiry = self.expiry_datetime + timedelta(hours=additional_hours)
+        else:
+            # Fallback if no expiry set
+            new_expiry = fields.Datetime.now() + timedelta(hours=additional_hours)
+        
+        # Update fields
+        self.write({
+            'validity_hours': self.validity_hours + additional_hours,
+            'extension_count': self.extension_count + 1,
+            'last_extended_by_id': self.env.user.id,
+            'last_extended_on': fields.Datetime.now(),
+        })
+        
+        # Log extension in chatter
+        self.message_post(
+            body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px;">
+                <h3>⏰ AUTO-048: Gate Pass Validity Extended</h3>
+                <p><strong>Extended by:</strong> {self.env.user.name} (PAO)</p>
+                <p><strong>Extension:</strong> +{additional_hours} hours</p>
+                <p><strong>Previous Expiry:</strong> {self.expiry_datetime - timedelta(hours=additional_hours)}</p>
+                <p><strong>New Expiry:</strong> {new_expiry}</p>
+                <p><strong>Total Validity:</strong> {self.validity_hours} hours</p>
+                <p><strong>Extension Count:</strong> {self.extension_count}</p>
+                <hr/>
+                <p><strong>Justification:</strong></p>
+                <p style="background-color: white; padding: 10px; border-radius: 4px;">{extension_reason}</p>
+            </div>""",
+            subject=f"Gate Pass {self.name} - Validity Extended"
+        )
         
         return True
 

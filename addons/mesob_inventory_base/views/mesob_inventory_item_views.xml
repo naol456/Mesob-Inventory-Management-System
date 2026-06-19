@@ -77,6 +77,9 @@
                         </button>
                     </div>
                     
+                    <!-- Task 9: QR Code Display -->
+                    <field name="qr_code" widget="image" class="oe_avatar" invisible="not qr_code"/>
+                    
                     <div class="oe_title mb-4">
                         <span class="text-muted fw-bold text-uppercase fs-6">FDRE Stock Item</span>
                         <h1>

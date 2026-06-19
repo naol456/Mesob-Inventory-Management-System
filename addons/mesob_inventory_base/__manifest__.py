@@ -93,6 +93,8 @@
         "wizard/mesob_manual_adjustment_wizard_views.xml",  # AUTO-050
         "wizard/mesob_duplicate_item_wizard_views.xml",  # AUTO-038
         "wizard/mesob_quarterly_movement_report_wizard_views.xml",  # AUTO-054
+        "wizard/mesob_gate_pass_extend_wizard_views.xml",  # AUTO-048
+        "wizard/mesob_barcode_scanner_wizard_views.xml",  # Task 9
         # Notification preferences (Task 7)
         "views/mesob_notification_preference_views.xml",
         # Reports

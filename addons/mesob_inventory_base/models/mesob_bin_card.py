@@ -128,6 +128,15 @@ class MesobBinCard(models.Model):
         help='Number of individual items in this sub-classification'
     )
     
+    # ── Task 9: QR Code for Bin Location Identification ────────────────
+    
+    qr_code = fields.Binary(
+        string="Bin Location QR Code",
+        compute="_compute_qr_code",
+        store=True,
+        help="Task 9: QR code for bin location - encodes location + sub-classification"
+    )
+    
     @api.depends('sub_classification_id', 'location', 'date')
     def _compute_display_name(self):
         for record in self:
@@ -145,6 +154,51 @@ class MesobBinCard(models.Model):
                 ])
             else:
                 record.item_count = 0
+    
+    @api.depends('sub_classification_id', 'location')
+    def _compute_qr_code(self):
+        """Task 9: Generate QR code for bin location identification.
+        
+        QR code contains: Location + Sub-classification + Major classification
+        Used for: Stock-taking, Physical verification, Location tracking
+        """
+        try:
+            import qrcode
+            import base64
+            from io import BytesIO
+            import logging
+            _logger = logging.getLogger(__name__)
+        except ImportError:
+            # QR code library not installed
+            for record in self:
+                record.qr_code = False
+            return
+        
+        for record in self:
+            if record.sub_classification_id and record.location:
+                # Generate QR code data
+                qr_data = (
+                    f"MESOB-BIN:{record.location}|"
+                    f"SUB:{record.sub_classification_id.code}-{record.sub_classification_id.name}|"
+                    f"MAJ:{record.major_classification_id.code if record.major_classification_id else 'N/A'}"
+                )
+                
+                # Create QR code
+                qr = qrcode.QRCode(version=1, box_size=10, border=4)
+                qr.add_data(qr_data)
+                qr.make(fit=True)
+                
+                img = qr.make_image(fill_color="black", back_color="white")
+                
+                # Convert to binary
+                buffer = BytesIO()
+                img.save(buffer, format="PNG")
+                qr_code_binary = base64.b64encode(buffer.getvalue())
+                
+                record.qr_code = qr_code_binary
+                _logger.debug(f"Task 9: Generated QR code for bin location {record.location}")
+            else:
+                record.qr_code = False
     
     # AUTO-050: Compute Methods
     

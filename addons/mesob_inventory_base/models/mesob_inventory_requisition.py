@@ -192,6 +192,15 @@ class MesobInventoryRequisition(models.Model):
     )
 
     note = fields.Text(string="Internal Notes")
+    
+    # ── Task 9: QR Code for Requisition Identification ─────────────────
+    
+    qr_code = fields.Binary(
+        string="Requisition QR Code",
+        compute="_compute_qr_code",
+        store=True,
+        help="Task 9: QR code for requisition identification - encodes requisition number"
+    )
 
     # ── Computed Fields ─────────────────────────────────────────────────
 
@@ -199,6 +208,48 @@ class MesobInventoryRequisition(models.Model):
     def _compute_issue_voucher_count(self):
         for record in self:
             record.issue_voucher_count = len(record.issue_voucher_ids)
+    
+    @api.depends("name", "state")
+    def _compute_qr_code(self):
+        """Task 9: Generate QR code for requisition identification.
+        
+        QR code contains: Requisition number + Department + Requested date
+        Used for: Tracking, Issue Voucher linking, Stock-taking
+        """
+        try:
+            import qrcode
+            import base64
+            from io import BytesIO
+            import logging
+            _logger = logging.getLogger(__name__)
+        except ImportError:
+            # QR code library not installed
+            for record in self:
+                record.qr_code = False
+            return
+        
+        for record in self:
+            if record.name and record.name != "New":
+                # Generate QR code data
+                dept_label = dict(record._fields['department'].selection).get(record.department, 'Unknown')
+                qr_data = f"MESOB-REQ:{record.name}|DEPT:{dept_label}|DATE:{record.requested_on}"
+                
+                # Create QR code
+                qr = qrcode.QRCode(version=1, box_size=10, border=4)
+                qr.add_data(qr_data)
+                qr.make(fit=True)
+                
+                img = qr.make_image(fill_color="black", back_color="white")
+                
+                # Convert to binary
+                buffer = BytesIO()
+                img.save(buffer, format="PNG")
+                qr_code_binary = base64.b64encode(buffer.getvalue())
+                
+                record.qr_code = qr_code_binary
+                _logger.debug(f"Task 9: Generated QR code for requisition {record.name}")
+            else:
+                record.qr_code = False
     
     @api.depends('requested_by_id')
     def _compute_requester_role(self):

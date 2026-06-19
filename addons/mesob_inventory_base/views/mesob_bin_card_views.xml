@@ -105,6 +105,9 @@
                             <field name="item_count" widget="statinfo" string="Items"/>
                         </button>
                     </div>
+                    
+                    <!-- Task 9: QR Code Display -->
+                    <field name="qr_code" widget="image" class="oe_avatar" invisible="not qr_code"/>
 
                     <!-- Premium Reusable Corporate Form Header -->
                     <div class="mesob_corporate_header">

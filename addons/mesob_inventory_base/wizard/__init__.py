@@ -8,3 +8,5 @@ from . import mesob_gate_pass_override_wizard  # AUTO-046
 from . import mesob_manual_adjustment_wizard  # AUTO-050
 from . import mesob_duplicate_item_wizard  # AUTO-038
 from . import mesob_quarterly_movement_report_wizard  # AUTO-054
+from . import mesob_gate_pass_extend_wizard  # AUTO-048
+from . import mesob_barcode_scanner_wizard  # Task 9
