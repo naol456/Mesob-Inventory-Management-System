@@ -9,7 +9,7 @@
                 <field name="name"/>
                 <field name="tender_ref"/>
                 <field name="date"/>
-                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'calculated'" decoration-warning="state == 'approved'"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'calculated'" decoration-warning="state == 'validated'"/>
             </list>
         </field>
     </record>
@@ -25,17 +25,13 @@
                             type="object" 
                             class="oe_highlight" 
                             invisible="state != 'draft'"/>
-                    <button name="action_approve" 
-                            string="Approve" 
+                    <button name="action_validate" 
+                            string="Validate" 
                             type="object" 
                             class="oe_highlight" 
                             invisible="state != 'calculated'" 
                             groups="mesob_inventory_base.group_mesob_pao"/>
-                    <button name="action_reset" 
-                            string="Reset to Draft" 
-                            type="object" 
-                            invisible="state == 'draft'"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,calculated,approved"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,calculated,validated"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -127,10 +123,6 @@
                             class="oe_highlight" 
                             invisible="state != 'calculated'" 
                             groups="mesob_inventory_base.group_mesob_pao"/>
-                    <button name="action_reset" 
-                            string="Reset to Draft" 
-                            type="object" 
-                            invisible="state == 'draft'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,calculated,approved"/>
                 </header>
                 <sheet>
@@ -216,10 +208,6 @@
                             class="oe_highlight" 
                             invisible="state != 'calculated'" 
                             groups="mesob_inventory_base.group_mesob_pao"/>
-                    <button name="action_reset" 
-                            string="Reset to Draft" 
-                            type="object" 
-                            invisible="state == 'draft'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,calculated,approved"/>
                 </header>
                 <sheet>
@@ -303,7 +291,7 @@
                 <field name="period_from"/>
                 <field name="period_to"/>
                 <field name="reconciliation_rate" widget="progressbar"/>
-                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'reconciled'"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'generated'" decoration-warning="state == 'reviewed'"/>
             </list>
         </field>
     </record>
@@ -314,20 +302,18 @@
         <field name="arch" type="xml">
             <form string="Procurement-Stock Reconciliation">
                 <header>
-                    <button name="action_reconcile" 
+                    <button name="action_generate_report" 
                             string="Run Reconciliation" 
                             type="object" 
                             class="oe_highlight" 
                             invisible="state != 'draft'"/>
-                    <button name="action_export_report" 
-                            string="Export Report" 
+                    <button name="action_pao_review" 
+                            string="PAO Review" 
                             type="object" 
-                            invisible="state != 'reconciled'"/>
-                    <button name="action_reset" 
-                            string="Reset to Draft" 
-                            type="object" 
-                            invisible="state == 'draft'"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,reconciled"/>
+                            class="oe_highlight" 
+                            invisible="state != 'generated'" 
+                            groups="mesob_inventory_base.group_mesob_pao"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,generated,reviewed"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -416,20 +402,18 @@
         <field name="arch" type="xml">
             <form string="Stock Accuracy Scorecard">
                 <header>
-                    <button name="action_generate_scorecard" 
+                    <button name="action_calculate_scorecard" 
                             string="Generate Scorecard" 
                             type="object" 
                             class="oe_highlight" 
                             invisible="state != 'draft'"/>
-                    <button name="action_export_scorecard" 
-                            string="Export Scorecard" 
+                    <button name="action_pao_review" 
+                            string="PAO Review" 
                             type="object" 
-                            invisible="state != 'generated'"/>
-                    <button name="action_reset" 
-                            string="Reset to Draft" 
-                            type="object" 
-                            invisible="state == 'draft'"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,generated"/>
+                            class="oe_highlight" 
+                            invisible="state != 'calculated'" 
+                            groups="mesob_inventory_base.group_mesob_pao"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,calculated,reviewed"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
