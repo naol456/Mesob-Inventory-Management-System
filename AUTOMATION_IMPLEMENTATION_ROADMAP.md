@@ -1,15 +1,15 @@
 # Mesob Inventory Management System
 ## Automation Implementation Roadmap
 
-**Last Updated:** June 17, 2026  
+**Last Updated:** June 18, 2026  
 **Total Features:** 71 automation features  
-**Completed:** 20 (28%)  
+**Completed:** 23 (32%)  
 **In Progress:** 0  
-**Remaining:** 51 (72%)
+**Remaining:** 48 (68%)
 
 ---
 
-## ✅ COMPLETED FEATURES (20)
+## ✅ COMPLETED FEATURES (23)
 
 ### Phase 1 - MERGED TO DEVELOP (5 features)
 1. ✅ **AUTO-001**: Department Self-Service Needs Submission  
@@ -87,6 +87,17 @@
 22. ✅ **AUTO-059**: Investigation Alerts for Material Discrepancies  
     *Status: Committed* | Compliance: FR-ST-006, FR-ST-007
 
+### Phase 3 Batch 12 - Intelligent Cataloging (3 features) - COMPLETED
+
+23. ✅ **AUTO-036**: Item Code Auto-Generation with Validation  
+    *Status: Implemented in models* | Compliance: FR-ID-002, FR-ID-003
+
+24. ✅ **AUTO-037**: Stock Code List Auto-Publication & Version Control  
+    *Status: Committed* | Compliance: FR-ID-004, FR-ID-005
+
+25. ✅ **AUTO-038**: Duplicate Item Detection (Keyword Matching)  
+    *Status: Implemented in models* | Compliance: BR-ID-001
+
 ---
 
 ## 📊 PROGRESS SUMMARY
@@ -94,7 +105,7 @@
 ### By Phase
 - **Phase 1 (Quick Wins)**: 12/15 completed (80%)
 - **Phase 2 (Workflow)**: 8/20 completed (40%)
-- **Phase 3 (Intelligence)**: 0/20 completed (0%)
+- **Phase 3 (Intelligence)**: 3/20 completed (15%) ⬆️
 - **Phase 4 (Advanced)**: 0/16 completed (0%)
 
 ### By Category
@@ -192,10 +203,10 @@ git push origin feature/phase2-automation-batch2
 **Target:** AI-powered suggestions and analytics  
 **Timeline:** Weeks 13-20
 
-#### Batch 12 - Intelligent Cataloging
-- [ ] **AUTO-036**: Item Code Auto-Generation with Validation
-- [ ] **AUTO-037**: Stock Code List Auto-Publication & Version Control
-- [ ] **AUTO-038**: Duplicate Item Detection (Keyword Matching)
+#### Batch 12 - Intelligent Cataloging ✅ COMPLETED
+- [x] **AUTO-036**: Item Code Auto-Generation with Validation
+- [x] **AUTO-037**: Stock Code List Auto-Publication & Version Control
+- [x] **AUTO-038**: Duplicate Item Detection (Keyword Matching)
 
 #### Batch 13 - Supplier Intelligence
 - [ ] **AUTO-008**: Supplier Registration Expiry Alerts

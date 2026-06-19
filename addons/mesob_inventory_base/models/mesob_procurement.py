@@ -338,19 +338,6 @@ class MesobProcurementPlan(models.Model):
             f"AUTO-004: Notification sent to {len(recipient_group.users)} {stage.upper()} users - "
             f"APP: {self.name}, SLA Status: {self.approval_sla_status}"
         )
-            # Route lots to correct execution workflow (FR-PROC-006)
-            for lot in rec.lot_ids:
-                if lot.mechanism == "bidding":
-                    lot.state = "tender"
-                elif lot.mechanism == "shopping":
-                    lot.state = "rfq"
-                else:
-                    lot.state = "approved"
-            
-            # AUTO-004: Send publication notification to all stakeholders
-            rec._send_publication_notification()
-            
-            _logger.info(f"AUTO-004: APP {rec.name} approved by HOPE and published")
         
         return True
 

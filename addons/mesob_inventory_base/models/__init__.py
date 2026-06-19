@@ -3,8 +3,8 @@ from . import mesob_inventory_sub_classification
 from . import mesob_item_code_sequence
 from . import mesob_inventory_item
 from . import mesob_stock_code_catalog
+from . import mesob_stock_code_catalog_publication
 from . import mesob_stock_movement_mixin
-from . import mesob_auto_po_generator
 from . import mesob_inventory_requisition
 from . import mesob_inventory_requisition_line
 from . import mesob_inventory_receiving
@@ -19,6 +19,7 @@ from . import mesob_gate_pass_line
 from . import mesob_bin_card
 from . import mesob_stock_record_card
 from . import mesob_stock_reorder_alert
+from . import mesob_auto_po_generator  # MUST be after mesob_stock_reorder_alert (inherits from it)
 from . import res_partner
 from . import mesob_budget
 from . import mesob_procurement

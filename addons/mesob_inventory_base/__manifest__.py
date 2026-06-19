@@ -48,6 +48,7 @@
         "data/mesob_reorder_alert_sequence.xml",
         "data/mesob_procurement_sequences.xml",
         "data/mesob_payment_validation_sequence.xml",
+        "data/mesob_catalog_publication_sequence.xml",
         "data/mesob_overdue_po_cron.xml",
         "data/mesob_auto_reorder_cron.xml",
         # Company data
@@ -68,15 +69,16 @@
         "views/mesob_bin_card_views.xml",
         "views/mesob_stock_record_card_views.xml",
         "views/mesob_stock_reorder_alert_views.xml",
+        # Menus (must be loaded before views that reference menu parents)
+        "views/mesob_inventory_menus.xml",
         "views/mesob_budget_views.xml",
         "views/mesob_procurement_views.xml",
+        "views/mesob_stock_code_catalog_publication_views.xml",
         "views/mesob_stock_taking_handover_views.xml",
         "views/mesob_storage_security_views.xml",
         "views/mesob_inventory_dashboard_views.xml",
         # Login customization
         "views/mesob_login_template.xml",
-        # Menus
-        "views/mesob_inventory_menus.xml",
         # Wizards
         "wizard/mesob_inventory_issue_receipt_wizard_views.xml",
         "wizard/mesob_abc_classification_wizard_views.xml",

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- AUTO-037: Stock Code Catalog Publication Views -->
+    
+    <!-- Tree View -->
+    <record id="view_mesob_catalog_publication_tree" model="ir.ui.view">
+        <field name="name">mesob.stock.code.catalog.publication.tree</field>
+        <field name="model">mesob.stock.code.catalog.publication</field>
+        <field name="arch" type="xml">
+            <tree string="Stock Code Catalog Publications" decoration-success="state=='published'" decoration-muted="state in ['superseded', 'amended']">
+                <field name="display_name"/>
+                <field name="version"/>
+                <field name="fiscal_year"/>
+                <field name="publication_date"/>
+                <field name="item_count"/>
+                <field name="classification_count"/>
+                <field name="state" widget="badge" decoration-success="state=='published'" decoration-warning="state=='draft'" decoration-info="state=='amended'" decoration-muted="state=='superseded'"/>
+            </tree>
+        </field>
+    </record>
+    
+    <!-- Form View -->
+    <record id="view_mesob_catalog_publication_form" model="ir.ui.view">
+        <field name="name">mesob.stock.code.catalog.publication.form</field>
+        <field name="model">mesob.stock.code.catalog.publication</field>
+        <field name="arch" type="xml">
+            <form string="Stock Code Catalog Publication">
+                <header>
+                    <button name="action_generate_catalog" string="Generate Catalog" type="object" 
+                            invisible="state != 'draft'" class="oe_highlight"/>
+                    <button name="action_publish" string="Publish" type="object" 
+                            invisible="state != 'draft'" class="oe_highlight"/>
+                    <button name="action_create_amendment" string="Create Amendment" type="object" 
+                            invisible="state != 'published'" class="oe_highlight"/>
+                    <button name="action_print_catalog" string="Print Catalog" type="object" 
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,published"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="action_generate_catalog" icon="fa-refresh">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Refresh</span>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <div class="oe_title">
+                        <h1>
+                            <field name="display_name" placeholder="e.g., Stock Code Catalog 2024" readonly="1"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group string="Version Control">
+                            <field name="name"/>
+                            <field name="version"/>
+                            <field name="fiscal_year"/>
+                            <field name="publication_date"/>
+                            <field name="previous_version_id" readonly="1"/>
+                        </group>
+                        <group string="Statistics">
+                            <field name="item_count"/>
+                            <field name="classification_count"/>
+                            <field name="new_items_count" invisible="not previous_version_id"/>
+                            <field name="amended_items_count" invisible="not previous_version_id"/>
+                            <field name="excluded_items_count"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Amendment Notes" invisible="not previous_version_id">
+                            <group>
+                                <field name="amendment_notes" nolabel="1" placeholder="Describe changes made in this version (additions, modifications, deletions)..."/>
+                            </group>
+                        </page>
+                        
+                        <page string="Distribution" invisible="state == 'draft'">
+                            <group>
+                                <field name="distribution_date"/>
+                                <field name="distributed_to" widget="text" placeholder="List departments/units who received this catalog..."/>
+                            </group>
+                        </page>
+                        
+                        <page string="Approvals">
+                            <group>
+                                <field name="approved_by_id"/>
+                                <field name="published_by_id" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Search View -->
+    <record id="view_mesob_catalog_publication_search" model="ir.ui.view">
+        <field name="name">mesob.stock.code.catalog.publication.search</field>
+        <field name="model">mesob.stock.code.catalog.publication</field>
+        <field name="arch" type="xml">
+            <search string="Search Catalog Publications">
+                <field name="name"/>
+                <field name="version"/>
+                <field name="fiscal_year"/>
+                <filter string="Draft" name="filter_draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Published" name="filter_published" domain="[('state', '=', 'published')]"/>
+                <filter string="Current Fiscal Year" name="filter_current_fy" 
+                        domain="[('fiscal_year', '=', context.get('default_fiscal_year', ''))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Fiscal Year" name="group_fiscal_year" context="{'group_by': 'fiscal_year'}"/>
+                    <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- Action -->
+    <record id="action_mesob_catalog_publication" model="ir.actions.act_window">
+        <field name="name">Stock Code Catalog Publications</field>
+        <field name="res_model">mesob.stock.code.catalog.publication</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Stock Code Catalog Publication
+            </p>
+            <p>
+                AUTO-037: Automatically maintain and distribute versioned stock code catalogs per FR-ID-004, FR-ID-005.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Menu Item -->
+    <menuitem id="menu_mesob_catalog_publication"
+              name="Catalog Publications"
+              parent="menu_mesob_identification"
+              action="action_mesob_catalog_publication"
+              sequence="40"/>
+</odoo>
