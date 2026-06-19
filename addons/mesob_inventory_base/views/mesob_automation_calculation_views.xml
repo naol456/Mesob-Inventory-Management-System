@@ -196,7 +196,7 @@
                     <group>
                         <group>
                             <field name="on_time_delivery_rate" widget="percentage"/>
-                            <field name="dsr_rate" widget="percentage"/>
+                            <field name="dsr_rejection_rate" widget="percentage"/>
                             <field name="complaint_count"/>
                         </group>
                         <group>
