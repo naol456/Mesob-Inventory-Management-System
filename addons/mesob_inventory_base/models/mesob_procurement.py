@@ -146,6 +146,7 @@ class MesobProcurementPlan(models.Model):
             # 3. Group them by Sub-Classification
             sub_classes = needs_with_sub.mapped("sub_classification_id")
             lot_count = len(plan.lot_ids) + 1
+            created_lot_ids = []
 
             for sub_class in sub_classes:
                 # Filter needs belonging to this specific sub-classification
@@ -160,6 +161,7 @@ class MesobProcurementPlan(models.Model):
                         "budget": existing_lot[0].budget + total_budget
                     })
                     sub_class_needs.write({"lot_id": existing_lot[0].id})
+                    created_lot_ids.append(existing_lot[0].id)
                 else:
                     # Create a new Lot and assign it
                     lot = self.env["mesob.procurement.plan.lot"].create({
@@ -170,7 +172,23 @@ class MesobProcurementPlan(models.Model):
                         "sub_classification_id": sub_class.id,
                     })
                     sub_class_needs.write({"lot_id": lot.id})
+                    created_lot_ids.append(lot.id)
                     lot_count += 1
+            
+            # Return action to show the created/updated lots
+            return {
+                'type': 'ir.actions.act_window',
+                'name': f'Generated Lots for {plan.name}',
+                'res_model': 'mesob.procurement.plan.lot',
+                'view_mode': 'list,form',
+                'domain': [('id', 'in', created_lot_ids)],
+                'context': {
+                    'default_plan_id': plan.id,
+                    'create': False,
+                },
+                'target': 'current',
+            }
+        
         return True
 
 
@@ -652,16 +670,31 @@ class MesobProcurementOrder(models.Model):
 
     @api.onchange("plan_lot_id")
     def _onchange_plan_lot_id(self):
-        """Auto-populate PO lines from the consolidated needs of the selected APP Lot (Section 4.13.G)."""
+        """Auto-populate PO lines from the consolidated needs of the selected APP Lot (Section 4.13.G).
+        Also auto-fills classifications from the lot if available.
+        Unit price is left empty for user to fill the agreed price with supplier.
+        """
         if self.plan_lot_id:
+            # Get default classifications from the lot
+            lot_major_id = False
+            lot_sub_id = False
+            if self.plan_lot_id.sub_classification_id:
+                lot_sub_id = self.plan_lot_id.sub_classification_id.id
+                if self.plan_lot_id.sub_classification_id.major_classification_id:
+                    lot_major_id = self.plan_lot_id.sub_classification_id.major_classification_id.id
+            
             new_lines = []
             for need in self.plan_lot_id.need_ids:
+                # Use need's classification if available, otherwise fallback to lot's classification
+                major_id = need.major_classification_id.id if need.major_classification_id else lot_major_id
+                sub_id = need.sub_classification_id.id if need.sub_classification_id else lot_sub_id
+                
                 line_vals = {
                     "item_id": need.item_id.id if need.item_id else False,
-                    "major_classification_id": need.major_classification_id.id if need.major_classification_id else False,
-                    "sub_classification_id": need.sub_classification_id.id if need.sub_classification_id else False,
+                    "major_classification_id": major_id,
+                    "sub_classification_id": sub_id,
                     "quantity": need.quantity,
-                    "price_unit": need.estimated_unit_price,
+                    "price_unit": 0.0,  # Leave empty for user to enter agreed price
                     "description": need.item_id.name if need.item_id else f"{need.major_classification_id.name or ''} {need.sub_classification_id.name or ''}",
                 }
                 new_lines.append((0, 0, line_vals))

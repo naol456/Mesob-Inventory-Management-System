@@ -52,24 +52,6 @@
                             <field name="procurement_stream" readonly="state != 'draft'"/>
                         </group>
                     </group>
-                    <notebook>
-                        <page string="Procurement Lots" name="lots">
-                            <field name="lot_ids" readonly="state != 'draft'">
-                                <list editable="bottom">
-                                    <field name="name"/>
-                                    <field name="category"/>
-                                    <field name="mechanism"/>
-                                    <field name="budget" sum="Total Budget"/>
-                                    <field name="state"/>
-                                </list>
-                            </field>
-                        </page>
-                        <page string="Audit / Comments" name="audit">
-                            <group>
-                                <field name="rejection_comment" readonly="1"/>
-                            </group>
-                        </page>
-                    </notebook>
                 </sheet>
             </form>
         </field>
@@ -132,11 +114,6 @@
                             <field name="total_price"/>
                             <field name="expected_delivery_period" readonly="state == 'locked'"/>
                         </group>
-                    </group>
-                    <group string="SPO Consolidated Lot Mapping">
-                        <field name="lot_id" domain="[('state','=','draft')]"/>
-                        <field name="reviewer_id"/>
-                        <field name="review_timestamp"/>
                     </group>
                 </sheet>
             </form>
@@ -335,10 +312,7 @@
                                 <list editable="bottom">
                                     <field name="major_classification_id"/>
                                     <field name="sub_classification_id" domain="[('major_classification_id', '=', major_classification_id)]"/>
-                                    <field name="auto_generate_items"/>
-                                    <field name="description"/>
                                     <field name="quantity"/>
-                                    <field name="qty_received" readonly="1"/>
                                     <field name="price_unit"/>
                                     <field name="price_subtotal" readonly="1"/>
                                 </list>

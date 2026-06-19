@@ -319,10 +319,13 @@ class MesobInventoryReceiving(models.Model):
                     "quantities on at least one line."
                 )
 
-            # Auto-generate items for lines with auto_generate_items flag
+            # Process auto-generation lines first
             for line in rec.line_ids:
                 if line.auto_generate_items and line.qty_accepted > 0:
                     line.generate_items_for_receiving()
+            
+            # Aggregate and create bin cards for non-auto-generation lines
+            rec._create_aggregated_bin_cards()
 
             # Generate Model 19 for accepted items
             rec._generate_model19()
@@ -396,6 +399,218 @@ class MesobInventoryReceiving(models.Model):
         return True
 
     # ── Document Generation ────────────────────────────────────────
+
+    def _create_aggregated_bin_cards(self):
+        """Create aggregated bin card entries and/or individual items for non-auto-generation lines.
+        
+        For Fixed Assets: Creates individual item records with unique codes
+        For Consumables: Creates ONE aggregated bin card entry per sub-classification
+        """
+        self.ensure_one()
+        
+        # Dictionary to aggregate quantities by sub-classification
+        # Key: (major_classification_id, sub_classification_id, is_fixed_asset)
+        # Value: {'total_qty': float, 'lines': [line records]}
+        aggregated = {}
+        
+        for line in self.line_ids:
+            # Skip auto-generation lines (already handled)
+            if line.auto_generate_items:
+                continue
+            
+            # Skip lines with no accepted quantity
+            if line.qty_accepted <= 0:
+                continue
+            
+            # Determine classification
+            major_id = None
+            sub_id = None
+            sub_classification = None
+            
+            if line.major_classification_id and line.sub_classification_id:
+                major_id = line.major_classification_id.id
+                sub_id = line.sub_classification_id.id
+                sub_classification = line.sub_classification_id
+            elif line.item_id:
+                if line.item_id.classification_id and line.item_id.sub_classification_id:
+                    major_id = line.item_id.classification_id.id
+                    sub_id = line.item_id.sub_classification_id.id
+                    sub_classification = line.item_id.sub_classification_id
+            
+            # Skip if no classifications found
+            if not major_id or not sub_id or not sub_classification:
+                continue
+            
+            # Check if this is a fixed asset
+            is_fixed_asset = sub_classification.is_fixed_asset
+            
+            # Aggregate by sub-classification and asset type
+            key = (major_id, sub_id, is_fixed_asset)
+            if key not in aggregated:
+                aggregated[key] = {
+                    'total_qty': 0.0,
+                    'lines': [],
+                    'major_classification': line.major_classification_id or line.item_id.classification_id,
+                    'sub_classification': sub_classification,
+                }
+            aggregated[key]['total_qty'] += line.qty_accepted
+            aggregated[key]['lines'].append(line)
+        
+        # Process aggregated data
+        reference = self.name or "Receiving"
+        date = self.received_date or fields.Date.today()
+        
+        for (major_id, sub_id, is_fixed_asset), data in aggregated.items():
+            if is_fixed_asset:
+                # FIXED ASSET: Generate individual items with specific codes
+                self._create_fixed_asset_items(
+                    data['major_classification'],
+                    data['sub_classification'],
+                    data['lines'],
+                    reference,
+                    date
+                )
+            else:
+                # CONSUMABLE: Create one aggregated bin card entry
+                self._create_bin_card_entry(
+                    major_id,
+                    sub_id,
+                    data['total_qty'],
+                    reference,
+                    date
+                )
+    
+    def _create_fixed_asset_items(self, major_classification, sub_classification, lines, reference, date):
+        """Create individual item records for fixed assets.
+        
+        Args:
+            major_classification: Major classification record
+            sub_classification: Sub classification record
+            lines: List of receiving line records
+            reference: Receiving document reference
+            date: Received date
+        """
+        major_code = major_classification.code
+        sub_code = sub_classification.code
+        
+        # Total quantity across all lines
+        total_qty = sum(line.qty_accepted for line in lines)
+        
+        # Create aggregated bin card entry ONCE
+        self._create_bin_card_entry(
+            major_classification.id,
+            sub_classification.id,
+            total_qty,
+            reference,
+            date
+        )
+        
+        # Generate individual item records for tracking
+        item_code_sequence = self.env['mesob.item.code.sequence']
+        created_items = []
+        
+        for line in lines:
+            qty = int(line.qty_accepted)
+            for i in range(qty):
+                # Generate unique item code
+                specific_code = item_code_sequence.get_next_specific_code(major_code, sub_code)
+                item_code = f"{major_code}-{sub_code}-{specific_code}"
+                
+                # Get UoM
+                uom_id = False
+                if line.uom_id:
+                    uom_id = line.uom_id.id
+                else:
+                    uom_unit = self.env.ref('uom.product_uom_unit', raise_if_not_found=False)
+                    if uom_unit:
+                        uom_id = uom_unit.id
+                
+                # Create item record
+                item = self.env['mesob.inventory.item'].create({
+                    'item_code': item_code,
+                    'classification_id': major_classification.id,
+                    'sub_classification_id': sub_classification.id,
+                    'uom_id': uom_id,
+                    'name': line.description or sub_classification.name,
+                    'active': True,
+                })
+                
+                created_items.append(item.id)
+                
+                # Create stock record entry for individual tracking
+                self._create_stock_record_for_fixed_asset(item.id, line.unit_price, reference, date)
+        
+        # Link all created items to the first line (for reference)
+        if created_items and lines:
+            lines[0].generated_item_ids = [(6, 0, created_items)]
+    
+    def _create_stock_record_for_fixed_asset(self, item_id, unit_price, reference, date):
+        """Create stock record card entry for fixed asset item.
+        
+        Args:
+            item_id: ID of the inventory item
+            unit_price: Unit cost
+            reference: Receiving document reference
+            date: Received date
+        """
+        # Get default UoM
+        uom_unit = self.env.ref('uom.product_uom_unit', raise_if_not_found=False)
+        if not uom_unit:
+            uom_unit = self.env['uom.uom'].search([], limit=1)
+        
+        # Create stock record entry
+        stock_record = self.env['mesob.stock.record.card'].create({
+            'item_id': item_id,
+            'transaction_type': 'receipt',
+            'date': date,
+            'quantity_in': 1.0,
+            'quantity_out': 0.0,
+            'unit_cost': unit_price,
+            'reference': reference,
+            'uom_id': uom_unit.id if uom_unit else False,
+        })
+        
+        # Create FIFO layer
+        self.env['mesob.stock.fifo.layer'].create({
+            'stock_record_id': stock_record.id,
+            'item_id': item_id,
+            'date': date,
+            'quantity': 1.0,
+            'quantity_remaining': 1.0,
+            'unit_cost': unit_price,
+        })
+    
+    def _create_bin_card_entry(self, major_classification_id, sub_classification_id, quantity, reference, date):
+        """Create a single bin card entry for receiving.
+        
+        Args:
+            major_classification_id (int): ID of major classification
+            sub_classification_id (int): ID of sub classification
+            quantity (float): Total quantity received
+            reference (str): Receiving document reference
+            date (date): Received date
+        """
+        # Get default UoM (unit)
+        uom_unit = self.env.ref('uom.product_uom_unit', raise_if_not_found=False)
+        if not uom_unit:
+            uom_unit = self.env['uom.uom'].search([], limit=1)
+        
+        # Get default location
+        default_location = 'Main Store'
+        
+        # Create bin card entry (aggregated by sub-classification)
+        self.env['mesob.bin.card'].create({
+            'major_classification_id': major_classification_id,
+            'sub_classification_id': sub_classification_id,
+            'location': default_location,
+            'transaction_type': 'receipt',
+            'date': date,
+            'quantity_received': quantity,
+            'quantity_distributed': 0.0,
+            'reference': reference,
+            'uom_id': uom_unit.id if uom_unit else False,
+            'received_by_id': self.env.user.id,
+        })
 
     def _generate_model19(self):
         """Create Model 19 receipt document from accepted lines."""
