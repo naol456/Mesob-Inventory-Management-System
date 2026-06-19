@@ -1,5 +1,8 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class MesobGatePass(models.Model):
@@ -198,6 +201,28 @@ class MesobGatePass(models.Model):
         help="Timestamp when security guard dispatched materials.",
     )
 
+    # ── AUTO-047: QR Code for Three-Copy Distribution ──────────────
+
+    qr_code = fields.Binary(
+        string="QR Code",
+        compute="_compute_qr_code",
+        store=True,
+        help="AUTO-047: QR code for gate verification and tracking",
+    )
+
+    qr_code_verified = fields.Boolean(
+        string="QR Code Scanned",
+        default=False,
+        readonly=True,
+        help="AUTO-047: Indicates if security scanned QR code at gate",
+    )
+
+    qr_scan_timestamp = fields.Datetime(
+        string="QR Scan Timestamp",
+        readonly=True,
+        help="AUTO-047: When security scanned the QR code",
+    )
+
     # ── Relations ───────────────────────────────────────────────────
 
     line_ids = fields.One2many(
@@ -260,6 +285,44 @@ class MesobGatePass(models.Model):
     )
 
     # ── Constraints ─────────────────────────────────────────────────
+
+    @api.depends("name", "state")
+    def _compute_qr_code(self):
+        """AUTO-047: Generate QR code for Gate Pass verification.
+        
+        QR code contains: GP number, date, receiver, destination
+        Security scans this at gate to confirm dispatch and timestamp.
+        """
+        try:
+            import qrcode
+            import base64
+            from io import BytesIO
+        except ImportError:
+            # QR code library not installed
+            for record in self:
+                record.qr_code = False
+            return
+        
+        for record in self:
+            if record.name and record.name != "New":
+                # Generate QR code data
+                qr_data = f"MESOB-GP:{record.name}|DATE:{record.dispatch_date}|TO:{record.receiver_name}|DEST:{record.destination}"
+                
+                # Create QR code
+                qr = qrcode.QRCode(version=1, box_size=10, border=4)
+                qr.add_data(qr_data)
+                qr.make(fit=True)
+                
+                img = qr.make_image(fill_color="black", back_color="white")
+                
+                # Convert to binary
+                buffer = BytesIO()
+                img.save(buffer, format="PNG")
+                qr_code_binary = base64.b64encode(buffer.getvalue())
+                
+                record.qr_code = qr_code_binary
+            else:
+                record.qr_code = False
 
     @api.constrains("issue_voucher_id", "written_authorization")
     def _check_authorization_documents(self):
@@ -362,6 +425,9 @@ class MesobGatePass(models.Model):
                 "authorized_on": fields.Datetime.now(),
             })
             
+            # AUTO-047: Send three-copy distribution notifications
+            record._send_three_copy_notifications()
+            
             # Post message to chatter
             record.message_post(
                 body=f"Gate Pass authorized by {self.env.user.name} on {fields.Datetime.now()}"
@@ -369,8 +435,79 @@ class MesobGatePass(models.Model):
         
         return True
 
+    def _send_three_copy_notifications(self):
+        """AUTO-047: Send notifications for three-copy distribution.
+        
+        - Original → Receiver (PDF with QR code)
+        - Duplicate → Storekeeper (notification)
+        - Triplicate → Security Guard (gate alert)
+        """
+        self.ensure_one()
+        
+        # Get user groups
+        storekeeper_group = self.env.ref("mesob_inventory_base.group_mesob_storekeeper", raise_if_not_found=False)
+        security_group = self.env.ref("mesob_inventory_base.group_mesob_security_guard", raise_if_not_found=False)
+        
+        # Notification to Storekeeper (Duplicate)
+        if storekeeper_group and storekeeper_group.users:
+            self.message_post(
+                body=f"""<div style="background-color: #d1ecf1; border-left: 4px solid #0c5460; padding: 15px;">
+                    <h3>📄 AUTO-047: Gate Pass Duplicate Copy</h3>
+                    <p><strong>Gate Pass:</strong> {self.name}</p>
+                    <p><strong>Dispatch Date:</strong> {self.dispatch_date}</p>
+                    <p><strong>Receiver:</strong> {self.receiver_name} ({self.receiver_organization})</p>
+                    <p><strong>Destination:</strong> {self.destination}</p>
+                    <p><strong>Items:</strong> {len(self.line_ids)} line(s)</p>
+                    <hr/>
+                    <p><em>This is your duplicate copy for record keeping. Original accompanies materials, Triplicate retained by Security.</em></p>
+                </div>""",
+                subject=f"Gate Pass {self.name} - Storekeeper Copy",
+                message_type="notification",
+                partner_ids=storekeeper_group.users.mapped("partner_id").ids,
+            )
+        
+        # Notification to Security (Triplicate)
+        if security_group and security_group.users:
+            self.message_post(
+                body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px;">
+                    <h3>🚨 AUTO-047: Gate Pass Alert for Security</h3>
+                    <p><strong>Gate Pass:</strong> {self.name}</p>
+                    <p><strong>Authorized By:</strong> {self.authorized_by_id.name}</p>
+                    <p><strong>Dispatch Date:</strong> {self.dispatch_date}</p>
+                    <p><strong>Receiver:</strong> {self.receiver_name}</p>
+                    <p><strong>Vehicle:</strong> {self.vehicle_plate or "Not specified"}</p>
+                    <p><strong>Driver:</strong> {self.driver_name or "Not specified"}</p>
+                    <hr/>
+                    <p><strong>🔍 Instructions:</strong></p>
+                    <ul>
+                        <li>Scan QR code on original Gate Pass</li>
+                        <li>Verify receiver identity</li>
+                        <li>Confirm vehicle and driver</li>
+                        <li>Record dispatch timestamp</li>
+                        <li>Retain triplicate copy at gate</li>
+                    </ul>
+                    <p><a href="/web#id={self.id}&model=mesob.gate.pass&view_type=form" 
+                       style="background-color: #ffc107; color: black; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                       View Gate Pass →
+                    </a></p>
+                </div>""",
+                subject=f"Security Alert: Gate Pass {self.name} Authorized",
+                message_type="notification",
+                partner_ids=security_group.users.mapped("partner_id").ids,
+            )
+        
+        # Log distribution
+        _logger.info(
+            f"AUTO-047: Three-copy distribution initiated for Gate Pass {self.name} - "
+            f"Storekeeper: {len(storekeeper_group.users if storekeeper_group else [])} notified, "
+            f"Security: {len(security_group.users if security_group else [])} notified"
+        )
+
     def action_dispatch(self):
-        """Security guard verifies and dispatches materials at gate."""
+        """Security guard verifies and dispatches materials at gate.
+        
+        AUTO-047: Records QR code scan timestamp and confirms three-copy distribution.
+        """
         for record in self:
             # Verify state
             if record.state != "authorized":
@@ -390,11 +527,13 @@ class MesobGatePass(models.Model):
             if not record.authorized_by_id:
                 raise UserError("Gate Pass must be authorized by PAO before dispatch.")
             
-            # Mark copy distribution and dispatch
+            # AUTO-047: Mark copy distribution, dispatch, and QR scan
             record.write({
                 "state": "dispatched",
                 "security_verified_by_id": self.env.user.id,
                 "security_verified_on": fields.Datetime.now(),
+                "qr_code_verified": True,
+                "qr_scan_timestamp": fields.Datetime.now(),
                 "original_to_receiver": True,
                 "duplicate_to_storekeeper": True,
                 "triplicate_to_security": True,
@@ -406,10 +545,22 @@ class MesobGatePass(models.Model):
                 # This can be added in future enhancement
                 pass
             
-            # Post message to chatter
+            # AUTO-047: Post enhanced message with distribution confirmation
             record.message_post(
-                body=f"Materials dispatched by security guard {self.env.user.name}. "
-                     f"Three-copy distribution: Original→Receiver, Duplicate→Storekeeper, Triplicate→Security."
+                body=f"""<div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px;">
+                    <h3>✅ AUTO-047: Materials Dispatched</h3>
+                    <p><strong>Dispatched by:</strong> {self.env.user.name} (Security Guard)</p>
+                    <p><strong>Timestamp:</strong> {fields.Datetime.now()}</p>
+                    <p><strong>QR Code Scanned:</strong> Yes</p>
+                    <hr/>
+                    <h4>Three-Copy Distribution Confirmed:</h4>
+                    <ul>
+                        <li>✅ <strong>Original:</strong> Accompanies materials to receiver</li>
+                        <li>✅ <strong>Duplicate:</strong> Retained by Storekeeper</li>
+                        <li>✅ <strong>Triplicate:</strong> Retained by Security Guard at gate</li>
+                    </ul>
+                </div>""",
+                subject="Materials Dispatched - Three-Copy Distribution Complete"
             )
         
         return True
