@@ -181,6 +181,12 @@
               action="action_mesob_procurement_complaint"
               sequence="60"/>
 
+    <menuitem id="menu_mesob_budget_allocation"
+              name="Budget Allocations"
+              parent="menu_mesob_procurement"
+              action="action_mesob_budget_allocation"
+              sequence="15"/>
+
     <!-- ── Master Data ────────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_master_data"
               name="Master Data"

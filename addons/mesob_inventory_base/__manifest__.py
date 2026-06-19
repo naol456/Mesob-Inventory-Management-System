@@ -75,7 +75,7 @@
         "views/mesob_inventory_dashboard_views.xml",
         # Login customization
         "views/mesob_login_template.xml",
-        # Menus
+        # Menus (load after all actions are defined)
         "views/mesob_inventory_menus.xml",
         # Wizards
         "wizard/mesob_inventory_issue_receipt_wizard_views.xml",
