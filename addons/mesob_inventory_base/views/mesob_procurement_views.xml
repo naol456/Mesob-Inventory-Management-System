@@ -284,6 +284,12 @@
                     <button name="action_advertise" string="Advertise Tender" type="object" class="oe_highlight" invisible="state != 'spec_approved'"/>
                     <button name="action_open_bids" string="Open Bids Publicly" type="object" class="oe_highlight" invisible="state != 'advertised'"/>
                     <button name="action_evaluate" string="Evaluate &amp; Compute Rank" type="object" class="oe_highlight" invisible="state != 'opened'"/>
+                    <!-- AUTO-016: Award recommendation button -->
+                    <button name="action_generate_award_recommendation" string="Generate Award Recommendation" type="object" class="oe_highlight" invisible="state != 'evaluated'"/>
+                    <!-- AUTO-010: Download complete bidding pack -->
+                    <button name="action_download_bidding_pack" string="Download Bidding Pack" type="object" invisible="state == 'draft'"/>
+                    <!-- AUTO-013: RFQ exception button -->
+                    <button name="action_request_rfq_exception" string="Request RFQ Exception" type="object" invisible="procurement_method != 'rfq' or state != 'opened' or rfq_exception_approved_by"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,spec_approved,advertised,opened,evaluated,closed"/>
                 </header>
                 <sheet>
@@ -303,13 +309,26 @@
                     <group>
                         <group>
                             <field name="lot_id" readonly="state != 'draft'"/>
+                            <field name="procurement_method" readonly="1" widget="badge"/>
+                            <field name="minimum_advertising_days" readonly="1"/>
                             <field name="spec_status" readonly="1"/>
                         </group>
                         <group>
                             <field name="advertisement_date" readonly="state not in ['draft', 'spec_approved']"/>
                             <field name="submission_deadline" readonly="state not in ['draft', 'spec_approved']"/>
+                            <!-- AUTO-011: Deadline extension fields -->
+                            <field name="deadline_extension_approved_by" readonly="1" invisible="not deadline_extension_approved_by"/>
+                            <field name="deadline_extension_approved_date" readonly="1" invisible="not deadline_extension_approved_date"/>
                         </group>
                     </group>
+                    
+                    <!-- AUTO-011: Request deadline extension button -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_request_deadline_extension" type="object" 
+                                class="oe_stat_button" icon="fa-calendar-check-o"
+                                string="Request Deadline Extension"
+                                invisible="state not in ['draft', 'spec_approved'] or deadline_extension_approved_by"/>
+                    </div>
                     <notebook>
                         <page string="Technical Specifications (FR-PROC-009)" name="specs">
                             <field name="technical_specifications" placeholder="Quality characteristics, performances..." readonly="state != 'draft'"/>
@@ -320,13 +339,35 @@
                                     <field name="supplier_id"/>
                                     <field name="bid_price"/>
                                     <field name="local_content"/>
+                                    <field name="submission_timestamp" readonly="1"/>
+                                    <field name="is_late" readonly="1"/>
                                     <field name="preliminary_passed"/>
-                                    <field name="technical_score"/>
-                                    <field name="financial_score"/>
                                     <field name="evaluated_price" readonly="1"/>
+                                    <field name="evaluated_rank" readonly="1"/>
                                     <field name="ranking" readonly="1"/>
+                                    <!-- AUTO-014: Evaluation checklist button -->
+                                    <button name="action_generate_evaluation_checklist" type="object" 
+                                            string="Generate Checklist" icon="fa-check-square-o"
+                                            invisible="has_evaluation_checklist"/>
                                 </list>
                             </field>
+                        </page>
+                        <!-- AUTO-013: RFQ Exception Tab -->
+                        <page string="RFQ Exception (AUTO-013)" name="rfq_exception" invisible="procurement_method != 'rfq'">
+                            <group>
+                                <group>
+                                    <field name="valid_bid_count" readonly="1"/>
+                                    <field name="rfq_minimum_violation" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="rfq_exception_approved_by" readonly="1"/>
+                                    <field name="rfq_exception_approved_date" readonly="1"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="rfq_justification" placeholder="Provide detailed justification for proceeding with fewer than 3 quotations..." 
+                                       readonly="rfq_exception_approved_by"/>
+                            </group>
                         </page>
                         <page string="Public Opening Minutes (FR-PROC-015)" name="opening">
                             <group>
