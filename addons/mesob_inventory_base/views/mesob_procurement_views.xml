@@ -86,6 +86,14 @@
                                     <field name="mechanism"/>
                                     <field name="budget" sum="Total Budget"/>
                                     <field name="state"/>
+                                    <!-- AUTO-022: Generate PO Button -->
+                                    <button name="action_generate_purchase_order" 
+                                            string="Generate PO" 
+                                            type="object"
+                                            icon="fa-file-text-o"
+                                            invisible="state not in ('approved', 'tender', 'rfq')"
+                                            class="btn-primary"
+                                            help="AUTO-022: Auto-generate draft Purchase Order from this approved lot"/>
                                 </list>
                             </field>
                         </page>

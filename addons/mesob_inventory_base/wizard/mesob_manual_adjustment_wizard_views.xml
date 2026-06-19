@@ -9,7 +9,7 @@
         <field name="arch" type="xml">
             <form string="Manual Stock Adjustment">
                 <group>
-                    <group string="Item & Location">
+                    <group string="Item &amp; Location">
                         <field name="sub_classification_id" options="{'no_create': True}"/>
                         <field name="major_classification_id" readonly="1"/>
                         <field name="location"/>
@@ -22,8 +22,8 @@
                         <field name="physical_count" class="fw-bold text-success"/>
                         <field name="adjustment_quantity" readonly="1" 
                                class="fw-bold"
-                               decoration-success="adjustment_quantity > 0"
-                               decoration-danger="adjustment_quantity < 0"/>
+                               decoration-success="adjustment_quantity &gt; 0"
+                               decoration-danger="adjustment_quantity &lt; 0"/>
                         <field name="adjustment_type" readonly="1" widget="badge"
                                decoration-success="adjustment_type == 'increase'"
                                decoration-danger="adjustment_type == 'decrease'"/>
