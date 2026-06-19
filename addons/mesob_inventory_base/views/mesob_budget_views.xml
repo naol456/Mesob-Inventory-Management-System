@@ -178,16 +178,5 @@
             </p>
         </field>
     </record>
-    
-    <!-- Menu Item - Commented out due to loading order issue -->
-    <!-- The parent menu 'menu_mesob_procurement' must be loaded first -->
-    <!--
-    <menuitem 
-        id="menu_mesob_budget_allocation" 
-        name="Budget Allocations" 
-        parent="menu_mesob_procurement" 
-        action="action_mesob_budget_allocation" 
-        sequence="15"/>
-    -->
 
 </odoo>
