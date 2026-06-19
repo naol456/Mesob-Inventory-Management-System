@@ -1,18 +1,69 @@
-omesticreferencealculationgrupgrouptslowst_evluadr_iderderidnamevla_pricernk"/>
-                                </is>
-                            </fil>
-                        </ag>
-                   </notbok</sheet>
-</form>
-/d>
-    </recor>
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ==================== AUTO-015: DOMESTIC PREFERENCE CALCULATION ==================== -->
+    <record id="view_mesob_domestic_preference_calc_tree" model="ir.ui.view">
+        <field name="name">mesob.domestic.preference.calculation.tree</field>
+        <field name="model">mesob.domestic.preference.calculation</field>
+        <field name="arch" type="xml">
+            <list string="Domestic Preference Calculations">
+                <field name="name"/>
+                <field name="tender_ref"/>
+                <field name="date"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
 
-   <rcord idctio_mesob_domestic_prefeenc_calculti" modeir.actions.act_window <fieldname="name">DomesticPreferenceCalculator</field>
-<fieldname="res_model">mesob.domestic.preference.calculation</field>
-<fieldname="view_mode">list,form</field>
-record
+    <record id="view_mesob_domestic_preference_calc_form" model="ir.ui.view">
+        <field name="name">mesob.domestic.preference.calculation.form</field>
+        <field name="model">mesob.domestic.preference.calculation</field>
+        <field name="arch" type="xml">
+            <form string="Domestic Preference Calculation">
+                <header>
+                    <button name="action_calculate" string="Calculate" type="object" 
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_validate" string="Validate" type="object" 
+                            class="oe_highlight" invisible="state != 'calculated'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,calculated,validated"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="tender_ref"/>
+                        </group>
+                        <group>
+                            <field name="date"/>
+                            <field name="total_bidders"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Bidders" name="bidders">
+                            <field name="calculation_line_ids">
+                                <list editable="bottom">
+                                    <field name="bidder_id"/>
+                                    <field name="bidder_name"/>
+                                    <field name="bid_price"/>
+                                    <field name="local_content_percentage"/>
+                                    <field name="preference_percentage"/>
+                                    <field name="evaluated_price"/>
+                                    <field name="rank"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
 
-    <!-- AUTO-030: Liquidated Damages Calculation -->
+    <record id="action_mesob_domestic_preference_calculation" model="ir.actions.act_window">
+        <field name="name">Domestic Preference Calculator</field>
+        <field name="res_model">mesob.domestic.preference.calculation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ==================== AUTO-030: LIQUIDATED DAMAGES CALCULATION ==================== -->
     <record id="view_mesob_liquidated_damages_calc_tree" model="ir.ui.view">
         <field name="name">mesob.liquidated.damages.calculation.tree</field>
         <field name="model">mesob.liquidated.damages.calculation</field>
@@ -34,8 +85,10 @@ record
         <field name="arch" type="xml">
             <form string="Liquidated Damages">
                 <header>
-                    <button name="action_calculate" string="Calculate" type="object" class="oe_highlight" invisible="state != 'draft'"/>
-                    <button name="action_approve" string="Approve" type="object" class="oe_highlight" invisible="state != 'calculated'"/>
+                    <button name="action_calculate" string="Calculate" type="object" 
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_approve" string="Approve" type="object" 
+                            class="oe_highlight" invisible="state != 'calculated'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,calculated,approved,deducted"/>
                 </header>
                 <sheet>
@@ -51,7 +104,6 @@ record
                             <field name="actual_delivery_date"/>
                             <field name="delay_days"/>
                             <field name="ld_capped_amount"/>
-                            <field name="is_capped"/>
                         </group>
                     </group>
                 </sheet>
@@ -65,8 +117,7 @@ record
         <field name="view_mode">list,form</field>
     </record>
 
-
-    <!-- AUTO-031: Price Adjustment Calculation -->
+    <!-- ==================== AUTO-031: PRICE ADJUSTMENT CALCULATION ==================== -->
     <record id="view_mesob_price_adjustment_calc_tree" model="ir.ui.view">
         <field name="name">mesob.price.adjustment.calculation.tree</field>
         <field name="model">mesob.price.adjustment.calculation</field>
@@ -87,8 +138,10 @@ record
         <field name="arch" type="xml">
             <form string="Price Adjustment">
                 <header>
-                    <button name="action_calculate" string="Calculate" type="object" class="oe_highlight" invisible="state != 'draft'"/>
-                    <button name="action_approve" string="Approve" type="object" class="oe_highlight" invisible="state != 'calculated'"/>
+                    <button name="action_calculate" string="Calculate" type="object" 
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_approve" string="Approve" type="object" 
+                            class="oe_highlight" invisible="state != 'calculated'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,calculated,approved,applied"/>
                 </header>
                 <sheet>
@@ -132,7 +185,7 @@ record
         <field name="view_mode">list,form</field>
     </record>
 
-    <!-- AUTO-009: Supplier Performance (res.partner enhancement) -->
+    <!-- ==================== AUTO-009: SUPPLIER PERFORMANCE ==================== -->
     <record id="view_res_partner_supplier_performance_form" model="ir.ui.view">
         <field name="name">res.partner.supplier.performance.form</field>
         <field name="model">res.partner</field>
@@ -150,7 +203,8 @@ record
                             <field name="performance_score"/>
                             <field name="performance_rating"/>
                             <field name="last_performance_update"/>
-                            <button name="action_refresh_performance_score" string="Refresh Score" type="object" class="oe_highlight"/>
+                            <button name="action_refresh_performance_score" string="Refresh Score" 
+                                    type="object" class="oe_highlight"/>
                         </group>
                     </group>
                 </page>
