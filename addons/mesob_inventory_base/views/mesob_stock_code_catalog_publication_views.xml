@@ -7,7 +7,7 @@
         <field name="name">mesob.stock.code.catalog.publication.tree</field>
         <field name="model">mesob.stock.code.catalog.publication</field>
         <field name="arch" type="xml">
-            <tree string="Stock Code Catalog Publications" decoration-success="state=='published'" decoration-muted="state in ['superseded', 'amended']">
+            <list string="Stock Code Catalog Publications" decoration-success="state=='published'" decoration-muted="state in ['superseded', 'amended']">
                 <field name="display_name"/>
                 <field name="version"/>
                 <field name="fiscal_year"/>
@@ -15,7 +15,7 @@
                 <field name="item_count"/>
                 <field name="classification_count"/>
                 <field name="state" widget="badge" decoration-success="state=='published'" decoration-warning="state=='draft'" decoration-info="state=='amended'" decoration-muted="state=='superseded'"/>
-            </tree>
+            </list>
         </field>
     </record>
     

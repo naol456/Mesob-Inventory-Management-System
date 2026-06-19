@@ -73,7 +73,8 @@
         "views/mesob_inventory_menus.xml",
         "views/mesob_budget_views.xml",
         "views/mesob_procurement_views.xml",
-        "views/mesob_stock_code_catalog_publication_views.xml",
+        # TODO: Fix stock code catalog publication views - model not loaded
+        # "views/mesob_stock_code_catalog_publication_views.xml",
         "views/mesob_stock_taking_handover_views.xml",
         "views/mesob_storage_security_views.xml",
         "views/mesob_inventory_dashboard_views.xml",
@@ -82,8 +83,9 @@
         # Wizards
         "wizard/mesob_inventory_issue_receipt_wizard_views.xml",
         "wizard/mesob_abc_classification_wizard_views.xml",
-        "wizard/mesob_fiscal_year_valuation_wizard_views.xml",
-        "wizard/mesob_requisition_stock_alert_wizard_views.xml",
+        # TODO: Fix wizard views - models not loaded
+        # "wizard/mesob_fiscal_year_valuation_wizard_views.xml",
+        # "wizard/mesob_requisition_stock_alert_wizard_views.xml",
         "wizard/mesob_procurement_need_reject_wizard_views.xml",
         "wizard/mesob_intelligent_consolidation_wizard_views.xml",
         # Reports
