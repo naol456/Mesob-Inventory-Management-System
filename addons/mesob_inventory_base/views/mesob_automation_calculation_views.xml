@@ -103,7 +103,7 @@
                 <field name="name"/>
                 <field name="contract_ref"/>
                 <field name="supplier_id"/>
-                <field name="delay_days" decoration-danger="delay_days > 10"/>
+                <field name="delay_days" decoration-danger="delay_days &gt; 10"/>
                 <field name="damages_amount"/>
                 <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'calculated'" decoration-warning="state == 'approved'"/>
             </list>
@@ -193,7 +193,7 @@
                 <field name="name"/>
                 <field name="contract_ref"/>
                 <field name="supplier_id"/>
-                <field name="adjustment_amount" decoration-danger="adjustment_amount > 0" decoration-success="adjustment_amount < 0"/>
+                <field name="adjustment_amount" decoration-danger="adjustment_amount &gt; 0" decoration-success="adjustment_amount &lt; 0"/>
                 <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'calculated'" decoration-warning="state == 'approved'"/>
             </list>
         </field>
@@ -404,7 +404,7 @@
                 <field name="name"/>
                 <field name="period_month"/>
                 <field name="period_year"/>
-                <field name="accuracy_rate" widget="progressbar" decoration-success="accuracy_rate >= 95" decoration-warning="accuracy_rate >= 85 and accuracy_rate < 95" decoration-danger="accuracy_rate < 85"/>
+                <field name="accuracy_rate" widget="progressbar" decoration-success="accuracy_rate &gt;= 95" decoration-warning="accuracy_rate &gt;= 85 and accuracy_rate &lt; 95" decoration-danger="accuracy_rate &lt; 85"/>
                 <field name="trend" widget="badge" decoration-success="trend == 'improving'" decoration-info="trend == 'stable'" decoration-danger="trend == 'declining'"/>
             </list>
         </field>
