@@ -185,31 +185,196 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <!-- ==================== AUTO-009: SUPPLIER PERFORMANCE ==================== -->
-    <record id="view_res_partner_supplier_performance_form" model="ir.ui.view">
-        <field name="name">res.partner.supplier.performance.form</field>
-        <field name="model">res.partner</field>
-        <field name="inherit_id" ref="base.view_partner_form"/>
+    <!-- ==================== AUTO-035: PROCUREMENT-STOCK RECONCILIATION ==================== -->
+    <record id="view_mesob_procurement_stock_reconciliation_tree" model="ir.ui.view">
+        <field name="name">mesob.procurement.stock.reconciliation.tree</field>
+        <field name="model">mesob.procurement.stock.reconciliation</field>
         <field name="arch" type="xml">
-            <xpath expr="//page[@name='internal_notes']" position="after">
-                <page string="Supplier Performance" name="supplier_performance" invisible="supplier_rank == 0">
+            <list string="Procurement-Stock Reconciliation Reports">
+                <field name="name"/>
+                <field name="period_from"/>
+                <field name="period_to"/>
+                <field name="reconciliation_rate"/>
+                <field name="total_discrepancies"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_procurement_stock_reconciliation_form" model="ir.ui.view">
+        <field name="name">mesob.procurement.stock.reconciliation.form</field>
+        <field name="model">mesob.procurement.stock.reconciliation</field>
+        <field name="arch" type="xml">
+            <form string="Procurement-Stock Reconciliation">
+                <header>
+                    <button name="action_generate_report" string="Generate Report" type="object" 
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_pao_review" string="PAO Review" type="object" 
+                            class="oe_highlight" invisible="state != 'generated'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,generated,reviewed"/>
+                </header>
+                <sheet>
                     <group>
                         <group>
-                            <field name="on_time_delivery_rate" widget="percentage"/>
-                            <field name="dsr_rejection_rate" widget="percentage"/>
-                            <field name="complaint_count"/>
+                            <field name="name"/>
+                            <field name="report_date"/>
                         </group>
                         <group>
-                            <field name="performance_score"/>
-                            <field name="performance_rating"/>
-                            <field name="last_score_update"/>
-                            <button name="action_refresh_performance_score" string="Refresh Score" 
-                                    type="object" class="oe_highlight"/>
+                            <field name="period_from"/>
+                            <field name="period_to"/>
                         </group>
                     </group>
-                </page>
-            </xpath>
+                    <group string="Filters">
+                        <group>
+                            <field name="supplier_id"/>
+                        </group>
+                        <group>
+                            <field name="classification_id"/>
+                        </group>
+                    </group>
+                    <group string="Summary Statistics">
+                        <group>
+                            <field name="total_pos"/>
+                            <field name="total_reconciled"/>
+                            <field name="total_discrepancies"/>
+                        </group>
+                        <group>
+                            <field name="reconciliation_rate"/>
+                            <field name="quantity_gap_count"/>
+                            <field name="cost_gap_count"/>
+                            <field name="payment_gap_count"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Report" name="report">
+                            <field name="reconciliation_report" widget="html"/>
+                        </page>
+                        <page string="Reconciliation Lines" name="lines">
+                            <field name="reconciliation_line_ids">
+                                <list>
+                                    <field name="po_reference"/>
+                                    <field name="item_code"/>
+                                    <field name="item_name"/>
+                                    <field name="po_quantity"/>
+                                    <field name="model19_quantity"/>
+                                    <field name="stock_record_quantity"/>
+                                    <field name="payment_quantity"/>
+                                    <field name="is_fully_reconciled"/>
+                                    <field name="has_quantity_gap"/>
+                                    <field name="has_cost_gap"/>
+                                    <field name="has_payment_gap"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
         </field>
+    </record>
+
+    <record id="action_mesob_procurement_stock_reconciliation" model="ir.actions.act_window">
+        <field name="name">Procurement-Stock Reconciliation</field>
+        <field name="res_model">mesob.procurement.stock.reconciliation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ==================== AUTO-055: STOCK ACCURACY SCORECARD ==================== -->
+    <record id="view_mesob_stock_accuracy_scorecard_tree" model="ir.ui.view">
+        <field name="name">mesob.stock.accuracy.scorecard.tree</field>
+        <field name="model">mesob.stock.accuracy.scorecard</field>
+        <field name="arch" type="xml">
+            <list string="Stock Accuracy Scorecards">
+                <field name="name"/>
+                <field name="period_month"/>
+                <field name="period_year"/>
+                <field name="accuracy_score"/>
+                <field name="accuracy_rating"/>
+                <field name="trend_direction"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_stock_accuracy_scorecard_form" model="ir.ui.view">
+        <field name="name">mesob.stock.accuracy.scorecard.form</field>
+        <field name="model">mesob.stock.accuracy.scorecard</field>
+        <field name="arch" type="xml">
+            <form string="Stock Accuracy Scorecard">
+                <header>
+                    <button name="action_calculate_scorecard" string="Calculate Scorecard" type="object" 
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_pao_review" string="PAO Review" type="object" 
+                            class="oe_highlight" invisible="state != 'calculated'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,calculated,reviewed"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="scorecard_date"/>
+                        </group>
+                        <group>
+                            <field name="period_month"/>
+                            <field name="period_year"/>
+                        </group>
+                    </group>
+                    <group string="Filters">
+                        <group>
+                            <field name="classification_id"/>
+                        </group>
+                        <group>
+                            <field name="location"/>
+                        </group>
+                    </group>
+                    <group string="Accuracy Metrics">
+                        <group>
+                            <field name="total_items_counted"/>
+                            <field name="items_accurate"/>
+                            <field name="items_with_variance"/>
+                        </group>
+                        <group>
+                            <field name="accuracy_score"/>
+                            <field name="accuracy_rating"/>
+                            <field name="total_variance_value"/>
+                        </group>
+                    </group>
+                    <group string="Trend Analysis">
+                        <group>
+                            <field name="previous_month_score"/>
+                            <field name="trend_change"/>
+                        </group>
+                        <group>
+                            <field name="trend_direction"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Scorecard Report" name="report">
+                            <field name="scorecard_report" widget="html"/>
+                        </page>
+                        <page string="Accuracy Lines" name="lines">
+                            <field name="accuracy_line_ids">
+                                <list>
+                                    <field name="item_code"/>
+                                    <field name="item_name"/>
+                                    <field name="system_quantity"/>
+                                    <field name="physical_quantity"/>
+                                    <field name="variance_quantity"/>
+                                    <field name="variance_percentage"/>
+                                    <field name="variance_value"/>
+                                    <field name="is_accurate"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mesob_stock_accuracy_scorecard" model="ir.actions.act_window">
+        <field name="name">Stock Accuracy Scorecard</field>
+        <field name="res_model">mesob.stock.accuracy.scorecard</field>
+        <field name="view_mode">list,form</field>
     </record>
 
 </odoo>
