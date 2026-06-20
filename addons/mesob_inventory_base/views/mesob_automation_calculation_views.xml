@@ -202,7 +202,7 @@
                         <group>
                             <field name="performance_score"/>
                             <field name="performance_rating"/>
-                            <field name="last_performance_update"/>
+                            <field name="last_score_update"/>
                             <button name="action_refresh_performance_score" string="Refresh Score" 
                                     type="object" class="oe_highlight"/>
                         </group>
