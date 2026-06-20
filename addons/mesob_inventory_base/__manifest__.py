@@ -1,6 +1,6 @@
 {
     "name": "Mesob Inventory Management System",
-    "version": "19.0.1.5.0",
+    "version": "19.0.1.7.0",
     "category": "Inventory/Inventory",
     "summary": "FDRE Mesob Center - Complete inventory management system with "
                "classifications (4401–4418), requisitions, receiving, inspection, "
@@ -49,6 +49,7 @@
         "data/mesob_procurement_sequences.xml",
         "data/mesob_payment_validation_sequence.xml",
         "data/mesob_catalog_publication_sequence.xml",
+        "data/mesob_automation_calculation_sequences.xml",
         "data/mesob_overdue_po_cron.xml",
         "data/mesob_auto_reorder_cron.xml",
         # Company data
@@ -69,10 +70,11 @@
         "views/mesob_bin_card_views.xml",
         "views/mesob_stock_record_card_views.xml",
         "views/mesob_stock_reorder_alert_views.xml",
-        # Menus (must be loaded before views that reference menu parents)
-        "views/mesob_inventory_menus.xml",
         "views/mesob_budget_views.xml",
         "views/mesob_procurement_views.xml",
+        "views/mesob_automation_calculation_views.xml",
+        # Menus (must be loaded AFTER views that define actions)
+        "views/mesob_inventory_menus.xml",
         # TODO: Fix stock code catalog publication views - model not loaded
         # "views/mesob_stock_code_catalog_publication_views.xml",
         "views/mesob_stock_taking_handover_views.xml",

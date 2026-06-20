@@ -195,6 +195,47 @@
               action="action_mesob_budget_allocation"
               sequence="15"/>
 
+    <!-- ── Automation Calculators (Lelisa Features) ──────────────────── -->
+    <menuitem id="menu_mesob_automation_calculators"
+              name="Automation Calculators"
+              parent="menu_mesob_procurement"
+              sequence="65"/>
+
+    <menuitem id="menu_mesob_domestic_preference_calc"
+              name="Domestic Preference (AUTO-015)"
+              parent="menu_mesob_automation_calculators"
+              action="action_mesob_domestic_preference_calculation"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_procurement"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_liquidated_damages_calc"
+              name="Liquidated Damages (AUTO-030)"
+              parent="menu_mesob_automation_calculators"
+              action="action_mesob_liquidated_damages_calculation"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_procurement"
+              sequence="20"/>
+
+    <menuitem id="menu_mesob_price_adjustment_calc"
+              name="Price Adjustment (AUTO-031)"
+              parent="menu_mesob_automation_calculators"
+              action="action_mesob_price_adjustment_calculation"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_procurement"
+              sequence="30"/>
+
+    <menuitem id="menu_mesob_procurement_stock_reconciliation"
+              name="Procurement-Stock Reconciliation (AUTO-035)"
+              parent="menu_mesob_automation_calculators"
+              action="action_mesob_procurement_stock_reconciliation"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_stock_clerk"
+              sequence="40"/>
+
+    <menuitem id="menu_mesob_stock_accuracy_scorecard"
+              name="Stock Accuracy Scorecard (AUTO-055)"
+              parent="menu_mesob_automation_calculators"
+              action="action_mesob_stock_accuracy_scorecard"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_stock_clerk"
+              sequence="50"/>
+
     <!-- ── Master Data ────────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_master_data"
               name="Master Data"
