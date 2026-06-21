@@ -194,3 +194,60 @@
 **Developer**: Kiro AI
 **Assigned To**: Debela
 **Project**: Mesob Inventory Management System v19.0
+
+
+---
+
+### ✅ AUTO-063: Reorder Alert with Outstanding Delivery Check
+**Status**: ✅ COMPLETED
+**Files Modified**:
+- `models/mesob_stock_reorder_alert.py` - Enhanced with smart delivery check
+
+**Features Added**:
+1. `has_outstanding_delivery` - Boolean flag for open POs
+2. `earliest_expected_delivery` - Date of earliest PO delivery
+3. `should_create_new_order` - Smart recommendation based on lead time
+4. `lead_time_days` - Item lead time for comparison
+5. `_compute_outstanding_delivery()` - Calculate outstanding PO status
+6. `_compute_should_create_order()` - Smart logic:
+   - No outstanding PO → CREATE ORDER
+   - Outstanding PO within lead time → DON'T CREATE (alert only)
+   - Outstanding PO beyond lead time → CREATE ORDER
+7. Enhanced `action_acknowledge()` - Smart acknowledgment messages
+8. Enhanced `action_create_requisition()` - Duplicate order prevention
+9. Enhanced `_cron_check_stock_levels()` - Smart alert generation with 3 types:
+   - **Urgent** (red): No outstanding delivery found
+   - **Warning** (yellow): Outstanding delivery exists but beyond lead time
+   - **Info** (blue): Outstanding delivery within lead time, no action needed
+10. Duplicate order prevention tracking and logging
+
+**SRS Requirements Met**:
+- FR-SC-003: Reorder action with intelligence
+- FR-PROC-029: Integration with procurement
+- BR-PROC-009: Duplicate order prevention (implied)
+
+**Business Impact**:
+- **Prevents Duplicate Orders**: System blocks requisition if PO exists within lead time
+- **Smart Notifications**: Three-tier alert system (Urgent/Warning/Info)
+- **Lead Time Intelligence**: Automatic calculation based on expected delivery vs lead time
+- **Cost Savings**: Eliminates unnecessary duplicate orders and inventory carrying costs
+- **Improved Visibility**: Clear status of outstanding deliveries at a glance
+
+**Testing**:
+1. Create reorder alert for item with outstanding PO (delivery in 5 days, lead time 30 days)
+   - System shows "No action needed" message
+   - Prevents requisition creation
+2. Create reorder alert for item with outstanding PO (delivery in 60 days, lead time 30 days)
+   - System shows "Create new order" warning
+   - Allows requisition creation
+3. Create reorder alert for item with no outstanding PO
+   - System shows "Urgent" alert
+   - Recommends immediate requisition
+
+---
+
+## Summary
+
+**Total Tasks**: 14/14 ✅ **ALL COMPLETED**
+
+Updated: Added AUTO-063 on June 19, 2026
