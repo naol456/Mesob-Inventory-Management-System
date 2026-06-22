@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AUTO-046: PAO Emergency Override Wizard Views -->
+<odoo>
+    
+    <!-- PAO Emergency Override Wizard Form -->
+    <record id="view_mesob_gate_pass_override_wizard_form" model="ir.ui.view">
+        <field name="name">mesob.gate.pass.override.wizard.form</field>
+        <field name="model">mesob.gate.pass.override.wizard</field>
+        <field name="arch" type="xml">
+            <form string="PAO Emergency Override">
+                <group>
+                    <field name="gate_pass_id" readonly="1"/>
+                </group>
+                
+                <separator string="⚠️ EMERGENCY OVERRIDE WARNING"/>
+                
+                <div class="alert alert-warning" role="alert">
+                    <p><strong>This action bypasses prerequisite validation for Gate Pass.</strong></p>
+                    <p>Use only in genuine emergencies where immediate dispatch is critical.</p>
+                    <p>This override will be logged and audited.</p>
+                </div>
+                
+                <group>
+                    <field name="confirm_emergency" required="1"/>
+                </group>
+                
+                <group string="Justification (Required)">
+                    <field name="override_reason" 
+                           placeholder="Explain why this emergency override is necessary. Example: Urgent medical supply dispatch for patient emergency..."
+                           nolabel="1"
+                           required="1"/>
+                </group>
+                
+                <footer>
+                    <button name="action_grant_override" 
+                            string="Grant Emergency Override" 
+                            type="object" 
+                            class="btn-danger"/>
+                    <button string="Cancel" 
+                            class="btn-secondary" 
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+</odoo>

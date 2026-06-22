@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Task 12: Dashboard KPI Cron Job -->
+<odoo>
+    <data noupdate="1">
+        
+        <!-- Cron Job: Refresh Dashboard KPIs Daily -->
+        <record id="ir_cron_refresh_dashboard_kpis" model="ir.cron">
+            <field name="name">Mesob: Refresh Dashboard KPIs</field>
+            <field name="model_id" ref="model_mesob_dashboard_kpi"/>
+            <field name="state">code</field>
+            <field name="code">model.refresh_all_kpis()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+            <field name="user_id" ref="base.user_admin"/>
+        </record>
+        
+    </data>
+</odoo>

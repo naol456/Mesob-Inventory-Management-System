@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Task 7: Push Notification System - Activity Types -->
+<odoo>
+    
+    <!-- Activity Type: Requisition Approval -->
+    <record id="mesob_activity_requisition_approval" model="mail.activity.type">
+        <field name="name">Requisition Approval</field>
+        <field name="summary">Review and approve requisition</field>
+        <field name="category">default</field>
+        <field name="icon">fa-file-text</field>
+        <field name="delay_count">1</field>
+        <field name="delay_unit">days</field>
+        <field name="res_model">mesob.inventory.requisition</field>
+    </record>
+    
+    <!-- Activity Type: Purchase Order Approval -->
+    <record id="mesob_activity_po_approval" model="mail.activity.type">
+        <field name="name">Purchase Order Approval</field>
+        <field name="summary">Review and approve purchase order</field>
+        <field name="category">default</field>
+        <field name="icon">fa-shopping-cart</field>
+        <field name="delay_count">2</field>
+        <field name="delay_unit">days</field>
+        <field name="res_model">mesob.procurement.order</field>
+    </record>
+    
+    <!-- Activity Type: Gate Pass Authorization -->
+    <record id="mesob_activity_gate_pass_authorization" model="mail.activity.type">
+        <field name="name">Gate Pass Authorization</field>
+        <field name="summary">Authorize gate pass for dispatch</field>
+        <field name="category">default</field>
+        <field name="icon">fa-unlock</field>
+        <field name="delay_count">1</field>
+        <field name="delay_unit">days</field>
+        <field name="res_model">mesob.gate.pass</field>
+    </record>
+    
+    <!-- Activity Type: Stock Reorder Alert -->
+    <record id="mesob_activity_reorder_alert" model="mail.activity.type">
+        <field name="name">Stock Reorder Alert</field>
+        <field name="summary">Stock below reorder level - action required</field>
+        <field name="category">default</field>
+        <field name="icon">fa-exclamation-triangle</field>
+        <field name="delay_count">1</field>
+        <field name="delay_unit">days</field>
+        <field name="res_model">mesob.stock.reorder.alert</field>
+    </record>
+    
+    <!-- Activity Type: Overdue PO Alert -->
+    <record id="mesob_activity_po_overdue" model="mail.activity.type">
+        <field name="name">Overdue Purchase Order</field>
+        <field name="summary">Follow up on overdue purchase order</field>
+        <field name="category">default</field>
+        <field name="icon">fa-clock-o</field>
+        <field name="delay_count">1</field>
+        <field name="delay_unit">days</field>
+        <field name="res_model">mesob.procurement.order</field>
+    </record>
+    
+    <!-- Activity Type: Manual Adjustment Approval -->
+    <record id="mesob_activity_manual_adjustment_approval" model="mail.activity.type">
+        <field name="name">Manual Stock Adjustment Approval</field>
+        <field name="summary">Approve manual stock adjustment</field>
+        <field name="category">default</field>
+        <field name="icon">fa-balance-scale</field>
+        <field name="delay_count">1</field>
+        <field name="delay_unit">days</field>
+        <field name="res_model">mesob.bin.card</field>
+    </record>
+    
+</odoo>

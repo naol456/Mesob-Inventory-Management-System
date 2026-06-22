@@ -32,7 +32,7 @@ class MesobInventoryRequisition(models.Model):
 
     _name = "mesob.inventory.requisition"
     _description = "Stores Requisition (Model 20)"
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'mesob.notification.mixin', 'mesob.signable.mixin']  # Task 7: notification, Task 11: digital signature
     _order = "requested_on desc, id desc"
 
     name = fields.Char(
@@ -195,6 +195,15 @@ class MesobInventoryRequisition(models.Model):
     )
 
     note = fields.Text(string="Internal Notes")
+    
+    # ── Task 9: QR Code for Requisition Identification ─────────────────
+    
+    qr_code = fields.Binary(
+        string="Requisition QR Code",
+        compute="_compute_qr_code",
+        store=True,
+        help="Task 9: QR code for requisition identification - encodes requisition number"
+    )
 
     # ── Computed Fields ─────────────────────────────────────────────────
 
@@ -202,6 +211,48 @@ class MesobInventoryRequisition(models.Model):
     def _compute_issue_voucher_count(self):
         for record in self:
             record.issue_voucher_count = len(record.issue_voucher_ids)
+    
+    @api.depends("name", "state")
+    def _compute_qr_code(self):
+        """Task 9: Generate QR code for requisition identification.
+        
+        QR code contains: Requisition number + Department + Requested date
+        Used for: Tracking, Issue Voucher linking, Stock-taking
+        """
+        try:
+            import qrcode
+            import base64
+            from io import BytesIO
+            import logging
+            _logger = logging.getLogger(__name__)
+        except ImportError:
+            # QR code library not installed
+            for record in self:
+                record.qr_code = False
+            return
+        
+        for record in self:
+            if record.name and record.name != "New":
+                # Generate QR code data
+                dept_label = dict(record._fields['department'].selection).get(record.department, 'Unknown')
+                qr_data = f"MESOB-REQ:{record.name}|DEPT:{dept_label}|DATE:{record.requested_on}"
+                
+                # Create QR code
+                qr = qrcode.QRCode(version=1, box_size=10, border=4)
+                qr.add_data(qr_data)
+                qr.make(fit=True)
+                
+                img = qr.make_image(fill_color="black", back_color="white")
+                
+                # Convert to binary
+                buffer = BytesIO()
+                img.save(buffer, format="PNG")
+                qr_code_binary = base64.b64encode(buffer.getvalue())
+                
+                record.qr_code = qr_code_binary
+                _logger.debug(f"Task 9: Generated QR code for requisition {record.name}")
+            else:
+                record.qr_code = False
     
     @api.depends('requested_by_id')
     def _compute_requester_role(self):
@@ -224,30 +275,29 @@ class MesobInventoryRequisition(models.Model):
 
     @api.model
     def get_view(self, view_id=None, view_type="form", **options):
-        """Hide New button for PAO and Storekeeper on both list and form views.
+        """Hide New button for operational roles even if they also have Inventory User group.
+        
+        Priority-based logic:
+        1. If user is PAO, Storekeeper, or Stock Clerk → HIDE create (even if also Inventory User)
+        2. Only if user is PURELY Inventory User → SHOW create
+        
+        This handles cases where PAO might also have Inventory User group assigned.
 
-        Only staff (group_mesob_inventory_user) may create requisitions.
-
-        - list view:  create="0" removes the toolbar New button.
-        - form view:  create="0" removes the New button in the breadcrumb
-                      pager (the one visible when browsing an existing record).
-
-        Uses lxml to safely set the attribute on the root node instead of
-        fragile string replacement.
+        Covers: kanban, list, form views
         """
         result = super().get_view(view_id, view_type, **options)
 
-        if view_type in ("list", "form"):
+        if view_type in ("kanban", "list", "form"):
             user = self.env.user
+            
+            # Check operational roles FIRST (these should NOT create)
             is_pao = user.has_group("mesob_inventory_base.group_mesob_pao")
-            is_storekeeper = user.has_group(
-                "mesob_inventory_base.group_mesob_storekeeper"
-            )
-            is_stock_clerk = user.has_group(
-                "mesob_inventory_base.group_mesob_stock_clerk"
-            )
-
-            if is_pao or is_storekeeper or is_stock_clerk:
+            is_storekeeper = user.has_group("mesob_inventory_base.group_mesob_storekeeper")
+            is_stock_clerk = user.has_group("mesob_inventory_base.group_mesob_stock_clerk")
+            is_auditor = user.has_group("mesob_inventory_base.group_mesob_auditor")
+            
+            # If user has ANY operational role, hide create button (even if they also have inventory_user)
+            if is_pao or is_storekeeper or is_stock_clerk or is_auditor:
                 arch = result.get("arch", "")
                 if isinstance(arch, str):
                     arch = arch.encode("utf-8")
@@ -340,7 +390,10 @@ class MesobInventoryRequisition(models.Model):
         return unauthorized_items
     
     def _notify_pao_new_requisition(self):
-        """AUTO-042: Send notification to PAO of new requisition submission."""
+        """AUTO-042: Send notification to PAO of new requisition submission.
+        
+        Task 7: Enhanced with activity notification for real-time alerts.
+        """
         self.ensure_one()
         
         # Get PAO users
@@ -359,7 +412,18 @@ class MesobInventoryRequisition(models.Model):
                 items_html += f'<li>{line.major_classification_id.name if line.major_classification_id else "Unknown"}: Qty {line.quantity}</li>'
         items_html += '</ul>'
         
-        # Send notification
+        # Task 7: Schedule activity for PAO users
+        self._schedule_activity(
+            activity_code='mesob_activity_requisition_approval',
+            user_ids=pao_group.users.ids,
+            summary=f'Requisition Approval Required: {self.name}',
+            note=f"""<p><strong>Department:</strong> {dept_label}</p>
+                <p><strong>Requested by:</strong> {self.requested_by_id.name}</p>
+                <p><strong>Items:</strong> {len(self.line_ids)}</p>
+                <p><strong>Purpose:</strong> {self.purpose or 'Not specified'}</p>""",
+        )
+        
+        # Send chatter notification (for audit trail)
         self.message_post(
             body=f"""<div style="background-color: #d1ecf1; border-left: 4px solid #0c5460; padding: 15px;">
                 <h3>📝 AUTO-042: New Requisition Submitted</h3>
@@ -411,6 +475,7 @@ class MesobInventoryRequisition(models.Model):
         """PAO approves the requisition (FR-ISSUE-002).
         
         AUTO-043: Enhanced with stock availability alert before approval.
+        Task 7: Mark notification activity as done.
         """
         for record in self:
             if record.state != "submitted":
@@ -441,6 +506,20 @@ class MesobInventoryRequisition(models.Model):
             record.approved_by_id = self.env.user
             record.approved_on = fields.Date.today()
             record.state = "approved"
+            
+            # Task 11: Create digital signature for PAO approval
+            record.action_create_digital_signature(
+                signature_type='approval',
+                reason=f'PAO Approval of Requisition {record.name}'
+            )
+            
+            # Task 7: Mark approval activity as done
+            activity_type = record._get_activity_type('mesob_activity_requisition_approval')
+            activities = record.activity_ids.filtered(
+                lambda a: a.activity_type_id == activity_type and a.user_id == self.env.user
+            )
+            if activities:
+                activities.action_done()
         
         return True
     

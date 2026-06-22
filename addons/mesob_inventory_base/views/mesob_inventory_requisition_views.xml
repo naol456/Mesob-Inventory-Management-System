@@ -117,7 +117,27 @@
                             <field name="issue_voucher_count" widget="statinfo" 
                                    string="Issue Vouchers"/>
                         </button>
+                        <!-- Task 11: Digital Signature Button -->
+                        <button name="action_view_signatures" type="object"
+                                class="oe_stat_button" icon="fa-certificate"
+                                invisible="signature_count == 0">
+                            <field name="signature_count" widget="statinfo" string="Signatures"/>
+                        </button>
                     </div>
+                    
+                    <!-- Task 11: Digital Signature Status Banner -->
+                    <div class="alert alert-success" role="alert" invisible="not is_digitally_signed">
+                        <strong>🖊️ Digitally Signed</strong> - This document is protected by digital signature.
+                        <button name="action_verify_signatures" type="object" class="btn btn-sm btn-link">Verify</button>
+                    </div>
+                    
+                    <!-- Task 11: Signature fields (invisible but needed for compute) -->
+                    <field name="signature_ids" invisible="1"/>
+                    <field name="is_digitally_signed" invisible="1"/>
+                    <field name="latest_signature_id" invisible="1"/>
+                    
+                    <!-- Task 9: QR Code Display -->
+                    <field name="qr_code" widget="image" class="oe_avatar" invisible="not qr_code"/>
                     
                     <!-- Premium Corporate Form Header: Centered Letterhead with Symmetrical Split -->
                     <div class="mesob_corporate_header">
