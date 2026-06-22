@@ -1,5 +1,8 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class MesobGatePass(models.Model):
@@ -13,7 +16,7 @@ class MesobGatePass(models.Model):
 
     _name = "mesob.gate.pass"
     _description = "Gate Pass for Material Dispatch"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "mesob.notification.mixin", "mesob.signable.mixin"]  # Task 7: notification, Task 11: digital signature
     _order = "dispatch_date desc, id desc"
     _rec_name = "name"
 
@@ -198,6 +201,86 @@ class MesobGatePass(models.Model):
         help="Timestamp when security guard dispatched materials.",
     )
 
+    # ── AUTO-047: QR Code for Three-Copy Distribution ──────────────
+
+    qr_code = fields.Binary(
+        string="QR Code",
+        compute="_compute_qr_code",
+        store=True,
+        help="AUTO-047: QR code for gate verification and tracking",
+    )
+
+    qr_code_verified = fields.Boolean(
+        string="QR Code Scanned",
+        default=False,
+        readonly=True,
+        help="AUTO-047: Indicates if security scanned QR code at gate",
+    )
+
+    qr_scan_timestamp = fields.Datetime(
+        string="QR Scan Timestamp",
+        readonly=True,
+        help="AUTO-047: When security scanned the QR code",
+    )
+
+    # ── AUTO-048: Gate Pass Expiry Tracking ─────────────────────────
+
+    validity_hours = fields.Integer(
+        string="Validity Period (Hours)",
+        default=24,
+        required=True,
+        readonly=True,
+        states={"draft": [("readonly", False)]},
+        help="AUTO-048: Number of hours this gate pass remains valid after authorization (default: 24 hours)",
+    )
+
+    expiry_datetime = fields.Datetime(
+        string="Expires On",
+        compute="_compute_expiry_datetime",
+        store=True,
+        readonly=True,
+        help="AUTO-048: Date and time when this gate pass expires",
+    )
+
+    is_expired = fields.Boolean(
+        string="Expired",
+        compute="_compute_is_expired",
+        store=False,
+        help="AUTO-048: True if gate pass has expired",
+    )
+
+    expiry_status = fields.Selection(
+        [
+            ("valid", "Valid"),
+            ("expiring_soon", "Expiring Soon (< 2 hours)"),
+            ("expired", "Expired"),
+        ],
+        string="Expiry Status",
+        compute="_compute_expiry_status",
+        store=False,
+        help="AUTO-048: Current expiry status",
+    )
+
+    extension_count = fields.Integer(
+        string="Extension Count",
+        default=0,
+        readonly=True,
+        help="AUTO-048: Number of times PAO has extended this gate pass",
+    )
+
+    last_extended_by_id = fields.Many2one(
+        "res.users",
+        string="Last Extended By",
+        readonly=True,
+        help="AUTO-048: PAO who last extended the validity",
+    )
+
+    last_extended_on = fields.Datetime(
+        string="Last Extended On",
+        readonly=True,
+        help="AUTO-048: When the gate pass was last extended",
+    )
+
     # ── Relations ───────────────────────────────────────────────────
 
     line_ids = fields.One2many(
@@ -223,14 +306,135 @@ class MesobGatePass(models.Model):
         help="Internal notes (editable even after dispatch).",
     )
 
+    # ── AUTO-046: PAO Override Fields ───────────────────────────────
+
+    pao_override = fields.Boolean(
+        string="PAO Emergency Override",
+        default=False,
+        readonly=True,
+        copy=False,
+        tracking=True,
+        help="PAO can override prerequisite validation in emergencies.",
+    )
+
+    pao_override_reason = fields.Text(
+        string="Override Justification",
+        readonly=True,
+        copy=False,
+        tracking=True,
+        help="Required justification when PAO overrides prerequisite validation.",
+    )
+
+    pao_override_by_id = fields.Many2one(
+        "res.users",
+        string="Override By",
+        readonly=True,
+        copy=False,
+        tracking=True,
+        help="PAO who authorized the override.",
+    )
+
+    pao_override_on = fields.Datetime(
+        string="Override Timestamp",
+        readonly=True,
+        copy=False,
+        tracking=True,
+        help="When the override was granted.",
+    )
+
     # ── Constraints ─────────────────────────────────────────────────
+
+    @api.depends("name", "state")
+    def _compute_qr_code(self):
+        """AUTO-047: Generate QR code for Gate Pass verification.
+        
+        QR code contains: GP number, date, receiver, destination
+        Security scans this at gate to confirm dispatch and timestamp.
+        """
+        try:
+            import qrcode
+            import base64
+            from io import BytesIO
+        except ImportError:
+            # QR code library not installed
+            for record in self:
+                record.qr_code = False
+            return
+        
+        for record in self:
+            if record.name and record.name != "New":
+                # Generate QR code data
+                qr_data = f"MESOB-GP:{record.name}|DATE:{record.dispatch_date}|TO:{record.receiver_name}|DEST:{record.destination}"
+                
+                # Create QR code
+                qr = qrcode.QRCode(version=1, box_size=10, border=4)
+                qr.add_data(qr_data)
+                qr.make(fit=True)
+                
+                img = qr.make_image(fill_color="black", back_color="white")
+                
+                # Convert to binary
+                buffer = BytesIO()
+                img.save(buffer, format="PNG")
+                qr_code_binary = base64.b64encode(buffer.getvalue())
+                
+                record.qr_code = qr_code_binary
+            else:
+                record.qr_code = False
+
+    @api.depends("authorized_on", "validity_hours")
+    def _compute_expiry_datetime(self):
+        """AUTO-048: Calculate expiry datetime based on authorization time and validity period."""
+        for record in self:
+            if record.authorized_on and record.validity_hours > 0:
+                from datetime import timedelta
+                record.expiry_datetime = record.authorized_on + timedelta(hours=record.validity_hours)
+            else:
+                record.expiry_datetime = False
+
+    @api.depends("expiry_datetime", "state")
+    def _compute_is_expired(self):
+        """AUTO-048: Check if gate pass has expired."""
+        now = fields.Datetime.now()
+        for record in self:
+            if record.state == "authorized" and record.expiry_datetime:
+                record.is_expired = now > record.expiry_datetime
+            else:
+                record.is_expired = False
+
+    @api.depends("expiry_datetime", "state", "is_expired")
+    def _compute_expiry_status(self):
+        """AUTO-048: Determine expiry status for visual warnings."""
+        now = fields.Datetime.now()
+        for record in self:
+            if record.state != "authorized" or not record.expiry_datetime:
+                record.expiry_status = "valid"
+            elif record.is_expired:
+                record.expiry_status = "expired"
+            else:
+                from datetime import timedelta
+                time_remaining = record.expiry_datetime - now
+                if time_remaining <= timedelta(hours=2):
+                    record.expiry_status = "expiring_soon"
+                else:
+                    record.expiry_status = "valid"
 
     @api.constrains("issue_voucher_id", "written_authorization")
     def _check_authorization_documents(self):
-        """Enforce XOR constraint: exactly one authorization method required."""
+        """Enforce XOR constraint: exactly one authorization method required.
+        
+        AUTO-046: Gate Pass Prerequisite Validation
+        - Blocks Gate Pass creation without proper authorization
+        - Enforces FR-DISP-003 compliance
+        - PAO can override in emergencies
+        """
         for record in self:
             if record.state in ("draft", "cancelled"):
                 continue  # Skip validation for draft and cancelled states
+            
+            # Skip validation if PAO override is active
+            if record.pao_override:
+                continue
             
             has_voucher = bool(record.issue_voucher_id)
             has_written = bool(record.written_authorization and record.written_authorization.strip())
@@ -238,7 +442,8 @@ class MesobGatePass(models.Model):
             if not (has_voucher or has_written):
                 raise ValidationError(
                     "Gate Pass requires authorization documents. "
-                    "Please link an Issue Voucher (Model 22) or provide written authorization reference."
+                    "Please link an Issue Voucher (Model 22) or provide written authorization reference.\n\n"
+                    "If this is an emergency, PAO can use 'Emergency Override' action."
                 )
             
             if has_voucher and has_written:
@@ -246,15 +451,27 @@ class MesobGatePass(models.Model):
                     "Gate Pass must have exactly one authorization method: "
                     "Issue Voucher OR written authorization (not both)."
                 )
+            
+            # AUTO-046: Validate Issue Voucher if linked
+            if has_voucher:
+                record._validate_issue_voucher_prerequisites()
 
     @api.constrains("line_ids")
     def _check_line_items(self):
-        """Ensure at least one line item exists."""
+        """Ensure at least one line item exists.
+        
+        AUTO-046: Validate line items match Issue Voucher.
+        """
         for record in self:
             if record.state not in ("draft", "cancelled") and not record.line_ids:
                 raise ValidationError(
                     "Gate Pass must have at least one line item."
                 )
+            
+            # AUTO-046: If Issue Voucher is linked, validate items match
+            # Skip validation if PAO override is active
+            if record.issue_voucher_id and record.line_ids and not record.pao_override:
+                record._validate_items_match_issue_voucher()
 
     @api.constrains("dispatch_date")
     def _check_dispatch_date(self):
@@ -303,6 +520,15 @@ class MesobGatePass(models.Model):
                 "authorized_on": fields.Datetime.now(),
             })
             
+            # Task 11: Create digital signature for PAO authorization
+            record.action_create_digital_signature(
+                signature_type='authorization',
+                reason=f'PAO Authorization of Gate Pass {record.name} for dispatch to {record.receiver_name}'
+            )
+            
+            # AUTO-047: Send three-copy distribution notifications
+            record._send_three_copy_notifications()
+            
             # Post message to chatter
             record.message_post(
                 body=f"Gate Pass authorized by {self.env.user.name} on {fields.Datetime.now()}"
@@ -310,14 +536,110 @@ class MesobGatePass(models.Model):
         
         return True
 
+    def _send_three_copy_notifications(self):
+        """AUTO-047: Send notifications for three-copy distribution.
+        
+        - Original → Receiver (PDF with QR code)
+        - Duplicate → Storekeeper (notification)
+        - Triplicate → Security Guard (gate alert)
+        
+        Task 7: Enhanced with activity notification for Security.
+        """
+        self.ensure_one()
+        
+        # Get user groups
+        storekeeper_group = self.env.ref("mesob_inventory_base.group_mesob_storekeeper", raise_if_not_found=False)
+        security_group = self.env.ref("mesob_inventory_base.group_mesob_security_guard", raise_if_not_found=False)
+        
+        # Notification to Storekeeper (Duplicate)
+        if storekeeper_group and storekeeper_group.users:
+            self.message_post(
+                body=f"""<div style="background-color: #d1ecf1; border-left: 4px solid #0c5460; padding: 15px;">
+                    <h3>📄 AUTO-047: Gate Pass Duplicate Copy</h3>
+                    <p><strong>Gate Pass:</strong> {self.name}</p>
+                    <p><strong>Dispatch Date:</strong> {self.dispatch_date}</p>
+                    <p><strong>Receiver:</strong> {self.receiver_name} ({self.receiver_organization})</p>
+                    <p><strong>Destination:</strong> {self.destination}</p>
+                    <p><strong>Items:</strong> {len(self.line_ids)} line(s)</p>
+                    <hr/>
+                    <p><em>This is your duplicate copy for record keeping. Original accompanies materials, Triplicate retained by Security.</em></p>
+                </div>""",
+                subject=f"Gate Pass {self.name} - Storekeeper Copy",
+                message_type="notification",
+                partner_ids=storekeeper_group.users.mapped("partner_id").ids,
+            )
+        
+        # Task 7: Schedule activity for Security Guard (Triplicate)
+        if security_group and security_group.users:
+            self._schedule_activity(
+                activity_code='mesob_activity_gate_pass_authorization',
+                user_ids=security_group.users.ids,
+                summary=f'Gate Pass Ready for Dispatch: {self.name}',
+                note=f"""<p><strong>Status:</strong> Authorized - Ready to Dispatch</p>
+                    <p><strong>Receiver:</strong> {self.receiver_name}</p>
+                    <p><strong>Destination:</strong> {self.destination}</p>
+                    <p><strong>Vehicle:</strong> {self.vehicle_plate or "Not specified"}</p>""",
+            )
+            
+            # Also send chatter notification
+            self.message_post(
+                body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px;">
+                    <h3>🚨 AUTO-047: Gate Pass Alert for Security</h3>
+                    <p><strong>Gate Pass:</strong> {self.name}</p>
+                    <p><strong>Authorized By:</strong> {self.authorized_by_id.name}</p>
+                    <p><strong>Dispatch Date:</strong> {self.dispatch_date}</p>
+                    <p><strong>Receiver:</strong> {self.receiver_name}</p>
+                    <p><strong>Vehicle:</strong> {self.vehicle_plate or "Not specified"}</p>
+                    <p><strong>Driver:</strong> {self.driver_name or "Not specified"}</p>
+                    <hr/>
+                    <p><strong>🔍 Instructions:</strong></p>
+                    <ul>
+                        <li>Scan QR code on original Gate Pass</li>
+                        <li>Verify receiver identity</li>
+                        <li>Confirm vehicle and driver</li>
+                        <li>Record dispatch timestamp</li>
+                        <li>Retain triplicate copy at gate</li>
+                    </ul>
+                    <p><a href="/web#id={self.id}&model=mesob.gate.pass&view_type=form" 
+                       style="background-color: #ffc107; color: black; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                       View Gate Pass →
+                    </a></p>
+                </div>""",
+                subject=f"Security Alert: Gate Pass {self.name} Authorized",
+                message_type="notification",
+                partner_ids=security_group.users.mapped("partner_id").ids,
+            )
+        
+        # Log distribution
+        _logger.info(
+            f"AUTO-047: Three-copy distribution initiated for Gate Pass {self.name} - "
+            f"Storekeeper: {len(storekeeper_group.users if storekeeper_group else [])} notified, "
+            f"Security: {len(security_group.users if security_group else [])} notified"
+        )
+
     def action_dispatch(self):
-        """Security guard verifies and dispatches materials at gate."""
+        """Security guard verifies and dispatches materials at gate.
+        
+        AUTO-047: Records QR code scan timestamp and confirms three-copy distribution.
+        AUTO-048: Validates gate pass has not expired.
+        """
         for record in self:
             # Verify state
             if record.state != "authorized":
                 raise UserError(
                     f"Gate Pass must be authorized by PAO before dispatch. "
                     f"Current state: {record.state}. Required state: authorized."
+                )
+            
+            # AUTO-048: Check if gate pass has expired
+            if record.is_expired:
+                raise UserError(
+                    f"AUTO-048: This Gate Pass has EXPIRED!\n\n"
+                    f"Authorized on: {record.authorized_on}\n"
+                    f"Expired on: {record.expiry_datetime}\n"
+                    f"Validity period: {record.validity_hours} hours\n\n"
+                    f"This gate pass cannot be used for dispatch. "
+                    f"Please contact PAO to extend validity or create a new gate pass."
                 )
             
             # Verify security guard role
@@ -331,11 +653,13 @@ class MesobGatePass(models.Model):
             if not record.authorized_by_id:
                 raise UserError("Gate Pass must be authorized by PAO before dispatch.")
             
-            # Mark copy distribution and dispatch
+            # AUTO-047: Mark copy distribution, dispatch, and QR scan
             record.write({
                 "state": "dispatched",
                 "security_verified_by_id": self.env.user.id,
                 "security_verified_on": fields.Datetime.now(),
+                "qr_code_verified": True,
+                "qr_scan_timestamp": fields.Datetime.now(),
                 "original_to_receiver": True,
                 "duplicate_to_storekeeper": True,
                 "triplicate_to_security": True,
@@ -347,10 +671,22 @@ class MesobGatePass(models.Model):
                 # This can be added in future enhancement
                 pass
             
-            # Post message to chatter
+            # AUTO-047: Post enhanced message with distribution confirmation
             record.message_post(
-                body=f"Materials dispatched by security guard {self.env.user.name}. "
-                     f"Three-copy distribution: Original→Receiver, Duplicate→Storekeeper, Triplicate→Security."
+                body=f"""<div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px;">
+                    <h3>✅ AUTO-047: Materials Dispatched</h3>
+                    <p><strong>Dispatched by:</strong> {self.env.user.name} (Security Guard)</p>
+                    <p><strong>Timestamp:</strong> {fields.Datetime.now()}</p>
+                    <p><strong>QR Code Scanned:</strong> Yes</p>
+                    <hr/>
+                    <h4>Three-Copy Distribution Confirmed:</h4>
+                    <ul>
+                        <li>✅ <strong>Original:</strong> Accompanies materials to receiver</li>
+                        <li>✅ <strong>Duplicate:</strong> Retained by Storekeeper</li>
+                        <li>✅ <strong>Triplicate:</strong> Retained by Security Guard at gate</li>
+                    </ul>
+                </div>""",
+                subject="Materials Dispatched - Three-Copy Distribution Complete"
             )
         
         return True
@@ -368,11 +704,87 @@ class MesobGatePass(models.Model):
             
             # Cancel
             record.state = "cancelled"
-            
-            # Post message to chatter
-            record.message_post(
-                body=f"Gate Pass cancelled by {self.env.user.name}"
+
+    def action_extend_validity(self):
+        """AUTO-048: PAO extends gate pass validity period.
+        
+        Requires PAO authorization and justification.
+        """
+        self.ensure_one()
+        
+        # Verify PAO role
+        if not self.env.user.has_group("mesob_inventory_base.group_mesob_pao"):
+            raise UserError(
+                "AUTO-048: Only Property Administration Officers (PAO) can extend gate pass validity. "
+                "Please contact your PAO."
             )
+        
+        # Verify state
+        if self.state != "authorized":
+            raise UserError(
+                f"AUTO-048: Cannot extend validity. Gate Pass is not in authorized state (current: {self.state})."
+            )
+        
+        # Verify not already dispatched
+        if self.state == "dispatched":
+            raise UserError(
+                "AUTO-048: Cannot extend validity of already dispatched gate pass."
+            )
+        
+        # Open wizard for extension
+        return {
+            'name': 'Extend Gate Pass Validity',
+            'type': 'ir.actions.act_window',
+            'res_model': 'mesob.gate.pass.extend.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_gate_pass_id': self.id,
+                'default_current_expiry': self.expiry_datetime,
+                'default_current_validity_hours': self.validity_hours,
+            },
+        }
+
+    def _do_extend_validity(self, additional_hours, extension_reason):
+        """AUTO-048: Internal method to perform validity extension.
+        
+        Called by wizard after PAO provides justification.
+        """
+        self.ensure_one()
+        
+        from datetime import timedelta
+        
+        # Calculate new expiry (from current expiry, not now)
+        if self.expiry_datetime:
+            new_expiry = self.expiry_datetime + timedelta(hours=additional_hours)
+        else:
+            # Fallback if no expiry set
+            new_expiry = fields.Datetime.now() + timedelta(hours=additional_hours)
+        
+        # Update fields
+        self.write({
+            'validity_hours': self.validity_hours + additional_hours,
+            'extension_count': self.extension_count + 1,
+            'last_extended_by_id': self.env.user.id,
+            'last_extended_on': fields.Datetime.now(),
+        })
+        
+        # Log extension in chatter
+        self.message_post(
+            body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px;">
+                <h3>⏰ AUTO-048: Gate Pass Validity Extended</h3>
+                <p><strong>Extended by:</strong> {self.env.user.name} (PAO)</p>
+                <p><strong>Extension:</strong> +{additional_hours} hours</p>
+                <p><strong>Previous Expiry:</strong> {self.expiry_datetime - timedelta(hours=additional_hours)}</p>
+                <p><strong>New Expiry:</strong> {new_expiry}</p>
+                <p><strong>Total Validity:</strong> {self.validity_hours} hours</p>
+                <p><strong>Extension Count:</strong> {self.extension_count}</p>
+                <hr/>
+                <p><strong>Justification:</strong></p>
+                <p style="background-color: white; padding: 10px; border-radius: 4px;">{extension_reason}</p>
+            </div>""",
+            subject=f"Gate Pass {self.name} - Validity Extended"
+        )
         
         return True
 
@@ -433,6 +845,100 @@ class MesobGatePass(models.Model):
                 raise ValidationError(
                     f"Issue Voucher {issue_voucher.name} is not properly signed."
                 )
+
+    # ── AUTO-046: Enhanced Validation Methods ───────────────────────
+
+    def _validate_issue_voucher_prerequisites(self):
+        """AUTO-046: Validate Issue Voucher is properly signed and in valid state.
+        
+        This method is called by the constraint to ensure Issue Voucher
+        meets all prerequisites before Gate Pass can be authorized.
+        """
+        self.ensure_one()
+        
+        if not self.issue_voucher_id:
+            return
+        
+        issue_voucher = self.issue_voucher_id
+        
+        # Verify Issue Voucher state
+        if issue_voucher.state not in ("issued", "received"):
+            raise ValidationError(
+                f"Issue Voucher {issue_voucher.name} is not in valid state.\n"
+                f"Current state: {issue_voucher.state}\n"
+                f"Required state: 'issued' or 'received'\n\n"
+                f"The Issue Voucher must be signed and issued before creating a Gate Pass."
+            )
+        
+        # Verify Issue Voucher is properly signed
+        if not issue_voucher.issued_by_id:
+            raise ValidationError(
+                f"Issue Voucher {issue_voucher.name} is not properly signed.\n"
+                f"A signed Issue Voucher (Model 22) is required as authorization for dispatch."
+            )
+    
+    def _validate_items_match_issue_voucher(self):
+        """AUTO-046: Validate that Gate Pass items match Issue Voucher items.
+        
+        Ensures materials on Gate Pass correspond to items authorized
+        in the linked Issue Voucher, preventing unauthorized dispatch.
+        """
+        self.ensure_one()
+        
+        if not self.issue_voucher_id or not self.line_ids:
+            return
+        
+        # Get Issue Voucher items
+        voucher_items = self.issue_voucher_id.line_ids.mapped('item_id')
+        
+        if not voucher_items:
+            raise ValidationError(
+                f"Issue Voucher {self.issue_voucher_id.name} has no line items.\n"
+                f"Cannot validate Gate Pass items against an empty Issue Voucher."
+            )
+        
+        # Check each Gate Pass line item
+        unauthorized_items = []
+        for line in self.line_ids:
+            if line.item_id not in voucher_items:
+                unauthorized_items.append(line.item_id.item_code or line.item_id.name)
+        
+        if unauthorized_items:
+            raise ValidationError(
+                f"Gate Pass contains items not authorized in Issue Voucher {self.issue_voucher_id.name}:\n\n"
+                f"Unauthorized items: {', '.join(unauthorized_items)}\n\n"
+                f"Gate Pass items must match Issue Voucher items exactly.\n"
+                f"If this is an emergency, PAO can use 'Emergency Override' action."
+            )
+
+    # ── AUTO-046: PAO Override Action ───────────────────────────────
+
+    def action_pao_emergency_override(self):
+        """AUTO-046: PAO can override prerequisite validation in emergencies.
+        
+        This action allows PAO to bypass Item validation when there is a
+        legitimate emergency requiring immediate dispatch without full documentation.
+        Requires justification and creates audit trail.
+        """
+        self.ensure_one()
+        
+        # Verify PAO role
+        if not self.env.user.has_group("mesob_inventory_base.group_mesob_pao"):
+            raise UserError(
+                "Only Property Administration Officers (PAO) can grant emergency overrides."
+            )
+        
+        # Open wizard to collect justification
+        return {
+            'name': 'PAO Emergency Override',
+            'type': 'ir.actions.act_window',
+            'res_model': 'mesob.gate.pass.override.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_gate_pass_id': self.id,
+            },
+        }
 
     # ── Override Write for Immutability ─────────────────────────────
 

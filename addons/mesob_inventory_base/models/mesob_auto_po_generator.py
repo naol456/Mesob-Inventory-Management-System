@@ -26,16 +26,30 @@ class MesobAutoPOGenerator(models.AbstractModel):
             lot_id: mesob.procurement.plan.lot ID
         
         Returns:
-            PO record or False
+            PO record or action dict
         """
-        lot = self.env['mesob.procurement.plan.lot'].browse(lot_id)
+        Lot = self.env['mesob.procurement.plan.lot']
+        lot = Lot.browse(lot_id)
         
         if not lot.exists():
+            _logger.warning(f"AUTO-022: Lot ID {lot_id} not found")
             return False
         
-        # TODO: Implement when procurement.order model exists
-        _logger.info(f"AUTO-022: PO generation requested for lot {lot.name}")
-        return False
+        # Verify lot is in appropriate state
+        if lot.state not in ('approved', 'tender', 'rfq'):
+            raise UserError(
+                _(f"Lot {lot.name} must be approved before generating PO.\n"
+                  f"Current state: {lot.state}")
+            )
+        
+        # Call the lot's action to generate PO
+        try:
+            result = lot.action_generate_purchase_order()
+            _logger.info(f"AUTO-022: Successfully generated PO from lot {lot.name}")
+            return result
+        except Exception as e:
+            _logger.error(f"AUTO-022: Failed to generate PO from lot {lot.name}: {str(e)}")
+            raise
     
     @api.model
     def check_reorder_levels_and_generate_requisitions(self):

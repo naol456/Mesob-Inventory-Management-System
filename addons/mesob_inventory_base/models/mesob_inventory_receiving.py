@@ -210,7 +210,7 @@ class MesobInventoryReceiving(models.Model):
 
     @api.onchange("purchase_order_ref")
     def _onchange_purchase_order_ref(self):
-        """Auto-populate supplier and lines when selecting an approved/sent Purchase Order."""
+        """AUTO-039: Auto-populate supplier, inspection type, and checklist from approved PO (FR-REC-003)."""
         if self.purchase_order_ref:
             # Query the approved/sent PO in procurement (FR-PROC-027/FR-PROC-030)
             po = self.env["mesob.procurement.order"].search([
@@ -220,6 +220,18 @@ class MesobInventoryReceiving(models.Model):
             if po:
                 self.supplier_id = po.supplier_id
                 self.inspection_type = po.inspection_type
+                
+                # AUTO-039: Get technical specifications from linked tender/lot if available
+                quality_specs = ""
+                if po.plan_lot_id:
+                    # Search for tender/contract linked to this lot
+                    tender = self.env['mesob.procurement.tender'].search([
+                        ('lot_id', '=', po.plan_lot_id.id),
+                        ('state', 'in', ['evaluated', 'awarded'])
+                    ], limit=1)
+                    
+                    if tender and tender.technical_specifications:
+                        quality_specs = tender.technical_specifications
                 
                 # Auto-generate receiving lines matching the PO lines
                 new_lines = []
@@ -244,12 +256,29 @@ class MesobInventoryReceiving(models.Model):
                         "description": line.description or (line.item_id.name if line.item_id else ""),
                         "qty_expected": line.quantity,
                         "qty_received": line.quantity,  # pre-fill received qty as same
-                        "unit_price": line.price_unit,
+                        "unit_price": line.landed_cost_unit,  # AUTO-052: Use landed cost for FIFO valuation
+                        # AUTO-039: Auto-populate quality specs and checklist
+                        "quality_specifications": quality_specs,
+                        "check_quantity_match": False,  # Storekeeper must tick manually
+                        "check_quality_standard": False,
+                        "check_packaging_intact": False,
+                        "check_documentation_complete": False,
+                        "check_expiry_date": False,
                     }
                     new_lines.append((0, 0, line_vals))
                 
                 # Assign the list to line_ids
                 self.line_ids = new_lines
+                
+                # Log AUTO-039 action
+                _logger.info(
+                    f"AUTO-039: Inspection checklist auto-populated for PO {po.name} - "
+                    f"{len(new_lines)} items, Quality specs: {'Yes' if quality_specs else 'N/A'}"
+                )
+                
+                _logger.info(
+                    f"AUTO-052: Landed cost auto-populated from PO {po.name} for accurate FIFO valuation (FR-VAL-002)"
+                )
     
     # ── Actions ────────────────────────────────────────────────────
 

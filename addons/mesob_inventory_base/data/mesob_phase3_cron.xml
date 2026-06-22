@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- AUTO-033: Daily SLA escalation check for overdue complaints -->
+    <record id="cron_complaint_sla_escalation" model="ir.cron">
+        <field name="name">AUTO-033: Complaint SLA Escalation Check</field>
+        <field name="model_id" ref="model_mesob_procurement_complaint"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_check_sla_escalation()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <!-- AUTO-034: Daily dashboard refresh -->
+    <record id="cron_progress_dashboard_refresh" model="ir.cron">
+        <field name="name">AUTO-034: Progress Dashboard Refresh</field>
+        <field name="model_id" ref="model_mesob_procurement_progress_dashboard"/>
+        <field name="state">code</field>
+        <field name="code">model.action_refresh_dashboard()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

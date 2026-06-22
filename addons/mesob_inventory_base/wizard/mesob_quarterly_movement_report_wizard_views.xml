@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AUTO-054: Quarterly Movement Report Wizard Views -->
+<odoo>
+    
+    <!-- Quarterly Movement Report Wizard Form -->
+    <record id="view_mesob_quarterly_movement_report_wizard_form" model="ir.ui.view">
+        <field name="name">mesob.quarterly.movement.report.wizard.form</field>
+        <field name="model">mesob.quarterly.movement.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Quarterly Movement Report">
+                <group invisible="report_generated">
+                    <group string="Report Period">
+                        <field name="fiscal_year"/>
+                        <field name="quarter"/>
+                        <field name="classification_id" options="{'no_create': True}"/>
+                    </group>
+                    
+                    <group string="Analysis Options">
+                        <field name="include_dead_stock"/>
+                        <field name="include_slow_moving"/>
+                        <field name="include_dormant"/>
+                    </group>
+                </group>
+                
+                <div class="alert alert-info" role="alert" invisible="report_generated">
+                    <h5>AUTO-054: Quarterly Movement Report (FR-REP-002)</h5>
+                    <p>This report analyzes stock movement and identifies:</p>
+                    <ul>
+                        <li><strong>Dead Stock:</strong> Items with 0 issues in 12 months</li>
+                        <li><strong>Slow-Moving:</strong> Items with issues &lt; 25% average consumption</li>
+                        <li><strong>Dormant:</strong> Items with no movement in 6 months</li>
+                    </ul>
+                    <p>Items flagged will be recommended for disposal review per Section 4.11.</p>
+                </div>
+                
+                <group invisible="not report_generated">
+                    <field name="report_data" nolabel="1" widget="html"/>
+                </group>
+                
+                <footer>
+                    <button name="action_generate_report" 
+                            string="Generate Report" 
+                            type="object" 
+                            class="btn-primary"
+                            invisible="report_generated"/>
+                    <button name="action_export_excel" 
+                            string="Export to Excel" 
+                            type="object" 
+                            class="btn-success"
+                            invisible="not report_generated"/>
+                    <button string="Close" 
+                            class="btn-secondary" 
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Action to open wizard -->
+    <record id="action_mesob_quarterly_movement_report_wizard" model="ir.actions.act_window">
+        <field name="name">Quarterly Movement Report</field>
+        <field name="res_model">mesob.quarterly.movement.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    
+</odoo>
