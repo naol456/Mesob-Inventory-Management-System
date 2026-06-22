@@ -118,7 +118,6 @@
         <field name="res_model">mesob.intelligent.consolidation.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
-        <field name="binding_model_id" ref="model_mesob_procurement_plan"/>
         <field name="binding_view_types">form</field>
     </record>
 

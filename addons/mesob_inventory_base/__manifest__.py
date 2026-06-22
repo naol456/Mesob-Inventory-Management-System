@@ -81,21 +81,9 @@
         "views/mesob_procurement_views.xml",
         "views/mesob_procurement_phase3_views.xml",
         "views/mesob_automation_calculation_views.xml",
-        # Menus (must be loaded AFTER views that define actions)
-        "views/mesob_inventory_menus.xml",
-        # TODO: Fix stock code catalog publication views - model not loaded
-        # "views/mesob_stock_code_catalog_publication_views.xml",
-        "views/mesob_stock_taking_handover_views.xml",
-        "views/mesob_storage_security_views.xml",
-        "views/mesob_inventory_dashboard_views.xml",
-        # Login customization
-        "views/mesob_login_template.xml",
-        # Wizards
+        # Wizards (must be loaded BEFORE menus that reference them)
         "wizard/mesob_inventory_issue_receipt_wizard_views.xml",
         "wizard/mesob_abc_classification_wizard_views.xml",
-        # TODO: Fix wizard views - models not loaded
-        # "wizard/mesob_fiscal_year_valuation_wizard_views.xml",
-        # "wizard/mesob_requisition_stock_alert_wizard_views.xml",
         "wizard/mesob_procurement_need_reject_wizard_views.xml",
         "wizard/mesob_intelligent_consolidation_wizard_views.xml",
         "wizard/mesob_requisition_reject_wizard_views.xml",
@@ -106,6 +94,13 @@
         "wizard/mesob_gate_pass_extend_wizard_views.xml",  # AUTO-048
         "wizard/mesob_barcode_scanner_wizard_views.xml",  # Task 9
         "wizard/mesob_procurement_stock_reconciliation_wizard_views.xml",  # AUTO-035
+        # Menus (must be loaded AFTER views AND wizards that define actions)
+        "views/mesob_inventory_menus.xml",
+        "views/mesob_stock_taking_handover_views.xml",
+        "views/mesob_storage_security_views.xml",
+        "views/mesob_inventory_dashboard_views.xml",
+        # Login customization
+        "views/mesob_login_template.xml",
         # Notification preferences (Task 7)
         "views/mesob_notification_preference_views.xml",
         # Digital Signatures (Task 11)
