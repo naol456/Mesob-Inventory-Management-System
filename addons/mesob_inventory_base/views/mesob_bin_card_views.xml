@@ -89,6 +89,14 @@
         <field name="model">mesob.bin.card</field>
         <field name="arch" type="xml">
             <form string="Bin Card" class="o_mesob_gov_doc">
+                <!-- AUTO-050: Approval Header -->
+                <header invisible="transaction_type != 'adjustment' or not requires_approval">
+                    <button name="action_pao_approve" string="✓ Approve Adjustment" type="object"
+                            class="btn-success"
+                            invisible="state != 'draft'"
+                            groups="mesob_inventory_base.group_mesob_pao"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approved"/>
+                </header>
                 <sheet>
                     <!-- Smart Button -->
                     <div class="oe_button_box" name="button_box">
@@ -97,6 +105,9 @@
                             <field name="item_count" widget="statinfo" string="Items"/>
                         </button>
                     </div>
+                    
+                    <!-- Task 9: QR Code Display -->
+                    <field name="qr_code" widget="image" class="oe_avatar" invisible="not qr_code"/>
 
                     <!-- Premium Reusable Corporate Form Header -->
                     <div class="mesob_corporate_header">
@@ -135,6 +146,18 @@
                         <group string="Verification signatures" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
                             <field name="received_by_id" options="{'no_open': True, 'no_create': True}" class="mb-3"/>
                             <field name="verified_by_id" options="{'no_open': True, 'no_create': True}" class="mb-3"/>
+                        </group>
+                    </group>
+                    
+                    <!-- AUTO-050: Approval Information (for manual adjustments) -->
+                    <group class="mb-4" col="2" invisible="transaction_type != 'adjustment' or not requires_approval">
+                        <group string="⚠️ Manual Adjustment Approval" col="2" class="glass-card p-4 rounded shadow-sm border w-100 bg-warning bg-opacity-10">
+                            <field name="requires_approval" readonly="1" widget="boolean_toggle" class="mb-3"/>
+                            <field name="state" readonly="1" widget="badge" class="mb-3"/>
+                            <field name="adjustment_reason" readonly="1" class="mb-3"/>
+                            <field name="supporting_document" readonly="1" class="mb-3"/>
+                            <field name="approved_by_id" readonly="1" class="mb-3"/>
+                            <field name="approved_on" readonly="1" class="mb-3 font-monospace"/>
                         </group>
                     </group>
                     

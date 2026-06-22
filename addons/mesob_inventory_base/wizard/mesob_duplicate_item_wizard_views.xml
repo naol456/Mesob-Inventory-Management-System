@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AUTO-038: Duplicate Item Detection Wizard Views -->
+<odoo>
+    
+    <!-- Duplicate Item Wizard Form -->
+    <record id="view_mesob_duplicate_item_wizard_form" model="ir.ui.view">
+        <field name="name">mesob.duplicate.item.wizard.form</field>
+        <field name="model">mesob.duplicate.item.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Similar Items Found">
+                <div class="alert alert-warning" role="alert">
+                    <h4 class="alert-heading">⚠️ Similar Items Detected (AUTO-038)</h4>
+                    <p>
+                        <strong>BR-ID-001 Compliance:</strong> The system found <field name="similar_item_count"/> 
+                        existing item(s) with similar names in this classification.
+                    </p>
+                    <p>
+                        To avoid unnecessary item proliferation and maintain "like-with-like" grouping, 
+                        please review the similar items below.
+                    </p>
+                </div>
+                
+                <group>
+                    <group string="New Item You're Creating">
+                        <field name="item_name" readonly="1" class="fw-bold"/>
+                        <field name="classification_id" readonly="1"/>
+                    </group>
+                </group>
+                
+                <separator string="📋 Similar Existing Items"/>
+                
+                <field name="similar_item_ids" nolabel="1" mode="list">
+                    <list create="0" delete="0" edit="0">
+                        <field name="item_code" class="fw-bold font-monospace text-primary"/>
+                        <field name="name" class="fw-bold"/>
+                        <field name="classification_id"/>
+                        <field name="sub_classification_id"/>
+                        <field name="current_stock" optional="show"/>
+                        <button name="%(action_mesob_inventory_item)d" 
+                                string="View" 
+                                type="action"
+                                icon="fa-external-link"
+                                context="{'form_view_ref': 'view_mesob_inventory_item_form'}"/>
+                    </list>
+                </field>
+                
+                <separator string="Your Decision"/>
+                
+                <group>
+                    <field name="user_decision" widget="radio"/>
+                    <field name="selected_item_id" 
+                           invisible="user_decision != 'use_existing'"
+                           required="user_decision == 'use_existing'"
+                           options="{'no_create': True}"/>
+                </group>
+                
+                <div class="alert alert-info" role="alert" invisible="user_decision != 'create_new'">
+                    <p>
+                        <strong>Note:</strong> If you proceed with creating a new item, 
+                        this decision will be logged for audit purposes.
+                    </p>
+                </div>
+                
+                <footer>
+                    <button name="action_confirm" 
+                            string="Confirm Decision" 
+                            type="object" 
+                            class="btn-primary"/>
+                    <button string="Cancel" 
+                            class="btn-secondary" 
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+</odoo>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Task 9: QR/Barcode Scanner Wizard -->
+    
+    <record id="view_mesob_barcode_scanner_wizard_form" model="ir.ui.view">
+        <field name="name">mesob.barcode.scanner.wizard.form</field>
+        <field name="model">mesob.barcode.scanner.wizard</field>
+        <field name="arch" type="xml">
+            <form string="QR/Barcode Scanner">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <i class="fa fa-qrcode"/> QR/Barcode Scanner
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="scan_mode" widget="radio"/>
+                        </group>
+                        <group>
+                            <field name="scanned_code" 
+                                   placeholder="Scan QR code or enter item code, requisition number, location..."
+                                   widget="char"
+                                   class="oe_inline"/>
+                        </group>
+                    </group>
+                    
+                    <div class="alert alert-info" role="alert" style="margin-top: 15px;">
+                        <h4><i class="fa fa-info-circle"/> How to Use:</h4>
+                        <ul>
+                            <li><strong>Auto-Detect:</strong> Scans any MESOB QR code and opens the record</li>
+                            <li><strong>Item Lookup:</strong> Enter item code (e.g., 4402-001-001)</li>
+                            <li><strong>Requisition Lookup:</strong> Enter requisition number (e.g., REQ/2026/001)</li>
+                            <li><strong>Bin Location:</strong> Enter storage location (e.g., Shelf A-1)</li>
+                            <li><strong>Gate Pass:</strong> Enter gate pass number (e.g., GP/2026/001)</li>
+                        </ul>
+                    </div>
+                    
+                    <field name="result_message" invisible="1"/>
+                    <field name="found_record_model" invisible="1"/>
+                    <field name="found_record_id" invisible="1"/>
+                </sheet>
+                
+                <footer>
+                    <button name="action_scan" 
+                            string="Scan" 
+                            type="object" 
+                            class="btn-primary"/>
+                    <button string="Cancel" 
+                            special="cancel" 
+                            class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Action to open scanner wizard -->
+    <record id="action_mesob_barcode_scanner_wizard" model="ir.actions.act_window">
+        <field name="name">QR/Barcode Scanner</field>
+        <field name="res_model">mesob.barcode.scanner.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_mesob_barcode_scanner_wizard"/>
+    </record>
+    
+    <!-- Menu item for scanner -->
+    <menuitem id="menu_mesob_barcode_scanner"
+              name="QR Scanner"
+              parent="menu_mesob_inventory_root"
+              action="action_mesob_barcode_scanner_wizard"
+              sequence="5"
+              groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_security_guard"/>
+
+</odoo>
