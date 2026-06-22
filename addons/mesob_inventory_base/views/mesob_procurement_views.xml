@@ -292,6 +292,12 @@
                     <button name="action_advertise" string="Advertise Tender" type="object" class="oe_highlight" invisible="state != 'spec_approved'"/>
                     <button name="action_open_bids" string="Open Bids Publicly" type="object" class="oe_highlight" invisible="state != 'advertised'"/>
                     <button name="action_evaluate" string="Evaluate &amp; Compute Rank" type="object" class="oe_highlight" invisible="state != 'opened'"/>
+                    <!-- AUTO-016: Award recommendation button -->
+                    <button name="action_generate_award_recommendation" string="Generate Award Recommendation" type="object" class="oe_highlight" invisible="state != 'evaluated'"/>
+                    <!-- AUTO-010: Download complete bidding pack -->
+                    <button name="action_download_bidding_pack" string="Download Bidding Pack" type="object" invisible="state == 'draft'"/>
+                    <!-- AUTO-013: RFQ exception button -->
+                    <button name="action_request_rfq_exception" string="Request RFQ Exception" type="object" invisible="procurement_method != 'rfq' or state != 'opened' or rfq_exception_approved_by"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,spec_approved,advertised,opened,evaluated,closed"/>
                 </header>
                 <sheet>
@@ -311,13 +317,26 @@
                     <group>
                         <group>
                             <field name="lot_id" readonly="state != 'draft'"/>
+                            <field name="procurement_method" readonly="1" widget="badge"/>
+                            <field name="minimum_advertising_days" readonly="1"/>
                             <field name="spec_status" readonly="1"/>
                         </group>
                         <group>
                             <field name="advertisement_date" readonly="state not in ['draft', 'spec_approved']"/>
                             <field name="submission_deadline" readonly="state not in ['draft', 'spec_approved']"/>
+                            <!-- AUTO-011: Deadline extension fields -->
+                            <field name="deadline_extension_approved_by" readonly="1" invisible="not deadline_extension_approved_by"/>
+                            <field name="deadline_extension_approved_date" readonly="1" invisible="not deadline_extension_approved_date"/>
                         </group>
                     </group>
+                    
+                    <!-- AUTO-011: Request deadline extension button -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_request_deadline_extension" type="object" 
+                                class="oe_stat_button" icon="fa-calendar-check-o"
+                                string="Request Deadline Extension"
+                                invisible="state not in ['draft', 'spec_approved'] or deadline_extension_approved_by"/>
+                    </div>
                     <notebook>
                         <page string="Technical Specifications (FR-PROC-009)" name="specs">
                             <field name="technical_specifications" placeholder="Quality characteristics, performances..." readonly="state != 'draft'"/>
@@ -328,13 +347,35 @@
                                     <field name="supplier_id"/>
                                     <field name="bid_price"/>
                                     <field name="local_content"/>
+                                    <field name="submission_timestamp" readonly="1"/>
+                                    <field name="is_late" readonly="1"/>
                                     <field name="preliminary_passed"/>
-                                    <field name="technical_score"/>
-                                    <field name="financial_score"/>
                                     <field name="evaluated_price" readonly="1"/>
+                                    <field name="evaluated_rank" readonly="1"/>
                                     <field name="ranking" readonly="1"/>
+                                    <!-- AUTO-014: Evaluation checklist button -->
+                                    <button name="action_generate_evaluation_checklist" type="object" 
+                                            string="Generate Checklist" icon="fa-check-square-o"
+                                            invisible="has_evaluation_checklist"/>
                                 </list>
                             </field>
+                        </page>
+                        <!-- AUTO-013: RFQ Exception Tab -->
+                        <page string="RFQ Exception (AUTO-013)" name="rfq_exception" invisible="procurement_method != 'rfq'">
+                            <group>
+                                <group>
+                                    <field name="valid_bid_count" readonly="1"/>
+                                    <field name="rfq_minimum_violation" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="rfq_exception_approved_by" readonly="1"/>
+                                    <field name="rfq_exception_approved_date" readonly="1"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="rfq_justification" placeholder="Provide detailed justification for proceeding with fewer than 3 quotations..." 
+                                       readonly="rfq_exception_approved_by"/>
+                            </group>
                         </page>
                         <page string="Public Opening Minutes (FR-PROC-015)" name="opening">
                             <group>
@@ -369,25 +410,58 @@
         <field name="arch" type="xml">
             <form string="Contract">
                 <header>
+                    <!-- AUTO-018: Generate contract from bid -->
+                    <button name="action_generate_contract_from_bid" string="⚡ Generate from Bid" type="object" class="btn-info" invisible="state != 'draft' or contract_document"/>
                     <button name="action_sign_contract" string="Sign Contract" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <!-- AUTO-032: Release retention -->
+                    <button name="action_release_retention" string="💰 Release Retention" type="object" class="btn-success" invisible="state != 'closed' or retention_released"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,signed,variation,closed"/>
                 </header>
                 <sheet>
+                    <!-- Button box for statistics and quick actions -->
+                    <div class="oe_button_box" name="button_box">
+                        <!-- AUTO-021: Variation statistics -->
+                        <button class="oe_stat_button" type="object" name="action_open_variations" icon="fa-exchange" invisible="not variation_ids">
+                            <field name="variation_percentage" widget="percentage" string="Variations"/>
+                        </button>
+                        <!-- AUTO-032: Retention statistics -->
+                        <button class="oe_stat_button" type="action" icon="fa-lock" invisible="cumulative_retention == 0">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="cumulative_retention" widget="monetary"/>
+                                </span>
+                                <span class="o_stat_text">Retention Held</span>
+                            </div>
+                        </button>
+                    </div>
+                    
                     <group>
                         <group>
                             <field name="name" readonly="state != 'draft'"/>
                             <field name="supplier_id" readonly="state != 'draft'"/>
                             <field name="lot_id" readonly="state != 'draft'"/>
                             <field name="total_value" readonly="state != 'draft'"/>
+                            <!-- AUTO-021: Original value for variation tracking -->
+                            <field name="original_contract_value" readonly="1" invisible="not original_contract_value"/>
                         </group>
                         <group>
                             <field name="advance_payment" readonly="state != 'draft'"/>
                             <field name="advance_payment_guarantee" readonly="state != 'draft'"/>
                             <field name="performance_security_recorded" readonly="state != 'draft'"/>
-                            <field name="cumulative_variation_total"/>
+                            <!-- AUTO-021: Cumulative variations -->
+                            <field name="cumulative_variation_total" readonly="1"/>
+                            <!-- AUTO-032: Retention fields -->
+                            <field name="retention_percentage" readonly="state not in ['draft', 'signed']"/>
+                            <field name="retention_released" readonly="1" invisible="not retention_released"/>
                         </group>
                     </group>
+                    
                     <notebook>
+                        <!-- AUTO-018: Contract Document -->
+                        <page string="📄 Contract Document" name="contract_doc" invisible="not contract_document">
+                            <field name="contract_document" widget="html" readonly="state != 'draft'"/>
+                        </page>
+                        
                         <page string="Delivery &amp; Payments Info" name="delivery_payment">
                             <group>
                                 <field name="delivery_schedule" placeholder="Key delivery milestones..." readonly="state != 'draft'"/>
@@ -395,8 +469,52 @@
                                 <field name="performance_security_details" placeholder="Insurance bond or bank guarantees..." readonly="state != 'draft'"/>
                             </group>
                         </page>
+                        
+                        <!-- AUTO-021: Variations Tab -->
+                        <page string="📊 Variations" name="variations" invisible="not variation_ids">
+                            <group>
+                                <group>
+                                    <field name="original_contract_value" readonly="1"/>
+                                    <field name="cumulative_variation_total" readonly="1"/>
+                                    <field name="variation_percentage" widget="percentage" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="variation_alert_10_sent" readonly="1" invisible="not variation_alert_10_sent"/>
+                                    <field name="variation_alert_15_sent" readonly="1" invisible="not variation_alert_15_sent"/>
+                                </group>
+                            </group>
+                            <field name="variation_ids" readonly="1">
+                                <list string="Contract Variations">
+                                    <field name="name"/>
+                                    <field name="variation_date"/>
+                                    <field name="variation_amount" sum="Total Variations"/>
+                                    <field name="description"/>
+                                    <field name="percentage_after" widget="percentage"/>
+                                    <field name="approved_by_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        
+                        <!-- AUTO-032: Retention & Warranty Tab -->
+                        <page string="💰 Retention &amp; Warranty" name="retention_warranty">
+                            <group>
+                                <group string="Retention Management">
+                                    <field name="retention_percentage"/>
+                                    <field name="cumulative_retention" readonly="1"/>
+                                    <field name="retention_released" readonly="1"/>
+                                    <field name="retention_release_date" readonly="1" invisible="not retention_release_date"/>
+                                </group>
+                                <group string="Warranty Management">
+                                    <field name="warranty_period_months"/>
+                                    <field name="contract_close_date"/>
+                                    <field name="warranty_expiry_date" readonly="1"/>
+                                    <field name="defects_cleared"/>
+                                </group>
+                            </group>
+                        </page>
                     </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>
@@ -597,58 +715,6 @@
         </field>
     </record>
 
-    <!-- ==================== COMPLAINTS ==================== -->
-    <record id="view_mesob_procurement_complaint_tree" model="ir.ui.view">
-        <field name="name">mesob.procurement.complaint.tree</field>
-        <field name="model">mesob.procurement.complaint</field>
-        <field name="arch" type="xml">
-            <list string="Procurement Complaints">
-                <field name="name"/>
-                <field name="complainant_name"/>
-                <field name="lot_id"/>
-                <field name="date_filed"/>
-                <field name="nature"/>
-                <field name="state" widget="badge" decoration-danger="state == 'open'" decoration-success="state == 'resolved'"/>
-            </list>
-        </field>
-    </record>
-
-    <record id="view_mesob_procurement_complaint_form" model="ir.ui.view">
-        <field name="name">mesob.procurement.complaint.form</field>
-        <field name="model">mesob.procurement.complaint</field>
-        <field name="arch" type="xml">
-            <form string="Complaint Registration">
-                <header>
-                    <button name="action_resolve" string="Resolve Complaint" type="object" class="oe_highlight" invisible="state != 'open'"/>
-                    <field name="state" widget="statusbar" statusbar_visible="open,resolved"/>
-                </header>
-                <sheet>
-                    <group>
-                        <group>
-                            <field name="complainant_name" readonly="state != 'open'"/>
-                            <field name="lot_id" readonly="state != 'open'"/>
-                        </group>
-                        <group>
-                            <field name="date_filed" readonly="state != 'open'"/>
-                            <field name="nature" readonly="state != 'open'"/>
-                        </group>
-                    </group>
-                    <notebook>
-                        <page string="Complaint details" name="details">
-                            <field name="details" placeholder="Full description of complaints/appeals..." readonly="state != 'open'"/>
-                        </page>
-                        <page string="Response &amp; Resolution Actions" name="resolution">
-                            <group>
-                                <field name="action_taken" placeholder="Enter actions taken..."/>
-                                <field name="resolution" placeholder="Document final outcome..."/>
-                            </group>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
     <!-- ==================== ACTIONS ==================== -->
     <record id="action_mesob_procurement_plan" model="ir.actions.act_window">
         <field name="name">Annual Plans (APP)</field>
@@ -706,9 +772,288 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <record id="action_mesob_procurement_complaint" model="ir.actions.act_window">
-        <field name="name">Complaints &amp; Appeals</field>
-        <field name="res_model">mesob.procurement.complaint</field>
-        <field name="view_mode">list,form</field>
+    <!-- ==================== BIDS (Standalone Views for AUTO-012, AUTO-014, AUTO-016) ==================== -->
+    <record id="view_mesob_procurement_bid_tree" model="ir.ui.view">
+        <field name="name">mesob.procurement.bid.tree</field>
+        <field name="model">mesob.procurement.bid</field>
+        <field name="arch" type="xml">
+            <list string="Bids">
+                <field name="tender_id"/>
+                <field name="supplier_id"/>
+                <field name="bid_price" widget="monetary"/>
+                <field name="submission_timestamp"/>
+                <field name="is_late" decoration-danger="is_late == True"/>
+                <field name="preliminary_passed" decoration-success="preliminary_passed == True" decoration-danger="preliminary_passed == False"/>
+                <field name="evaluated_rank"/>
+                <field name="evaluated_price" widget="monetary"/>
+            </list>
+        </field>
     </record>
+
+    <record id="view_mesob_procurement_bid_form" model="ir.ui.view">
+        <field name="name">mesob.procurement.bid.form</field>
+        <field name="model">mesob.procurement.bid</field>
+        <field name="arch" type="xml">
+            <form string="Bid Submission">
+                <header>
+                    <button name="action_generate_evaluation_checklist" string="Generate Evaluation Checklist" type="object" class="oe_highlight" invisible="has_evaluation_checklist"/>
+                    <button name="action_generate_preference_worksheet" string="Generate Preference Worksheet" type="object" invisible="local_content &lt; 40"/>
+                    <field name="preliminary_passed" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-danger" role="alert" invisible="not is_late">
+                        <h4>🚫 AUTO-012: Late Submission - Automatically Rejected</h4>
+                        <p><strong>This bid was submitted after the deadline and has been automatically rejected.</strong></p>
+                        <field name="late_rejection_reason" readonly="1" widget="text"/>
+                    </div>
+                    
+                    <group>
+                        <group string="Bid Information">
+                            <field name="tender_id" readonly="1"/>
+                            <field name="supplier_id"/>
+                            <field name="bid_price" widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Submission Details (AUTO-012)">
+                            <field name="submission_timestamp" readonly="1"/>
+                            <field name="is_late" readonly="1" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group string="Domestic Preference (AUTO-015)">
+                            <field name="local_content"/>
+                            <field name="preference_percentage" readonly="1"/>
+                            <field name="preference_amount" readonly="1" widget="monetary"/>
+                        </group>
+                        <group string="Evaluation Results (AUTO-016)">
+                            <field name="evaluated_price" readonly="1" widget="monetary"/>
+                            <field name="evaluated_rank" readonly="1"/>
+                            <field name="ranking" readonly="1"/>
+                            <field name="is_winner" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Evaluation Status" name="evaluation">
+                            <group>
+                                <field name="has_evaluation_checklist" readonly="1" invisible="1"/>
+                                <field name="preliminary_passed" widget="boolean_toggle"/>
+                                <field name="technical_score"/>
+                                <field name="financial_score"/>
+                            </group>
+                        </page>
+                        
+                        <page string="Evaluation Checklist (AUTO-014)" name="checklist" invisible="not has_evaluation_checklist">
+                            <group>
+                                <p>Preliminary evaluation checklist has been generated. Click the button in the header to open it for review.</p>
+                            </group>
+                        </page>
+                        
+                        <page string="Bid Lines" name="lines">
+                            <p>Add individual items and prices quoted in this bid.</p>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mesob_procurement_bid" model="ir.actions.act_window">
+        <field name="name">Bids</field>
+        <field name="res_model">mesob.procurement.bid</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- ==================== BID EVALUATION CHECKLIST (AUTO-014) ==================== -->
+    <record id="view_mesob_bid_evaluation_checklist_form" model="ir.ui.view">
+        <field name="name">mesob.bid.evaluation.checklist.form</field>
+        <field name="model">mesob.bid.evaluation.checklist</field>
+        <field name="arch" type="xml">
+            <form string="Preliminary Evaluation Checklist">
+                <header>
+                    <button name="action_complete_evaluation" string="Complete Evaluation" type="object" class="oe_highlight" invisible="preliminary_pass == False and not evaluator_override"/>
+                    <field name="preliminary_pass" widget="statusbar" statusbar_visible="pass,fail"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="bid_id" readonly="1"/>
+                        </h1>
+                        <h3>
+                            <field name="supplier_id" readonly="1"/>
+                        </h3>
+                    </div>
+                    
+                    <group>
+                        <group string="Bid Information">
+                            <field name="bid_price" readonly="1" widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="tender_id" readonly="1"/>
+                        </group>
+                        <group string="Evaluation Status">
+                            <field name="preliminary_pass" readonly="1" widget="badge" decoration-success="preliminary_pass == True" decoration-danger="preliminary_pass == False"/>
+                            <field name="evaluator_override" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Bid Security Checks" name="bid_security">
+                            <group>
+                                <group string="Bid Security Amount">
+                                    <field name="bid_security_submitted" widget="monetary"/>
+                                    <field name="bid_security_amount_required" readonly="1" widget="monetary"/>
+                                    <field name="bid_security_amount_ok" readonly="1" widget="boolean_toggle"/>
+                                </group>
+                                <group string="Bid Security Validity">
+                                    <field name="bid_security_validity_date"/>
+                                    <field name="bid_security_validity_ok" readonly="1" widget="boolean_toggle"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Supplier Checks" name="supplier">
+                            <group>
+                                <group string="Supplier Eligibility">
+                                    <field name="supplier_registration_valid" readonly="1" widget="boolean_toggle"/>
+                                    <field name="supplier_not_blacklisted" readonly="1" widget="boolean_toggle"/>
+                                    <field name="supplier_category_matches" readonly="1" widget="boolean_toggle"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Document Completeness" name="documents">
+                            <group>
+                                <group string="Core Documents">
+                                    <field name="technical_proposal_submitted" widget="boolean_toggle"/>
+                                    <field name="financial_proposal_submitted" widget="boolean_toggle"/>
+                                    <field name="company_profile_submitted" widget="boolean_toggle"/>
+                                </group>
+                                <group string="Legal Documents">
+                                    <field name="tax_clearance_submitted" widget="boolean_toggle"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Critical Failures &amp; Override" name="failures">
+                            <group>
+                                <field name="critical_failures" readonly="1" widget="text"/>
+                                <field name="disqualification_reason" readonly="not evaluator_override" widget="text" 
+                                       placeholder="Provide detailed reason for disqualification..."/>
+                                <field name="override_justification" readonly="not evaluator_override" widget="text"
+                                       placeholder="Required: Provide detailed justification for overriding auto-disqualification..."
+                                       invisible="not evaluator_override"/>
+                            </group>
+                            <div class="alert alert-warning" role="alert" invisible="not evaluator_override">
+                                <p><strong>⚠️ Evaluator Override Active</strong></p>
+                                <p>You are overriding the automatic preliminary evaluation result. This action will be logged for audit trail per NFR-QUAL-001.</p>
+                                <p><strong>Override justification is mandatory and must explain:</strong></p>
+                                <ul>
+                                    <li>Which criteria failed and why the failure can be waived</li>
+                                    <li>Supporting evidence or documentation</li>
+                                    <li>Compliance with FR-PROC-017 despite the violation</li>
+                                </ul>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== TECHNICAL SPECIFICATION TEMPLATES (AUTO-007) ==================== -->
+    <record id="view_mesob_technical_spec_template_tree" model="ir.ui.view">
+        <field name="name">mesob.technical.spec.template.tree</field>
+        <field name="model">mesob.technical.spec.template</field>
+        <field name="arch" type="xml">
+            <list string="Technical Specification Templates">
+                <field name="name"/>
+                <field name="major_classification_id"/>
+                <field name="classification_code"/>
+                <field name="usage_count"/>
+                <field name="last_used_date"/>
+                <field name="is_active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_technical_spec_template_form" model="ir.ui.view">
+        <field name="name">mesob.technical.spec.template.form</field>
+        <field name="model">mesob.technical.spec.template</field>
+        <field name="arch" type="xml">
+            <form string="Technical Specification Template">
+                <header>
+                    <button name="action_apply_to_lot" string="Apply to Lot" type="object" class="oe_highlight"/>
+                    <button name="create_default_templates" string="Create Default Templates" type="object" class="oe_highlight"/>
+                    <field name="is_active" widget="boolean_button" options="{'terminology': 'archive'}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g., Standard Office Furniture Specifications"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="major_classification_id" options="{'no_create': True}"/>
+                            <field name="classification_code" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="usage_count" readonly="1"/>
+                            <field name="last_used_date" readonly="1"/>
+                            <field name="created_by_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Specification Content" name="content">
+                            <field name="specification_text" widget="html" placeholder="Enter function/performance-based technical specifications..."/>
+                        </page>
+                        <page string="Brand Name Filter (AUTO-007)" name="brand_filter">
+                            <group>
+                                <field name="brand_name_keywords" widget="text" 
+                                       placeholder="Enter brand names to detect (comma-separated)&#10;Example: Dell, HP, Lenovo, Toyota, Samsung"/>
+                            </group>
+                            <div class="alert alert-info" role="alert">
+                                <p><strong>AUTO-007: Brand Name Detection (FR-PROC-009)</strong></p>
+                                <p>This filter helps ensure compliance with function/performance-based specification requirements.</p>
+                                <ul>
+                                    <li>Brand names listed here will be detected in lot technical specifications</li>
+                                    <li>System allows brand names only if followed by "or equivalent" (BR-PROC-004)</li>
+                                    <li>Violations are flagged in the lot form for procurement officer review</li>
+                                </ul>
+                            </div>
+                        </page>
+                        <page string="Usage Notes" name="notes">
+                            <field name="notes" widget="text" placeholder="Guidelines for when and how to use this template..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mesob_technical_spec_template" model="ir.actions.act_window">
+        <field name="name">Technical Spec Templates</field>
+        <field name="res_model">mesob.technical.spec.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_mesob_technical_spec_template_tree"/>
+        <field name="context">{'default_is_active': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Technical Specification Template
+            </p>
+            <p>
+                AUTO-007: Build a library of reusable technical specifications organized by item classification.
+                Templates ensure function/performance-based specs and help prevent brand-name violations (FR-PROC-009).
+            </p>
+        </field>
+    </record>
+
 </odoo>

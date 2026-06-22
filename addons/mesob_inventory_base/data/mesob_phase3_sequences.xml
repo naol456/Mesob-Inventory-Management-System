@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Phase 3: Complaint Register Sequence -->
+    <record id="seq_mesob_procurement_complaint" model="ir.sequence">
+        <field name="name">Procurement Complaint Sequence</field>
+        <field name="code">mesob.procurement.complaint</field>
+        <field name="prefix">COMP/</field>
+        <field name="padding">5</field>
+        <field name="number_increment">1</field>
+        <field name="implementation">standard</field>
+    </record>
+</odoo>
