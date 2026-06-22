@@ -1,26 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- AUTO-062 + AUTO-065: Periodic Control Level Recalculation -->
-    <record id="cron_recalculate_control_levels" model="ir.cron">
-        <field name="name">AUTO-062/065: Recalculate Control Levels</field>
-        <field name="model_id" ref="model_mesob_inventory_item"/>
-        <field name="state">code</field>
-        <field name="code">model.cron_recalculate_control_levels()</field>
-        <field name="interval_number">1</field>
-        <field name="interval_type">weeks</field>
-        <field name="active" eval="True"/>
-        <field name="priority">10</field>
-    </record>
-
-    <!-- AUTO-066: Dormant Item Flagging -->
-    <record id="cron_flag_dormant_items" model="ir.cron">
-        <field name="name">AUTO-066: Flag Dormant/Slow-Moving Items</field>
-        <field name="model_id" ref="model_mesob_inventory_item"/>
-        <field name="state">code</field>
-        <field name="code">model.cron_flag_dormant_items()</field>
-        <field name="interval_number">1</field>
-        <field name="interval_type">days</field>
-        <field name="active" eval="True"/>
-        <field name="priority">15</field>
-    </record>
+    <data noupdate="1">
+        
+        <!-- AUTO-023: Daily Reorder-Level Auto-Requisition Cron -->
+        <record id="ir_cron_auto_reorder_check" model="ir.cron">
+            <field name="name">AUTO-023: Reorder-Level Auto-Requisition Generator</field>
+            <field name="model_id" ref="model_mesob_auto_po_generator"/>
+            <field name="state">code</field>
+            <field name="code">model.check_reorder_levels_and_generate_requisitions()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+            <field name="priority">10</field>
+            <field name="user_id" ref="base.user_admin"/>
+        </record>
+        
+    </data>
 </odoo>
