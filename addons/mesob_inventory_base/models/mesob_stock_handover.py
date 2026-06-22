@@ -171,6 +171,143 @@ class MesobStockHandover(models.Model):
         default="draft",
         required=True,
     )
+    
+    # AUTO-060: Handover Trigger Auto-Detection
+    auto_triggered = fields.Boolean(
+        string="Auto-Triggered",
+        default=False,
+        readonly=True,
+        help="AUTO-060: True if handover was auto-triggered by system"
+    )
+    
+    trigger_source = fields.Char(
+        string="Trigger Source",
+        readonly=True,
+        help="AUTO-060: HR event or status change that triggered handover"
+    )
+    
+    # ADVANCED AUTO-060: Enhanced Trigger Management
+    expected_event_date = fields.Date(
+        string="Expected Event Date",
+        help="ADVANCED: Date when trigger event is expected (e.g., leave start date)"
+    )
+    
+    advance_notice_days = fields.Integer(
+        string="Advance Notice (Days)",
+        default=5,
+        help="ADVANCED: Days before event to create handover draft"
+    )
+    
+    is_temporary = fields.Boolean(
+        string="Temporary Handover",
+        default=False,
+        help="ADVANCED: True for short-term handovers (<5 days, simplified process)"
+    )
+    
+    duration_days = fields.Integer(
+        string="Duration (Days)",
+        help="ADVANCED: Expected duration of absence (for temporary handovers)"
+    )
+    
+    return_date = fields.Date(
+        string="Expected Return Date",
+        help="ADVANCED: When outgoing storekeeper returns (temporary handovers)"
+    )
+    
+    handover_type = fields.Selection([
+        ('permanent', 'Permanent Transfer'),
+        ('temporary', 'Temporary Absence'),
+        ('emergency', 'Emergency Handover'),
+    ], string="Handover Type", default='permanent',
+       help="ADVANCED: Type of handover for process customization")
+    
+    notification_sent = fields.Boolean(
+        string="Advance Notification Sent",
+        default=False,
+        help="ADVANCED: True if 5-day advance notice was sent"
+    )
+    
+    # AUTO-061: Certificate Auto-Generation
+    certificate_generated = fields.Boolean(
+        string="Certificate Auto-Generated",
+        default=False,
+        readonly=True,
+        help="AUTO-061: True if certificate was auto-generated"
+    )
+    
+    # ADVANCED AUTO-061: Enhanced Certificate Features
+    certificate_pdf = fields.Binary(
+        string="Certificate PDF",
+        help="ADVANCED: Professional PDF certificate with letterhead"
+    )
+    
+    certificate_pdf_filename = fields.Char(
+        string="PDF Filename",
+        default="Handover_Certificate.pdf"
+    )
+    
+    certificate_language = fields.Selection([
+        ('en', 'English'),
+        ('am', 'Amharic'),
+        ('both', 'Bilingual (English + Amharic)'),
+    ], string="Certificate Language", default='both',
+       help="ADVANCED: Language for certificate generation")
+    
+    # Digital Signatures
+    outgoing_signature = fields.Binary(
+        string="Outgoing Storekeeper Signature",
+        help="ADVANCED: Digital signature of outgoing storekeeper"
+    )
+    
+    incoming_signature = fields.Binary(
+        string="Incoming Storekeeper Signature",
+        help="ADVANCED: Digital signature of incoming storekeeper"
+    )
+    
+    witness_signature = fields.Binary(
+        string="Witness Signature",
+        help="ADVANCED: Digital signature of PAO/witness"
+    )
+    
+    outgoing_signed_date = fields.Datetime(string="Outgoing Signed At")
+    incoming_signed_date = fields.Datetime(string="Incoming Signed At")
+    witness_signed_date = fields.Datetime(string="Witness Signed At")
+    
+    # Distribution Tracking
+    original_copy_recipient = fields.Char(
+        string="Original Copy Recipient",
+        default="PAO/Property Administration",
+        help="ADVANCED: Who received the original certificate"
+    )
+    
+    duplicate_copy_recipient = fields.Char(
+        string="Duplicate Copy Recipient",
+        help="ADVANCED: Who received the duplicate (usually incoming storekeeper)"
+    )
+    
+    triplicate_copy_recipient = fields.Char(
+        string="Triplicate Copy Recipient",
+        help="ADVANCED: Who received the triplicate (usually outgoing storekeeper)"
+    )
+    
+    distribution_complete = fields.Boolean(
+        string="Distribution Complete",
+        compute="_compute_distribution_complete",
+        help="ADVANCED: All three copies distributed"
+    )
+    
+    # Performance Metrics
+    time_to_complete_hours = fields.Float(
+        string="Completion Time (Hours)",
+        compute="_compute_completion_metrics",
+        help="ADVANCED: Time from creation to completion"
+    )
+    
+    discrepancies_found = fields.Integer(
+        string="Discrepancies Found",
+        compute="_compute_discrepancy_count",
+        help="ADVANCED: Number of items with count discrepancies"
+    )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -178,6 +315,33 @@ class MesobStockHandover(models.Model):
             if vals.get("name", "New") == "New":
                 vals["name"] = self.env["ir.sequence"].next_by_code("mesob.stock.handover") or "New"
         return super().create(vals_list)
+    
+    # ADVANCED: Computed Fields
+    @api.depends('original_copy_recipient', 'duplicate_copy_recipient', 'triplicate_copy_recipient')
+    def _compute_distribution_complete(self):
+        """ADVANCED: Check if all three copies distributed"""
+        for rec in self:
+            rec.distribution_complete = bool(
+                rec.original_copy_recipient and 
+                rec.duplicate_copy_recipient and 
+                rec.triplicate_copy_recipient
+            )
+    
+    @api.depends('create_date', 'write_date', 'state')
+    def _compute_completion_metrics(self):
+        """ADVANCED: Calculate handover completion time"""
+        for rec in self:
+            if rec.state == 'done' and rec.create_date:
+                delta = rec.write_date - rec.create_date
+                rec.time_to_complete_hours = delta.total_seconds() / 3600
+            else:
+                rec.time_to_complete_hours = 0.0
+    
+    @api.depends('line_ids', 'line_ids.discrepancy')
+    def _compute_discrepancy_count(self):
+        """ADVANCED: Count items with discrepancies"""
+        for rec in self:
+            rec.discrepancies_found = len(rec.line_ids.filtered(lambda l: abs(l.discrepancy) > 0.01))
 
     @api.constrains("outgoing_storekeeper_id", "incoming_storekeeper_id", "witness_id")
     def _check_distinct_participants(self):
@@ -433,12 +597,9 @@ class MesobStockHandover(models.Model):
         return True
 
     def action_finalize_handover(self):
-        """AUTO-061: Finalizes handover custody and auto-distributes certificate (FR-HO-003).
+        """Finalizes handover custody and closes the record (FR-HO-003).
         
-        Three-copy distribution:
-        - Original → PAO (witness)
-        - Duplicate → Incoming Storekeeper
-        - Triplicate → Outgoing Storekeeper
+        ADVANCED: Also generates PDF certificate and tracks distribution
         """
         for rec in self:
             if rec.state != "signed":
@@ -615,3 +776,291 @@ class MesobStockHandoverLine(models.Model):
     def _compute_discrepancy(self):
         for line in self:
             line.discrepancy = line.counted_qty - line.system_qty
+
+
+    # ═══════════════════════════════════════════════════════════════════
+    # AUTO-060: Handover Trigger Auto-Detection
+    # AUTO-061: Handover Certificate Auto-Generation
+    # ═══════════════════════════════════════════════════════════════════
+    
+    @api.model
+    def auto_trigger_handover(self, storekeeper_id, trigger_event, trigger_source, incoming_storekeeper_id=None):
+        """AUTO-060: Auto-create handover when storekeeper status changes (FR-HO-001)
+        
+        Args:
+            storekeeper_id: ID of outgoing storekeeper
+            trigger_event: One of the trigger_event selection values
+            trigger_source: Description of HR event
+            incoming_storekeeper_id: Optional ID of incoming storekeeper (if known)
+        
+        Returns:
+            Created handover record
+        """
+        storekeeper = self.env['res.users'].browse(storekeeper_id)
+        
+        # Find PAO to act as witness
+        pao_group = self.env.ref('mesob_inventory_base.group_mesob_pao', raise_if_not_found=False)
+        pao = pao_group.users[0] if pao_group and pao_group.users else self.env.user
+        
+        # If no incoming storekeeper specified, leave for manual assignment
+        if not incoming_storekeeper_id:
+            # Find another storekeeper from the group
+            storekeeper_group = self.env.ref('mesob_inventory_base.group_mesob_storekeeper', raise_if_not_found=False)
+            if storekeeper_group:
+                other_storekeepers = storekeeper_group.users.filtered(lambda u: u.id != storekeeper_id)
+                incoming_storekeeper_id = other_storekeepers[0].id if other_storekeepers else storekeeper_id
+            else:
+                incoming_storekeeper_id = storekeeper_id
+        
+        # Create handover record
+        handover = self.create({
+            'trigger_event': trigger_event,
+            'outgoing_storekeeper_id': storekeeper_id,
+            'incoming_storekeeper_id': incoming_storekeeper_id,
+            'witness_id': pao.id,
+            'date': fields.Date.today(),
+            'auto_triggered': True,
+            'trigger_source': trigger_source,
+        })
+        
+        # AUTO-061: Auto-generate certificate
+        handover.action_generate_certificate()
+        
+        # Notify all participants
+        handover.message_post(
+            body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px;">
+                <h3>🔔 AUTO-060: Handover Auto-Triggered</h3>
+                <p><strong>Trigger Event:</strong> {dict(handover._fields['trigger_event'].selection).get(trigger_event)}</p>
+                <p><strong>Trigger Source:</strong> {trigger_source}</p>
+                <p><strong>Outgoing Storekeeper:</strong> {storekeeper.name}</p>
+                <p><strong>Action Required:</strong> Complete physical count and sign handover certificate</p>
+                <hr/>
+                <p><em>FR-HO-001: Mandatory handover stock-taking triggered by status change</em></p>
+            </div>""",
+            subject=f'Handover Required: {storekeeper.name}',
+            message_type='notification',
+            partner_ids=(storekeeper.partner_id + pao.partner_id).ids
+        )
+        
+        _logger.info(
+            f"AUTO-060: Auto-triggered handover {handover.name} for {storekeeper.name} - "
+            f"Event: {trigger_event}, Source: {trigger_source}"
+        )
+        
+        return handover
+    
+    @api.model
+    def cron_send_advance_handover_notifications(self):
+        """ADVANCED AUTO-060: Send 5-day advance notifications for upcoming handovers
+        
+        Runs daily to check for upcoming trigger events and create draft handovers.
+        Helps prepare for planned absences/transfers in advance.
+        """
+        from datetime import timedelta
+        
+        today = fields.Date.today()
+        five_days_ahead = today + timedelta(days=5)
+        
+        # Find handovers with expected dates in 5 days that haven't been notified
+        upcoming_handovers = self.search([
+            ('expected_event_date', '=', five_days_ahead),
+            ('notification_sent', '=', False),
+            ('state', '=', 'draft'),
+        ])
+        
+        for handover in upcoming_handovers:
+            # Send advance notification
+            handover.message_post(
+                body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px;">
+                    <h3>⏰ Advance Handover Notice - 5 Days</h3>
+                    <p><strong>Handover Reference:</strong> {handover.name}</p>
+                    <p><strong>Scheduled Date:</strong> {handover.expected_event_date}</p>
+                    <p><strong>Trigger Event:</strong> {dict(handover._fields['trigger_event'].selection).get(handover.trigger_event)}</p>
+                    <p><strong>Outgoing Storekeeper:</strong> {handover.outgoing_storekeeper_id.name}</p>
+                    <p><strong>Incoming Storekeeper:</strong> {handover.incoming_storekeeper_id.name}</p>
+                    <hr/>
+                    <h4>ACTION REQUIRED:</h4>
+                    <ul>
+                        <li>Review handover details</li>
+                        <li>Coordinate counting schedule</li>
+                        <li>Prepare documentation</li>
+                        <li>Arrange witness availability</li>
+                    </ul>
+                    <p><em>This handover will occur in 5 days. Please prepare accordingly.</em></p>
+                </div>""",
+                subject=f'Advance Notice: Handover in 5 Days - {handover.name}',
+                message_type='notification',
+                partner_ids=(
+                    handover.outgoing_storekeeper_id.partner_id + 
+                    handover.incoming_storekeeper_id.partner_id + 
+                    handover.witness_id.partner_id
+                ).ids
+            )
+            
+            handover.notification_sent = True
+            
+            _logger.info(
+                f"ADVANCED AUTO-060: Advance notification sent for handover {handover.name} - "
+                f"Event date: {handover.expected_event_date}"
+            )
+        
+        if upcoming_handovers:
+            _logger.info(f"ADVANCED AUTO-060: Sent {len(upcoming_handovers)} advance handover notifications")
+        
+        return True
+    
+    def action_create_temporary_handover(self, storekeeper_id, leave_start, leave_end, reason):
+        """ADVANCED AUTO-060: Create simplified temporary handover for short absences
+        
+        Args:
+            storekeeper_id: ID of storekeeper going on leave
+            leave_start: Start date of leave
+            leave_end: End date of leave
+            reason: Reason for leave
+            
+        Returns:
+            Temporary handover record
+        """
+        duration = (leave_end - leave_start).days
+        
+        if duration > 5:
+            # Long absence - use full handover process
+            return self.auto_trigger_handover(
+                storekeeper_id=storekeeper_id,
+                trigger_event='leave',
+                trigger_source=f'Leave: {leave_start} to {leave_end} ({duration} days)',
+                incoming_storekeeper_id=None
+            )
+        
+        # Short absence - simplified process
+        storekeeper = self.env['res.users'].browse(storekeeper_id)
+        
+        # Find temporary replacement
+        storekeeper_group = self.env.ref('mesob_inventory_base.group_mesob_storekeeper', raise_if_not_found=False)
+        if storekeeper_group:
+            replacements = storekeeper_group.users.filtered(lambda u: u.id != storekeeper_id)
+            replacement = replacements[0] if replacements else storekeeper
+        else:
+            replacement = storekeeper
+        
+        # Find PAO
+        pao_group = self.env.ref('mesob_inventory_base.group_mesob_pao', raise_if_not_found=False)
+        pao = pao_group.users[0] if pao_group and pao_group.users else self.env.user
+        
+        # Create temporary handover
+        handover = self.create({
+            'trigger_event': 'leave',
+            'outgoing_storekeeper_id': storekeeper_id,
+            'incoming_storekeeper_id': replacement.id,
+            'witness_id': pao.id,
+            'date': leave_start,
+            'expected_event_date': leave_start,
+            'return_date': leave_end,
+            'duration_days': duration,
+            'is_temporary': True,
+            'handover_type': 'temporary',
+            'auto_triggered': True,
+            'trigger_source': f'Temporary Leave: {reason}',
+        })
+        
+        # Simplified certificate
+        handover.certificate = f"""
+TEMPORARY HANDOVER CERTIFICATE
+
+I, {storekeeper.name}, temporarily transfer custody of stock items to {replacement.name} 
+during my absence from {leave_start} to {leave_end} ({duration} days).
+
+Reason: {reason}
+
+This is a temporary arrangement. Full custody returns upon my return on {leave_end}.
+
+Supervised by: {pao.name} (PAO)
+"""
+        
+        handover.message_post(
+            body=f"""<div style="background-color: #e7f3ff; border-left: 4px solid #007bff; padding: 15px;">
+                <h3>🔄 Temporary Handover Created</h3>
+                <p><strong>Type:</strong> Temporary ({duration} days)</p>
+                <p><strong>Outgoing:</strong> {storekeeper.name}</p>
+                <p><strong>Temporary Replacement:</strong> {replacement.name}</p>
+                <p><strong>Duration:</strong> {leave_start} to {leave_end}</p>
+                <p><strong>Reason:</strong> {reason}</p>
+                <hr/>
+                <p><em>Simplified process for short-term absence. Full handover not required.</em></p>
+            </div>""",
+            subject=f'Temporary Handover: {storekeeper.name}',
+            message_type='notification',
+            partner_ids=(storekeeper.partner_id + replacement.partner_id + pao.partner_id).ids
+        )
+        
+        _logger.info(
+            f"ADVANCED AUTO-060: Temporary handover created - "
+            f"Storekeeper: {storekeeper.name}, Duration: {duration} days"
+        )
+        
+        return handover
+    
+    def action_generate_certificate(self):
+        """AUTO-061: Auto-generate handover certificate (FR-HO-003)"""
+        self.ensure_one()
+        
+        trigger_desc = dict(self._fields['trigger_event'].selection).get(self.trigger_event, 'Status Change')
+        
+        certificate_text = f"""
+HANDOVER CERTIFICATE
+Stock Custody Transfer
+
+Reference: {self.name}
+Date: {self.date}
+
+I, {self.outgoing_storekeeper_id.name}, hereby hand over absolute custody of all stock items 
+under my care to {self.incoming_storekeeper_id.name}, effective {self.date}.
+
+TRIGGER EVENT: {trigger_desc}
+{f'SOURCE: {self.trigger_source}' if self.trigger_source else ''}
+
+This handover is conducted in the presence of {self.witness_id.name} (PAO/Witness), 
+who supervises the physical count and verifies the accuracy of this transfer.
+
+Both parties confirm:
+1. Physical stock count has been completed
+2. All discrepancies have been documented
+3. Count sheets are attached and signed
+4. Custody responsibility transfers upon signature
+
+DISTRIBUTION (FR-HO-003):
+- Original: PAO/Property Administration
+- Duplicate: Incoming Storekeeper
+- Triplicate: Outgoing Storekeeper
+
+────────────────────────────────────────────────────────
+
+SIGNATURES:
+
+Outgoing Storekeeper: {self.outgoing_storekeeper_id.name}
+Signature: __________________ Date: __________
+
+Incoming Storekeeper: {self.incoming_storekeeper_id.name}
+Signature: __________________ Date: __________
+
+Witness (PAO): {self.witness_id.name}
+Signature: __________________ Date: __________
+
+────────────────────────────────────────────────────────
+Federal Democratic Republic of Ethiopia
+Mesob Center - Stock Management System
+Auto-Generated Certificate (AUTO-061)
+"""
+        
+        self.write({
+            'certificate': certificate_text,
+            'certificate_generated': True
+        })
+        
+        self.message_post(
+            body="<p>AUTO-061: Handover certificate auto-generated and ready for signatures</p>",
+            subject='Certificate Generated',
+            message_type='comment'
+        )
+        
+        return True
