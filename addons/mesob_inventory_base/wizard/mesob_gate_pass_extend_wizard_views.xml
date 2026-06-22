@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AUTO-048: Gate Pass Expiry Alert - Extension Wizard Views -->
+<odoo>
+    
+    <!-- Gate Pass Extend Wizard Form -->
+    <record id="view_mesob_gate_pass_extend_wizard_form" model="ir.ui.view">
+        <field name="name">mesob.gate.pass.extend.wizard.form</field>
+        <field name="model">mesob.gate.pass.extend.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Extend Gate Pass Validity">
+                <div class="alert alert-warning" role="alert">
+                    <h5>⏰ AUTO-048: Gate Pass Validity Extension</h5>
+                    <p>
+                        You are about to extend the validity period of this gate pass.
+                        This action requires PAO authorization and justification for audit trail.
+                    </p>
+                </div>
+                
+                <group>
+                    <group string="Current Status">
+                        <field name="gate_pass_id" readonly="1"/>
+                        <field name="current_validity_hours" readonly="1"/>
+                        <field name="current_expiry" readonly="1"/>
+                    </group>
+                    
+                    <group string="Extension">
+                        <field name="additional_hours" widget="integer"/>
+                        <field name="new_expiry" readonly="1" widget="datetime"/>
+                    </group>
+                </group>
+                
+                <group string="Justification (Required)">
+                    <field name="extension_reason" 
+                           nolabel="1" 
+                           placeholder="Explain why this gate pass requires extended validity (minimum 20 characters)..."
+                           required="1"/>
+                </group>
+                
+                <div class="alert alert-info" role="alert">
+                    <p><strong>Note:</strong></p>
+                    <ul>
+                        <li>Maximum extension: 168 hours (1 week)</li>
+                        <li>Extension is added to current expiry time</li>
+                        <li>All extensions are logged for audit trail</li>
+                        <li>If longer validity needed, create a new gate pass</li>
+                    </ul>
+                </div>
+                
+                <footer>
+                    <button name="action_extend" 
+                            string="Extend Validity" 
+                            type="object" 
+                            class="btn-primary"/>
+                    <button string="Cancel" 
+                            class="btn-secondary" 
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+</odoo>
