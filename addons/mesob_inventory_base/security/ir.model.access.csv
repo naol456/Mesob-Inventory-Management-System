@@ -213,8 +213,6 @@ access_mesob_dashboard_kpi_pao,access_mesob_dashboard_kpi_pao,model_mesob_dashbo
 access_mesob_dashboard_kpi_storekeeper,access_mesob_dashboard_kpi_storekeeper,model_mesob_dashboard_kpi,mesob_inventory_base.group_mesob_storekeeper,1,0,0,0
 access_mesob_dashboard_kpi_procurement,access_mesob_dashboard_kpi_procurement,model_mesob_dashboard_kpi,mesob_inventory_base.group_mesob_procurement,1,0,0,0
 a c c e s s _ m e s o b _ p r o c u r e m e n t _ s t o c k _ r e c o n c i l i a t i o n _ w i z a r d _ p a o , a c c e s s _ m e s o b _ p r o c u r e m e n t _ s t o c k _ r e c o n c i l i a t i o n _ w i z a r d _ p a o , m o d e l _ m e s o b _ p r o c u r e m e n t _ s t o c k _ r e c o n c i l i a t i o n _ w i z a r d , m e s o b _ i n v e n t o r y _ b a s e . g r o u p _ m e s o b _ p a o , 1 , 1 , 1 , 1 
- 
- 
 access_mesob_stock_discrepancy_investigation_pao,access_mesob_stock_discrepancy_investigation_pao,model_mesob_stock_discrepancy_investigation,mesob_inventory_base.group_mesob_pao,1,1,1,1
 access_mesob_stock_discrepancy_investigation_storekeeper,access_mesob_stock_discrepancy_investigation_storekeeper,model_mesob_stock_discrepancy_investigation,mesob_inventory_base.group_mesob_storekeeper,1,0,0,0
 access_mesob_stock_discrepancy_investigation_stock_clerk,access_mesob_stock_discrepancy_investigation_stock_clerk,model_mesob_stock_discrepancy_investigation,mesob_inventory_base.group_mesob_stock_clerk,1,0,0,0
