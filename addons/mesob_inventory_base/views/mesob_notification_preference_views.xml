@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Task 7: Push Notification System - Preference Views -->
+<odoo>
+    
+    <!-- Notification Preference Tree View -->
+    <record id="view_mesob_notification_preference_tree" model="ir.ui.view">
+        <field name="name">mesob.notification.preference.tree</field>
+        <field name="model">mesob.notification.preference</field>
+        <field name="arch" type="xml">
+            <list string="Notification Preferences" editable="bottom">
+                <field name="user_id" readonly="1"/>
+                <field name="activity_type_code"/>
+                <field name="enabled"/>
+            </list>
+        </field>
+    </record>
+    
+    <!-- Notification Preference Form View -->
+    <record id="view_mesob_notification_preference_form" model="ir.ui.view">
+        <field name="name">mesob.notification.preference.form</field>
+        <field name="model">mesob.notification.preference</field>
+        <field name="arch" type="xml">
+            <form string="Notification Preference">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="activity_type_code"/>
+                        </group>
+                        <group>
+                            <field name="enabled" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    
+                    <div class="alert alert-info" role="alert">
+                        <h5>Task 7: Push Notification System</h5>
+                        <p>Configure which notifications you want to receive.</p>
+                        <ul>
+                            <li><strong>Enabled:</strong> You will receive activity notifications</li>
+                            <li><strong>Disabled:</strong> These notifications will be suppressed</li>
+                        </ul>
+                        <p>Notifications appear in the Activity menu (bell icon) and can trigger emails.</p>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <!-- My Notification Preferences Action (for current user) -->
+    <record id="action_mesob_my_notification_preferences" model="ir.actions.act_window">
+        <field name="name">My Notification Preferences</field>
+        <field name="res_model">mesob.notification.preference</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('user_id', '=', uid)]</field>
+        <field name="context">{'default_user_id': uid}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configure your notification preferences
+            </p>
+            <p>
+                Choose which types of notifications you want to receive.<br/>
+                By default, all notifications are enabled.
+            </p>
+        </field>
+    </record>
+    
+    <!-- All Notification Preferences Action (for admins) -->
+    <record id="action_mesob_all_notification_preferences" model="ir.actions.act_window">
+        <field name="name">User Notification Preferences</field>
+        <field name="res_model">mesob.notification.preference</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Manage notification preferences for all users
+            </p>
+            <p>
+                Configure which users receive which notifications.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Menu: My Notification Preferences (under Settings) -->
+    <menuitem 
+        id="menu_mesob_my_notification_preferences"
+        name="My Notifications"
+        parent="mesob_inventory_base.menu_mesob_inventory_settings"
+        action="action_mesob_my_notification_preferences"
+        sequence="100"/>
+    
+    <!-- Menu: All Preferences (PAO only, under Settings) -->
+    <menuitem 
+        id="menu_mesob_all_notification_preferences"
+        name="User Notifications"
+        parent="mesob_inventory_base.menu_mesob_inventory_settings"
+        action="action_mesob_all_notification_preferences"
+        groups="mesob_inventory_base.group_mesob_pao"
+        sequence="110"/>
+    
+</odoo>
