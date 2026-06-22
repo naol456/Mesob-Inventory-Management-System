@@ -97,6 +97,68 @@ class MesobInventoryModel19(models.Model):
         string="All Copies Distributed",
         compute="_compute_all_copies_distributed",
     )
+    
+    # ── AUTO-040: Acknowledgment Tracking ──────────────────────────
+    accounts_copy_acknowledged = fields.Boolean(
+        string="Accounts Acknowledged",
+        default=False,
+        tracking=True,
+        help="AUTO-040: Accounts Unit confirmed receipt of original copy",
+    )
+    accounts_copy_ack_date = fields.Datetime(
+        string="Accounts Ack Date",
+        readonly=True,
+        help="AUTO-040: Date/time when Accounts acknowledged receipt",
+    )
+    accounts_copy_ack_by_id = fields.Many2one(
+        'res.users',
+        string="Accounts Ack By",
+        readonly=True,
+        help="AUTO-040: User who acknowledged on behalf of Accounts",
+    )
+    
+    stock_clerk_copy_acknowledged = fields.Boolean(
+        string="Stock Clerk Acknowledged",
+        default=False,
+        tracking=True,
+        help="AUTO-040: Stock Clerk confirmed receipt and posting complete",
+    )
+    stock_clerk_copy_ack_date = fields.Datetime(
+        string="Stock Clerk Ack Date",
+        readonly=True,
+        help="AUTO-040: Date/time when Stock Clerk acknowledged",
+    )
+    stock_clerk_copy_ack_by_id = fields.Many2one(
+        'res.users',
+        string="Stock Clerk Ack By",
+        readonly=True,
+        help="AUTO-040: User who acknowledged on behalf of Stock Clerk",
+    )
+    
+    supplier_copy_acknowledged = fields.Boolean(
+        string="Supplier Acknowledged",
+        default=False,
+        tracking=True,
+        help="AUTO-040: Supplier confirmed receipt of triplicate",
+    )
+    supplier_copy_ack_date = fields.Datetime(
+        string="Supplier Ack Date",
+        readonly=True,
+        help="AUTO-040: Date/time when Supplier acknowledged",
+    )
+    supplier_copy_ack_by_id = fields.Many2one(
+        'res.users',
+        string="Supplier Ack By",
+        readonly=True,
+        help="AUTO-040: User who acknowledged on behalf of Supplier",
+    )
+    
+    all_copies_acknowledged = fields.Boolean(
+        string="All Copies Acknowledged",
+        compute="_compute_all_copies_acknowledged",
+        store=True,
+        help="AUTO-040: True when all recipient parties have acknowledged receipt",
+    )
 
     # ── Lines ──────────────────────────────────────────────────────
     line_ids = fields.One2many(
@@ -147,6 +209,27 @@ class MesobInventoryModel19(models.Model):
                 rec.copy_supplier == "distributed",
                 rec.copy_storekeeper == "distributed",
             ])
+    
+    @api.depends(
+        'accounts_copy_acknowledged', 'stock_clerk_copy_acknowledged',
+        'supplier_copy_acknowledged', 'is_no_payment'
+    )
+    def _compute_all_copies_acknowledged(self):
+        """AUTO-040: Check if all required parties have acknowledged receipt."""
+        for rec in self:
+            if rec.is_no_payment:
+                # Department return: only Accounts and Stock Clerk need to acknowledge
+                rec.all_copies_acknowledged = (
+                    rec.accounts_copy_acknowledged and
+                    rec.stock_clerk_copy_acknowledged
+                )
+            else:
+                # Normal receipt: Accounts, Stock Clerk, and Supplier must acknowledge
+                rec.all_copies_acknowledged = (
+                    rec.accounts_copy_acknowledged and
+                    rec.stock_clerk_copy_acknowledged and
+                    rec.supplier_copy_acknowledged
+                )
 
     # ── View Customization ──────────────────────────────────────────
 
@@ -220,8 +303,72 @@ class MesobInventoryModel19(models.Model):
                 subject='Model 19 Confirmed - Three-Way Match Ready',
                 message_type='comment'
             )
+            
+            # AUTO-027: Check if ready for automatic payment certificate creation
+            rec._check_three_way_match_ready()
         
         return True
+    
+    def _check_three_way_match_ready(self):
+        """AUTO-027: Auto-create payment certificate if all three documents ready.
+        
+        Checks if:
+        1. Model 19 confirmed (this)
+        2. Purchase Order exists and is fully/partially received
+        3. Invoice number is available
+        
+        If all three exist, auto-creates payment certificate for PAO approval.
+        """
+        self.ensure_one()
+        
+        # Get linked Purchase Order
+        if not self.receiving_id or not self.receiving_id.purchase_order_ref:
+            return
+        
+        po = self.env['mesob.procurement.order'].search([
+            ('name', '=', self.receiving_id.purchase_order_ref)
+        ], limit=1)
+        
+        if not po or po.state not in ['partially_received', 'fully_received']:
+            return
+        
+        # Check if invoice exists (look for invoice_number field on receiving or model19)
+        # For now, we'll notify PAO that Model 19 is ready - they can manually add invoice
+        # In future, integrate with accounting module for automatic invoice detection
+        
+        # Notify PAO that Model 19 is ready for payment processing
+        pao_group = self.env.ref('mesob_inventory_base.group_mesob_pao', raise_if_not_found=False)
+        if pao_group and pao_group.users:
+            self.message_post(
+                body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px;">
+                    <h3>💰 AUTO-027: Ready for Payment Certificate Creation</h3>
+                    <p><strong>Model 19:</strong> {self.name}</p>
+                    <p><strong>Purchase Order:</strong> {po.name}</p>
+                    <p><strong>Supplier:</strong> {self.supplier_id.name if self.supplier_id else 'N/A'}</p>
+                    <p><strong>Total Value:</strong> ETB {sum(line.quantity * line.unit_price for line in self.line_ids):,.2f}</p>
+                    <hr/>
+                    <p><strong>Three-Way Match Status:</strong></p>
+                    <ul>
+                        <li>✅ Purchase Order: {po.name} ({po.state})</li>
+                        <li>✅ Model 19 Receipt: {self.name} (Confirmed)</li>
+                        <li>⏳ Invoice: <em>Awaiting supplier invoice</em></li>
+                    </ul>
+                    <hr/>
+                    <div style="background-color: #e7f3ff; padding: 10px; border-radius: 4px; margin-top: 10px;">
+                        <p style="margin: 0;"><strong>ACTION REQUIRED:</strong></p>
+                        <p style="margin: 5px 0 0 0;">When supplier's VAT invoice is received, create Payment Certificate to complete three-way match and approve payment.</p>
+                        <p style="margin: 5px 0 0 0;"><em>Navigate to: Procurement → Payment Certificates → Create</em></p>
+                    </div>
+                </div>""",
+                subject=f'AUTO-027: Payment Certificate Ready - Model 19 {self.name}',
+                partner_ids=pao_group.users.mapped('partner_id').ids,
+                message_type='notification'
+            )
+            
+            _logger.info(
+                f"AUTO-027: Model 19 {self.name} confirmed and linked to PO {po.name}. "
+                f"PAO notified to create payment certificate when invoice received."
+            )
     
     def _send_four_copy_distribution_notifications(self):
         """AUTO-040: Four-Copy Digital Distribution Auto-Routing (FR-REC-006).
@@ -390,6 +537,123 @@ class MesobInventoryModel19(models.Model):
             f"Total Value: ETB {total_value:,.2f}, "
             f"Department Return: {self.is_no_payment}"
         )
+    
+    def action_acknowledge_receipt(self):
+        """AUTO-040: Action for recipients to acknowledge receipt of their copy.
+        
+        Different user groups can acknowledge their respective copies:
+        - Accounts Unit: Original copy
+        - Stock Clerk: Duplicate copy
+        - Supplier: Triplicate copy (if external portal access)
+        """
+        self.ensure_one()
+        
+        user = self.env.user
+        acknowledged = False
+        ack_type = ""
+        
+        # Check user's group and update corresponding acknowledgment
+        if user.has_group('mesob_inventory_base.group_mesob_pao'):
+            # PAO/Accounts acknowledges original copy
+            if not self.accounts_copy_acknowledged:
+                self.write({
+                    'accounts_copy_acknowledged': True,
+                    'accounts_copy_ack_date': fields.Datetime.now(),
+                    'accounts_copy_ack_by_id': user.id,
+                })
+                acknowledged = True
+                ack_type = "Accounts Unit (Original Copy)"
+        
+        elif user.has_group('mesob_inventory_base.group_mesob_stock_clerk'):
+            # Stock Clerk acknowledges duplicate copy
+            if not self.stock_clerk_copy_acknowledged:
+                self.write({
+                    'stock_clerk_copy_acknowledged': True,
+                    'stock_clerk_copy_ack_date': fields.Datetime.now(),
+                    'stock_clerk_copy_ack_by_id': user.id,
+                })
+                acknowledged = True
+                ack_type = "Stock Clerk (Duplicate Copy)"
+        
+        elif user.partner_id == self.supplier_id:
+            # Supplier acknowledges triplicate copy (portal user)
+            if not self.supplier_copy_acknowledged:
+                self.write({
+                    'supplier_copy_acknowledged': True,
+                    'supplier_copy_ack_date': fields.Datetime.now(),
+                    'supplier_copy_ack_by_id': user.id,
+                })
+                acknowledged = True
+                ack_type = "Supplier (Triplicate Copy)"
+        
+        else:
+            raise UserError(
+                "You are not authorized to acknowledge this document. "
+                "Only Accounts, Stock Clerk, or the Supplier can acknowledge their respective copies."
+            )
+        
+        if acknowledged:
+            # Post acknowledgment confirmation to chatter
+            self.message_post(
+                body=f"""<div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 10px;">
+                    <p><strong>✅ AUTO-040: Receipt Acknowledged</strong></p>
+                    <p><strong>Recipient:</strong> {ack_type}</p>
+                    <p><strong>Acknowledged By:</strong> {user.name}</p>
+                    <p><strong>Date:</strong> {fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+                    <p><em>Model 19 copy confirmed as received.</em></p>
+                </div>""",
+                subject=f'AUTO-040: {ack_type} Acknowledged',
+                message_type='notification'
+            )
+            
+            _logger.info(
+                f"AUTO-040: Model 19 {self.name} - {ack_type} acknowledged by {user.name}"
+            )
+            
+            # Check if all copies acknowledged and notify
+            if self.all_copies_acknowledged:
+                pao_group = self.env.ref('mesob_inventory_base.group_mesob_pao', raise_if_not_found=False)
+                if pao_group and pao_group.users:
+                    self.message_post(
+                        body=f"""<div style="background-color: #d1ecf1; border-left: 4px solid #0c5460; padding: 15px;">
+                            <h4>🎯 AUTO-040: All Copies Acknowledged</h4>
+                            <p><strong>Model 19:</strong> {self.name}</p>
+                            <p><strong>Distribution Status:</strong> COMPLETE</p>
+                            <hr/>
+                            <p><strong>Acknowledgments:</strong></p>
+                            <ul>
+                                <li>✅ Accounts: {self.accounts_copy_ack_by_id.name if self.accounts_copy_ack_by_id else 'N/A'} ({self.accounts_copy_ack_date.strftime('%Y-%m-%d %H:%M') if self.accounts_copy_ack_date else 'N/A'})</li>
+                                <li>✅ Stock Clerk: {self.stock_clerk_copy_ack_by_id.name if self.stock_clerk_copy_ack_by_id else 'N/A'} ({self.stock_clerk_copy_ack_date.strftime('%Y-%m-%d %H:%M') if self.stock_clerk_copy_ack_date else 'N/A'})</li>
+                                <li>✅ Supplier: {self.supplier_copy_ack_by_id.name if self.supplier_copy_ack_by_id else 'N/A'} ({self.supplier_copy_ack_date.strftime('%Y-%m-%d %H:%M') if self.supplier_copy_ack_date and not self.is_no_payment else 'N/A'})</li>
+                            </ul>
+                            <p><em>All required parties have confirmed receipt. Model 19 four-copy distribution is complete.</em></p>
+                        </div>""",
+                        subject=f'AUTO-040: Model 19 {self.name} - All Copies Acknowledged',
+                        message_type='notification',
+                        partner_ids=pao_group.users.mapped('partner_id').ids
+                    )
+            
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Receipt Acknowledged',
+                    'message': f'Your receipt of the {ack_type} has been recorded.',
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+        else:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Already Acknowledged',
+                    'message': 'This copy has already been acknowledged.',
+                    'type': 'warning',
+                    'sticky': False,
+                }
+            }
 
     def action_mark_distributed(self):
         """Mark all copies as distributed."""

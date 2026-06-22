@@ -6634,6 +6634,9 @@ class MesobProcurementPaymentCertificate(models.Model):
                     f"Missing: {', '.join(missing)}"
                 )
             
+            # AUTO-029: Tolerance checking for amount variance
+            rec._validate_three_way_amount_tolerance()
+            
             rec.state = "approved"
             
             # Post approval notification with AUTO-029 tag
@@ -6669,6 +6672,88 @@ class MesobProcurementPaymentCertificate(models.Model):
             _logger.info(
                 f"AUTO-029: Payment certificate {rec.name} approved - "
                 f"PO {rec.order_id.name}, Invoice {rec.invoice_number}, Net Payable: ETB {rec.net_payable:,.2f}"
+            )
+        
+        return True
+    
+    def _validate_three_way_amount_tolerance(self):
+        """AUTO-029: Validate amount tolerances across PO, Model 19, and Invoice.
+        
+        Checks:
+        1. PO total vs Model 19 total (received amount)
+        2. Variance must be within 5% tolerance (FR-PROC-034)
+        3. Logs warnings for partial deliveries
+        
+        Raises UserError if variance exceeds tolerance.
+        """
+        self.ensure_one()
+        
+        if not (self.order_id and self.has_model19):
+            return True
+        
+        # Calculate PO total (ordered amount)
+        po_total = sum(line.quantity * line.price_unit for line in self.order_id.line_ids)
+        
+        # Get Model 19 and calculate received amount
+        model19_records = self.env['mesob.inventory.model19'].search([
+            ('receiving_id.purchase_order_ref', '=', self.order_id.name)
+        ])
+        
+        if not model19_records:
+            return True
+        
+        # Sum all Model 19 amounts (handles multiple deliveries)
+        model19_total = sum(
+            sum(line.quantity * line.unit_price for line in m19.line_ids)
+            for m19 in model19_records
+        )
+        
+        # Calculate variance percentage
+        if po_total > 0:
+            variance_pct = abs((model19_total - po_total) / po_total * 100)
+        else:
+            variance_pct = 0
+        
+        # Check tolerance (5% allowed per FR-PROC-034)
+        TOLERANCE_THRESHOLD = 5.0
+        
+        if variance_pct > TOLERANCE_THRESHOLD:
+            raise UserError(
+                f"🚨 Three-Way Match FAILED: Amount variance exceeds {TOLERANCE_THRESHOLD}% tolerance!\n\n"
+                f"📄 PO Total: ETB {po_total:,.2f}\n"
+                f"📦 Model 19 Total: ETB {model19_total:,.2f}\n"
+                f"📊 Variance: {variance_pct:.2f}%\n"
+                f"⚠️ Tolerance: ±{TOLERANCE_THRESHOLD}%\n\n"
+                f"ACTION REQUIRED:\n"
+                f"1. Verify supplier invoice matches Model 19 received amounts\n"
+                f"2. Check for quantity discrepancies or unauthorized price changes\n"
+                f"3. Investigate with Storekeeper and Procurement Officer\n"
+                f"4. Payment BLOCKED until discrepancy is resolved (FR-PROC-034)"
+            )
+        
+        # Log warning for partial deliveries (variance exists but within tolerance)
+        if variance_pct > 1.0:  # More than 1% variance
+            self.message_post(
+                body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 10px;">
+                    <p><strong>⚠️ AUTO-029: Amount Variance Detected (Within Tolerance)</strong></p>
+                    <ul>
+                        <li>PO Total: ETB {po_total:,.2f}</li>
+                        <li>Model 19 Total: ETB {model19_total:,.2f}</li>
+                        <li>Variance: {variance_pct:.2f}% (Acceptable under {TOLERANCE_THRESHOLD}% threshold)</li>
+                    </ul>
+                    <p><em>Likely due to partial delivery. Payment can proceed.</em></p>
+                </div>""",
+                subject='AUTO-029: Partial Delivery Amount Variance'
+            )
+            
+            _logger.warning(
+                f"AUTO-029: Payment certificate {self.name} has {variance_pct:.2f}% variance "
+                f"(PO: ETB {po_total:,.2f}, Model 19: ETB {model19_total:,.2f}) - within tolerance"
+            )
+        else:
+            _logger.info(
+                f"AUTO-029: Payment certificate {self.name} passed tolerance check - "
+                f"variance {variance_pct:.2f}% (PO: ETB {po_total:,.2f}, Model 19: ETB {model19_total:,.2f})"
             )
         
         return True
