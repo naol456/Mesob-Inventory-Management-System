@@ -87,7 +87,6 @@
         "views/mesob_stock_taking_handover_views.xml",
         "views/mesob_storage_security_views.xml",
         "views/mesob_inventory_dashboard_views.xml",
-        "views/mesob_dashboard_enhanced_views.xml",  # Task 12: Enhanced dashboards
         # Login customization
         "views/mesob_login_template.xml",
         # Wizards

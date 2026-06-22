@@ -385,12 +385,81 @@ class MesobInventoryDSR(models.Model):
         _logger.info(f"AUTO-041: DSR {self.name} - Four copies auto-distributed digitally")
     
     def _notify_procurement_officer(self):
-        """AUTO-028: Notify Procurement Officer of rejection (FR-PROC-032)."""
+        """AUTO-028: Notify Procurement Officer of rejection (FR-PROC-032).
+        
+        Enhanced notification:
+        - Alerts PAO of supplier deficiency
+        - Tracks replacement expected date
+        - Provides action guidance for supplier coordination
+        """
         self.ensure_one()
         
-        # Already handled in _auto_distribute_dsr_copies (triplicate copy)
-        # This method is a placeholder for additional procurement-specific notifications if needed
-        pass
+        # Find PAO users
+        pao_group = self.env.ref('mesob_inventory_base.group_mesob_pao', raise_if_not_found=False)
+        if not pao_group or not pao_group.users:
+            _logger.warning(f"AUTO-028: PAO group not found or has no users for DSR {self.name}")
+            return
+        
+        # Build items summary
+        items_summary = '<ul>'
+        for line in self.line_ids:
+            items_summary += (
+                f'<li><strong>{line.item_id.item_code}</strong>: {line.rejected_quantity} '
+                f'{line.uom_id.name if line.uom_id else "units"} - {line.item_id.name}<br/>'
+                f'<em>Reason: {line.rejection_reason or "See main DSR reason"}</em></li>'
+            )
+        items_summary += '</ul>'
+        
+        # Send notification to PAO
+        self.message_post(
+            body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #ff6b6b; padding: 15px;">
+                <h3>🚨 AUTO-028: DSR Issued - Supplier Action Required</h3>
+                <p><strong>DSR Number:</strong> {self.name}</p>
+                <p><strong>Supplier:</strong> {self.supplier_id.name if self.supplier_id else 'N/A'}</p>
+                <p><strong>Purchase Order:</strong> {self.purchase_order_ref or 'N/A'}</p>
+                <p><strong>Issue Date:</strong> {self.issue_date or fields.Date.today()}</p>
+                <hr/>
+                <h4>Rejection Details:</h4>
+                <p><strong>Reason:</strong> {self.rejection_reason or 'Not specified'}</p>
+                <p><strong>Deficiency Type:</strong> {dict(self._fields['deficiency_type'].selection).get(self.deficiency_type, 'N/A') if self.deficiency_type else 'N/A'}</p>
+                <hr/>
+                <h4>Rejected Items:</h4>
+                {items_summary}
+                <hr/>
+                <div style="background-color: #ffe7e7; padding: 10px; border-radius: 4px; margin-top: 15px;">
+                    <p style="margin: 0;"><strong>⚠️ CRITICAL ACTION REQUIRED:</strong></p>
+                    <ul style="margin: 5px 0;">
+                        <li><strong>Coordinate with supplier</strong> for replacement delivery</li>
+                        <li><strong>Expected Replacement Date:</strong> {self.replacement_expected_date or '<em>To be determined</em>'}</li>
+                        <li><strong>Payment Status:</strong> <span style="color: #dc3545; font-weight: bold;">BLOCKED (BR-PROC-002)</span></li>
+                        <li><strong>Payment will remain blocked</strong> until replacement goods are received and accepted</li>
+                    </ul>
+                </div>
+                <hr/>
+                <div style="background-color: #e7f3ff; padding: 10px; border-radius: 4px; margin-top: 10px;">
+                    <p style="margin: 0;"><strong>Next Steps:</strong></p>
+                    <ol style="margin: 5px 0;">
+                        <li>Contact supplier immediately regarding rejected items</li>
+                        <li>Negotiate replacement delivery date</li>
+                        <li>Update DSR with expected replacement date</li>
+                        <li>Monitor supplier compliance</li>
+                        <li>Once replacement received, mark DSR as resolved</li>
+                    </ol>
+                </div>
+                <p style="margin-top: 15px;"><a href="/web#id={self.id}&model=mesob.inventory.dsr&view_type=form" 
+                   style="background-color: #ff6b6b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                   Review DSR Details →
+                </a></p>
+            </div>""",
+            subject=f'[URGENT] DSR {self.name} - Supplier Replacement Required',
+            partner_ids=pao_group.users.mapped('partner_id').ids,
+            message_type='notification'
+        )
+        
+        _logger.info(
+            f"AUTO-028: PAO notified of DSR {self.name} - Supplier: {self.supplier_id.name if self.supplier_id else 'N/A'}, "
+            f"Expected Replacement: {self.replacement_expected_date or 'TBD'}"
+        )
     
     def _block_payment_on_po(self):
         """AUTO-028: Block payment on linked PO (BR-PROC-002).

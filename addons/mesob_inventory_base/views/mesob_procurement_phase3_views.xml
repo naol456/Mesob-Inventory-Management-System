@@ -401,13 +401,13 @@ if records:
                 <field name="variation_date"/>
                 <field name="contract_id"/>
                 <field name="variation_amount" sum="Total Variations" 
-                       decoration-success="variation_amount > 0"
-                       decoration-danger="variation_amount < 0"/>
+                       decoration-success="variation_amount &gt; 0"
+                       decoration-danger="variation_amount &lt; 0"/>
                 <field name="cumulative_after" sum="Cumulative Total"/>
                 <field name="percentage_after" widget="percentage"
-                       decoration-info="percentage_after < 10"
-                       decoration-warning="percentage_after >= 10 and percentage_after < 15"
-                       decoration-danger="percentage_after >= 15"/>
+                       decoration-info="percentage_after &lt; 10"
+                       decoration-warning="percentage_after &gt;= 10 and percentage_after &lt; 15"
+                       decoration-danger="percentage_after &gt;= 15"/>
                 <field name="approved_by_id"/>
             </list>
         </field>
