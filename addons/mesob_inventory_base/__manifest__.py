@@ -32,9 +32,9 @@
     "license": "LGPL-3",
     "depends": ["stock", "mail"],
     "data": [
-        # Security (load first) - TEMPORARILY DISABLED TO DEBUG
+        # Security (load first)
         "security/mesob_inventory_groups.xml",
-        # "security/ir.model.access.csv",  # TODO: Fix and re-enable
+        "security/ir.model.access.csv",
         "security/mesob_inventory_record_rules.xml",
         "security/mesob_gate_pass_rules.xml",
         # Root Menu
