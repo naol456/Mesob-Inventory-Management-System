@@ -1548,15 +1548,46 @@ class MesobProcurementNeed(models.Model):
 
     def action_review(self):
         """AUTO-001: SPO reviews submitted need (FR-PROC-003).
+        AUTO-003: Budget check enforcement - prevents acceptance of unfunded needs.
         
         SPO can:
-        - Approve: Move to 'reviewed' state for lot assignment
+        - Approve: Move to 'reviewed' state for lot assignment (if budget available)
         - Reject: Return to department with comments
         - Request clarification: Add comment and keep in submitted state
         """
         for rec in self:
             if rec.state != "submitted":
                 raise UserError("Only submitted needs can be reviewed.")
+            
+            # AUTO-003: Budget check enforcement (BR-PROC-001)
+            if not rec.budget_available:
+                raise UserError(
+                    f"❌ AUTO-003: Cannot approve need due to insufficient budget.\n\n"
+                    f"Need: {rec.display_name}\n"
+                    f"Budget Classification: {rec.budget_classification}\n"
+                    f"Required Amount: ETB {rec.total_price:,.2f}\n"
+                    f"Available Budget: ETB {rec.budget_balance:,.2f}\n"
+                    f"Shortfall: ETB {rec.total_price - rec.budget_balance:,.2f}\n\n"
+                    f"{rec.budget_warning}\n\n"
+                    f"Please either:\n"
+                    f"1. Request budget reallocation from Finance\n"
+                    f"2. Reduce quantity or specification\n"
+                    f"3. Defer to next fiscal year\n"
+                    f"4. Request HOPE override approval (emergency only)"
+                )
+            
+            # Budget warning alert (if using 80%+ of budget)
+            if rec.budget_warning and 'Warning' in rec.budget_warning:
+                # Show warning but allow proceeding
+                rec.message_post(
+                    body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px;">
+                        <h4>⚠️ AUTO-003: Budget Warning</h4>
+                        <p>{rec.budget_warning}</p>
+                        <p><strong>Note:</strong> Approval granted, but monitor budget utilization carefully.</p>
+                    </div>""",
+                    subject=f'AUTO-003: Budget Warning - {rec.display_name}',
+                    message_type='comment'
+                )
             
             rec.write({
                 "state": "reviewed",
@@ -1571,6 +1602,7 @@ class MesobProcurementNeed(models.Model):
                         <h3>✅ Need Reviewed & Approved</h3>
                         <p>Your procurement need has been reviewed and approved by SPO.</p>
                         <p><strong>Reviewer:</strong> {self.env.user.name}</p>
+                        <p><strong>Budget Status:</strong> ✅ Confirmed (ETB {rec.budget_balance:,.2f} available)</p>
                         <p><strong>Next Step:</strong> Need will be consolidated into procurement lots.</p>
                     </div>""",
                     subject=f'Need Approved: {rec.item_code}',
@@ -1578,7 +1610,116 @@ class MesobProcurementNeed(models.Model):
                     partner_ids=[rec.submitted_by_id.partner_id.id]
                 )
             
-            _logger.info(f"AUTO-001: Need {rec.id} reviewed by {self.env.user.name}")
+            _logger.info(
+                f"AUTO-001 + AUTO-003: Need {rec.id} reviewed by {self.env.user.name}. "
+                f"Budget available: ETB {rec.budget_balance:,.2f}"
+            )
+        
+        return True
+    
+    def action_hope_budget_override(self):
+        """AUTO-003: HOPE can override budget check for emergency procurements.
+        
+        Used only in exceptional circumstances:
+        - Emergency procurement (life/safety critical)
+        - Budget will be reallocated within fiscal year
+        - HOPE assumes accountability for budget violation
+        
+        Requires:
+        - HOPE user group
+        - Justification (minimum 50 characters)
+        - Full audit trail
+        """
+        self.ensure_one()
+        
+        # Security check
+        if not self.env.user.has_group('mesob_inventory_base.group_mesob_hope'):
+            raise UserError(
+                "❌ Only HOPE (Head of Public Entity) can override budget checks."
+            )
+        
+        # Open wizard for override justification
+        return {
+            'name': 'HOPE Budget Override Approval',
+            'type': 'ir.actions.act_window',
+            'res_model': 'mesob.budget.override.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_need_id': self.id,
+                'default_required_amount': self.total_price,
+                'default_available_budget': self.budget_balance,
+                'default_shortfall': self.total_price - self.budget_balance,
+            }
+        }
+    
+    def _confirm_budget_override(self, justification):
+        """AUTO-003: Confirm HOPE budget override with justification.
+        
+        Internal method called from wizard after HOPE provides justification.
+        """
+        self.ensure_one()
+        
+        if not justification or len(justification) < 50:
+            raise ValidationError(
+                "Budget override justification must be at least 50 characters. "
+                "This is a serious accountability matter requiring detailed explanation."
+            )
+        
+        if not self.env.user.has_group('mesob_inventory_base.group_mesob_hope'):
+            raise UserError("Only HOPE can confirm budget override.")
+        
+        # Record override in audit trail
+        self.message_post(
+            body=f"""<div style="background-color: #dc3545; color: white; border-left: 4px solid #a71d2a; padding: 15px;">
+                <h3>⚠️ AUTO-003: HOPE BUDGET OVERRIDE</h3>
+                <p><strong>Override By:</strong> {self.env.user.name} (HOPE)</p>
+                <p><strong>Date:</strong> {fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+                <p><strong>Need:</strong> {self.display_name}</p>
+                <hr style="border-color: white;"/>
+                <table style="width: 100%; color: white;">
+                    <tr><td><strong>Required Amount:</strong></td><td>ETB {self.total_price:,.2f}</td></tr>
+                    <tr><td><strong>Available Budget:</strong></td><td>ETB {self.budget_balance:,.2f}</td></tr>
+                    <tr><td><strong>Budget Violation:</strong></td><td>ETB {self.total_price - self.budget_balance:,.2f}</td></tr>
+                    <tr><td><strong>Budget Classification:</strong></td><td>{self.budget_classification}</td></tr>
+                </table>
+                <hr style="border-color: white;"/>
+                <div style="background-color: white; color: black; padding: 10px; border-radius: 4px; margin-top: 15px;">
+                    <p style="margin: 0;"><strong>Justification:</strong></p>
+                    <p style="margin: 5px 0 0 0;">{justification}</p>
+                </div>
+                <hr style="border-color: white;"/>
+                <p style="margin-top: 15px;"><strong>⚠️ ACCOUNTABILITY NOTICE:</strong></p>
+                <p style="margin: 5px 0 0 0; font-size: 12px;">
+                    This budget override is recorded in the immutable audit log. 
+                    HOPE assumes full accountability for this decision. 
+                    Budget reallocation must be completed within this fiscal year.
+                </p>
+            </div>""",
+            subject=f'AUTO-003: HOPE BUDGET OVERRIDE - {self.display_name}',
+            message_type='notification'
+        )
+        
+        # Notify Finance/PAO about override
+        pao_group = self.env.ref('mesob_inventory_base.group_mesob_pao', raise_if_not_found=False)
+        if pao_group and pao_group.users:
+            self.message_post(
+                body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px;">
+                    <h4>💰 Budget Override - Finance Action Required</h4>
+                    <p>HOPE has approved budget override for: <strong>{self.display_name}</strong></p>
+                    <p><strong>Budget Violation:</strong> ETB {self.total_price - self.budget_balance:,.2f}</p>
+                    <p><strong>ACTION REQUIRED:</strong> Arrange budget reallocation for classification <strong>{self.budget_classification}</strong> before fiscal year end.</p>
+                </div>""",
+                subject=f'Budget Reallocation Required - {self.budget_classification}',
+                message_type='notification',
+                partner_ids=pao_group.users.mapped('partner_id').ids
+            )
+        
+        _logger.warning(
+            f"AUTO-003: HOPE BUDGET OVERRIDE - Need {self.id} ({self.display_name}) approved by {self.env.user.name}. "
+            f"Budget violation: ETB {self.total_price - self.budget_balance:,.2f}. "
+            f"Justification: {justification[:100]}..."
+        )
         
         return True
     
