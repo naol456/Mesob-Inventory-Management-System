@@ -402,25 +402,58 @@
         <field name="arch" type="xml">
             <form string="Contract">
                 <header>
+                    <!-- AUTO-018: Generate contract from bid -->
+                    <button name="action_generate_contract_from_bid" string="⚡ Generate from Bid" type="object" class="btn-info" invisible="state != 'draft' or contract_document"/>
                     <button name="action_sign_contract" string="Sign Contract" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <!-- AUTO-032: Release retention -->
+                    <button name="action_release_retention" string="💰 Release Retention" type="object" class="btn-success" invisible="state != 'closed' or retention_released"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,signed,variation,closed"/>
                 </header>
                 <sheet>
+                    <!-- Button box for statistics and quick actions -->
+                    <div class="oe_button_box" name="button_box">
+                        <!-- AUTO-021: Variation statistics -->
+                        <button class="oe_stat_button" type="object" name="action_open_variations" icon="fa-exchange" invisible="not variation_ids">
+                            <field name="variation_percentage" widget="percentage" string="Variations"/>
+                        </button>
+                        <!-- AUTO-032: Retention statistics -->
+                        <button class="oe_stat_button" type="action" icon="fa-lock" invisible="cumulative_retention == 0">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="cumulative_retention" widget="monetary"/>
+                                </span>
+                                <span class="o_stat_text">Retention Held</span>
+                            </div>
+                        </button>
+                    </div>
+                    
                     <group>
                         <group>
                             <field name="name" readonly="state != 'draft'"/>
                             <field name="supplier_id" readonly="state != 'draft'"/>
                             <field name="lot_id" readonly="state != 'draft'"/>
                             <field name="total_value" readonly="state != 'draft'"/>
+                            <!-- AUTO-021: Original value for variation tracking -->
+                            <field name="original_contract_value" readonly="1" invisible="not original_contract_value"/>
                         </group>
                         <group>
                             <field name="advance_payment" readonly="state != 'draft'"/>
                             <field name="advance_payment_guarantee" readonly="state != 'draft'"/>
                             <field name="performance_security_recorded" readonly="state != 'draft'"/>
-                            <field name="cumulative_variation_total"/>
+                            <!-- AUTO-021: Cumulative variations -->
+                            <field name="cumulative_variation_total" readonly="1"/>
+                            <!-- AUTO-032: Retention fields -->
+                            <field name="retention_percentage" readonly="state not in ['draft', 'signed']"/>
+                            <field name="retention_released" readonly="1" invisible="not retention_released"/>
                         </group>
                     </group>
+                    
                     <notebook>
+                        <!-- AUTO-018: Contract Document -->
+                        <page string="📄 Contract Document" name="contract_doc" invisible="not contract_document">
+                            <field name="contract_document" widget="html" readonly="state != 'draft'"/>
+                        </page>
+                        
                         <page string="Delivery &amp; Payments Info" name="delivery_payment">
                             <group>
                                 <field name="delivery_schedule" placeholder="Key delivery milestones..." readonly="state != 'draft'"/>
@@ -428,8 +461,52 @@
                                 <field name="performance_security_details" placeholder="Insurance bond or bank guarantees..." readonly="state != 'draft'"/>
                             </group>
                         </page>
+                        
+                        <!-- AUTO-021: Variations Tab -->
+                        <page string="📊 Variations" name="variations" invisible="not variation_ids">
+                            <group>
+                                <group>
+                                    <field name="original_contract_value" readonly="1"/>
+                                    <field name="cumulative_variation_total" readonly="1"/>
+                                    <field name="variation_percentage" widget="percentage" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="variation_alert_10_sent" readonly="1" invisible="not variation_alert_10_sent"/>
+                                    <field name="variation_alert_15_sent" readonly="1" invisible="not variation_alert_15_sent"/>
+                                </group>
+                            </group>
+                            <field name="variation_ids" readonly="1">
+                                <list string="Contract Variations">
+                                    <field name="name"/>
+                                    <field name="variation_date"/>
+                                    <field name="variation_amount" sum="Total Variations"/>
+                                    <field name="description"/>
+                                    <field name="percentage_after" widget="percentage"/>
+                                    <field name="approved_by_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        
+                        <!-- AUTO-032: Retention & Warranty Tab -->
+                        <page string="💰 Retention &amp; Warranty" name="retention_warranty">
+                            <group>
+                                <group string="Retention Management">
+                                    <field name="retention_percentage"/>
+                                    <field name="cumulative_retention" readonly="1"/>
+                                    <field name="retention_released" readonly="1"/>
+                                    <field name="retention_release_date" readonly="1" invisible="not retention_release_date"/>
+                                </group>
+                                <group string="Warranty Management">
+                                    <field name="warranty_period_months"/>
+                                    <field name="contract_close_date"/>
+                                    <field name="warranty_expiry_date" readonly="1"/>
+                                    <field name="defects_cleared"/>
+                                </group>
+                            </group>
+                        </page>
                     </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>
@@ -571,58 +648,6 @@
         </field>
     </record>
 
-    <!-- ==================== COMPLAINTS ==================== -->
-    <record id="view_mesob_procurement_complaint_tree" model="ir.ui.view">
-        <field name="name">mesob.procurement.complaint.tree</field>
-        <field name="model">mesob.procurement.complaint</field>
-        <field name="arch" type="xml">
-            <list string="Procurement Complaints">
-                <field name="name"/>
-                <field name="complainant_name"/>
-                <field name="lot_id"/>
-                <field name="date_filed"/>
-                <field name="nature"/>
-                <field name="state" widget="badge" decoration-danger="state == 'open'" decoration-success="state == 'resolved'"/>
-            </list>
-        </field>
-    </record>
-
-    <record id="view_mesob_procurement_complaint_form" model="ir.ui.view">
-        <field name="name">mesob.procurement.complaint.form</field>
-        <field name="model">mesob.procurement.complaint</field>
-        <field name="arch" type="xml">
-            <form string="Complaint Registration">
-                <header>
-                    <button name="action_resolve" string="Resolve Complaint" type="object" class="oe_highlight" invisible="state != 'open'"/>
-                    <field name="state" widget="statusbar" statusbar_visible="open,resolved"/>
-                </header>
-                <sheet>
-                    <group>
-                        <group>
-                            <field name="complainant_name" readonly="state != 'open'"/>
-                            <field name="lot_id" readonly="state != 'open'"/>
-                        </group>
-                        <group>
-                            <field name="date_filed" readonly="state != 'open'"/>
-                            <field name="nature" readonly="state != 'open'"/>
-                        </group>
-                    </group>
-                    <notebook>
-                        <page string="Complaint details" name="details">
-                            <field name="details" placeholder="Full description of complaints/appeals..." readonly="state != 'open'"/>
-                        </page>
-                        <page string="Response &amp; Resolution Actions" name="resolution">
-                            <group>
-                                <field name="action_taken" placeholder="Enter actions taken..."/>
-                                <field name="resolution" placeholder="Document final outcome..."/>
-                            </group>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
     <!-- ==================== ACTIONS ==================== -->
     <record id="action_mesob_procurement_plan" model="ir.actions.act_window">
         <field name="name">Annual Plans (APP)</field>
@@ -657,12 +682,6 @@
     <record id="action_mesob_procurement_payment" model="ir.actions.act_window">
         <field name="name">Payment Certificates</field>
         <field name="res_model">mesob.procurement.payment.certificate</field>
-        <field name="view_mode">list,form</field>
-    </record>
-
-    <record id="action_mesob_procurement_complaint" model="ir.actions.act_window">
-        <field name="name">Complaints &amp; Appeals</field>
-        <field name="res_model">mesob.procurement.complaint</field>
         <field name="view_mode">list,form</field>
     </record>
 

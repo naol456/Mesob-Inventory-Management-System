@@ -63,6 +63,12 @@
         <field name="model">mesob.inventory.item</field>
         <field name="arch" type="xml">
             <form string="Inventory Item">
+                <header>
+                    <!-- AUTO-038: Duplicate Detection Button -->
+                    <button name="action_check_duplicates" string="Check for Duplicates" type="object" 
+                            class="btn-warning" icon="fa-search"
+                            help="AUTO-038: Search for similar items to prevent duplicates"/>
+                </header>
                 <sheet>
                     <div class="oe_title mb-4">
                         <span class="text-muted fw-bold text-uppercase fs-6">FDRE Stock Item</span>

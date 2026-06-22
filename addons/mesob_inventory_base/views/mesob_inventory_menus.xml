@@ -180,6 +180,20 @@
               parent="menu_mesob_procurement"
               action="action_mesob_procurement_complaint"
               sequence="60"/>
+    
+    <!-- PHASE 3: Compliance & Monitoring -->
+    <menuitem id="menu_mesob_procurement_compliance"
+              name="Compliance &amp; Monitoring"
+              parent="menu_mesob_procurement"
+              sequence="65"/>
+    
+    <!-- AUTO-034: Progress Dashboard -->
+    <menuitem id="menu_mesob_progress_dashboard"
+              name="Progress Dashboard"
+              parent="menu_mesob_procurement_compliance"
+              action="action_mesob_procurement_progress_dashboard"
+              sequence="10"/>
+
 
     <menuitem id="menu_mesob_budget_allocation"
               name="Budget Allocations"

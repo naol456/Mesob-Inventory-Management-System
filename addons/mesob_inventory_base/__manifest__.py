@@ -49,8 +49,10 @@
         "data/mesob_procurement_sequences.xml",
         "data/mesob_payment_validation_sequence.xml",
         "data/mesob_catalog_publication_sequence.xml",
+        "data/mesob_phase3_sequences.xml",
         "data/mesob_overdue_po_cron.xml",
         "data/mesob_auto_reorder_cron.xml",
+        "data/mesob_phase3_cron.xml",
         # Company data
         "data/mesob_company_data.xml",
         # Views (Base)
@@ -72,6 +74,7 @@
         # Budget and Procurement views (must be loaded before menus that reference their actions)
         "views/mesob_budget_views.xml",
         "views/mesob_procurement_views.xml",
+        "views/mesob_procurement_phase3_views.xml",
         # Menus (loaded after actions are defined)
         "views/mesob_inventory_menus.xml",
         # TODO: Fix stock code catalog publication views - model not loaded
