@@ -273,6 +273,13 @@
               groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_stock_clerk"
               sequence="50"/>
 
+    <menuitem id="menu_mesob_procurement_stock_reconciliation"
+              name="Procurement-Stock Reconciliation (AUTO-035)"
+              parent="menu_mesob_automation_calculators"
+              action="mesob_procurement_stock_reconciliation_wizard.action_mesob_procurement_stock_reconciliation_wizard"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_procurement"
+              sequence="60"/>
+
     <!-- ── Master Data ────────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_master_data"
               name="Master Data"

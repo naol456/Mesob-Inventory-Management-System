@@ -53,7 +53,10 @@
         "data/mesob_automation_calculation_sequences.xml",
         "data/mesob_overdue_po_cron.xml",
         "data/mesob_auto_reorder_cron.xml",
-data/mesob_phase3_cron.xml
+        "data/mesob_phase3_cron.xml",
+        "data/mesob_notification_activity_types.xml",  # Task 7: Activity types for notifications
+        "data/mesob_dashboard_kpi_cron.xml",  # Task 12: KPI refresh cron
+        "data/mesob_stock_accuracy_cron.xml",  # AUTO-055: Monthly stock accuracy scorecard
         # Company data
         "data/mesob_company_data.xml",
         # Views (Base)
@@ -95,6 +98,17 @@ data/mesob_phase3_cron.xml
         "wizard/mesob_procurement_need_reject_wizard_views.xml",
         "wizard/mesob_intelligent_consolidation_wizard_views.xml",
         "wizard/mesob_requisition_reject_wizard_views.xml",
+        "wizard/mesob_gate_pass_override_wizard_views.xml",  # AUTO-046
+        "wizard/mesob_manual_adjustment_wizard_views.xml",  # AUTO-050
+        "wizard/mesob_duplicate_item_wizard_views.xml",  # AUTO-038
+        "wizard/mesob_quarterly_movement_report_wizard_views.xml",  # AUTO-054
+        "wizard/mesob_gate_pass_extend_wizard_views.xml",  # AUTO-048
+        "wizard/mesob_barcode_scanner_wizard_views.xml",  # Task 9
+        "wizard/mesob_procurement_stock_reconciliation_wizard_views.xml",  # AUTO-035
+        # Notification preferences (Task 7)
+        "views/mesob_notification_preference_views.xml",
+        # Digital Signatures (Task 11)
+        "views/mesob_digital_signature_views.xml",
         # Reports
         "reports/mesob_gate_pass_report.xml",
     ],
