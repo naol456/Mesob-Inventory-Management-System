@@ -63,10 +63,10 @@ from . import mesob_stock_taking
 from . import mesob_stock_handover
 
 # ═══════════════════════════════════════════════════════════
-# INVESTIGATION WORKFLOW
+# INVESTIGATION WORKFLOW (TEMPORARILY DISABLED FOR MODULE ACTIVATION)
 # ═══════════════════════════════════════════════════════════
 # AUTO-059: Stock Discrepancy Investigation Workflow
-from . import mesob_stock_discrepancy_investigation
+# from . import mesob_stock_discrepancy_investigation  # TODO: Re-enable after module loads
 
 # ═══════════════════════════════════════════════════════════
 # ADDITIONAL FEATURES (Task 7, 11, 12)
