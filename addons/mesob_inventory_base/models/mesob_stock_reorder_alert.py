@@ -2,10 +2,20 @@
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class MesobStockReorderAlert(models.Model):
-    """Stock Reorder Alert - Automated alerts for low stock (FR-SC-003)"""
+    """Stock Reorder Alert - Automated alerts for low stock (FR-SC-003)
+    
+    AUTO-023: Reorder-Level Auto-Requisition
+    - System monitors stock on hand vs. reorder level (FR-SC-003)
+    - Auto-checks for outstanding POs to prevent duplicate orders
+    - Auto-generates draft Purchase Requisition if no outstanding delivery
+    - Notifies Procurement Officer with suggested order quantity
+    """
     _name = 'mesob.stock.reorder.alert'
     _description = 'Stock Reorder Alert'
     _order = 'alert_date desc, id desc'

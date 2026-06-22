@@ -3169,7 +3169,85 @@ class MesobProcurementOrder(models.Model):
         default="New",
         readonly=True,
     )
-    plan_lot_id = fields.Many2one("mesob.procurement.plan.lot", string="APP Lot Reference", required=True)
+    
+    # ── AUTO-005: Emergency Procurement Fields (BR-PROC-001) ───────────
+    
+    is_emergency = fields.Boolean(
+        string="Emergency Procurement",
+        default=False,
+        tracking=True,
+        help="AUTO-005: Mark as emergency procurement (BR-PROC-001 5-day retrospective rule)"
+    )
+    
+    emergency_justification = fields.Text(
+        string="Emergency Justification",
+        help="AUTO-005: Mandatory justification for emergency procurement"
+    )
+    
+    emergency_created_date = fields.Date(
+        string="Emergency PO Created",
+        readonly=True,
+        tracking=True,
+        help="AUTO-005: Date when emergency PO was created"
+    )
+    
+    app_amendment_id = fields.Many2one(
+        'mesob.procurement.plan.lot',
+        string="APP Amendment",
+        readonly=True,
+        help="AUTO-005: Draft APP amendment auto-generated for emergency PO"
+    )
+    
+    app_amendment_deadline = fields.Date(
+        string="APP Amendment Deadline",
+        compute='_compute_app_amendment_deadline',
+        store=True,
+        help="AUTO-005: 5 working days deadline for APP update (BR-PROC-001)"
+    )
+    
+    days_until_app_deadline = fields.Integer(
+        string="Days Until APP Deadline",
+        compute='_compute_days_until_app_deadline',
+        help="AUTO-005: Countdown to APP amendment deadline"
+    )
+    
+    app_updated = fields.Boolean(
+        string="APP Updated",
+        default=False,
+        tracking=True,
+        help="AUTO-005: Whether APP has been retrospectively updated"
+    )
+    
+    app_update_date = fields.Date(
+        string="APP Update Date",
+        readonly=True,
+        tracking=True,
+        help="AUTO-005: Date when APP was retrospectively updated"
+    )
+    
+    hope_emergency_authorized = fields.Boolean(
+        string="HOPE Emergency Authorized",
+        default=False,
+        tracking=True,
+        help="AUTO-005: Whether HOPE has authorized emergency procurement"
+    )
+    
+    hope_authorization_date = fields.Date(
+        string="HOPE Authorization Date",
+        readonly=True,
+        tracking=True,
+        help="AUTO-005: Date when HOPE authorized emergency"
+    )
+    
+    hope_authorized_by_id = fields.Many2one(
+        'res.users',
+        string="HOPE Authorized By",
+        readonly=True,
+        tracking=True,
+        help="AUTO-005: HOPE user who authorized emergency"
+    )
+    
+    plan_lot_id = fields.Many2one("mesob.procurement.plan.lot", string="APP Lot Reference", required=False)
     contract_id = fields.Many2one("mesob.procurement.contract", string="Contract Link")
     supplier_id = fields.Many2one(
         "res.partner",
@@ -3234,7 +3312,59 @@ class MesobProcurementOrder(models.Model):
         for vals in vals_list:
             if vals.get("name", "New") == "New":
                 vals["name"] = f"PO/{self.env['ir.sequence'].next_by_code('mesob.procurement.order') or '001'}"
-        return super().create(vals_list)
+            
+            # AUTO-005: Handle emergency procurement creation
+            if vals.get('is_emergency'):
+                vals['emergency_created_date'] = fields.Date.today()
+        
+        records = super().create(vals_list)
+        
+        # AUTO-005: Auto-trigger APP amendment for emergency POs
+        for rec in records:
+            if rec.is_emergency:
+                rec._auto_create_app_amendment()
+                rec._notify_hope_emergency_authorization_needed()
+        
+        return records
+    
+    # ── AUTO-005: Computed Fields ───────────────────────────────────────
+    
+    @api.depends('emergency_created_date')
+    def _compute_app_amendment_deadline(self):
+        """AUTO-005: Calculate 5 working days deadline for APP amendment (BR-PROC-001)."""
+        from datetime import timedelta
+        
+        for rec in self:
+            if not rec.is_emergency or not rec.emergency_created_date:
+                rec.app_amendment_deadline = False
+                continue
+            
+            # Calculate 5 working days (excluding weekends)
+            current_date = rec.emergency_created_date
+            working_days = 0
+            
+            while working_days < 5:
+                current_date += timedelta(days=1)
+                # Skip weekends (Saturday=5, Sunday=6)
+                if current_date.weekday() < 5:
+                    working_days += 1
+            
+            rec.app_amendment_deadline = current_date
+    
+    @api.depends('app_amendment_deadline', 'app_updated')
+    def _compute_days_until_app_deadline(self):
+        """AUTO-005: Calculate countdown to APP amendment deadline."""
+        from datetime import date
+        
+        today = fields.Date.today()
+        
+        for rec in self:
+            if not rec.is_emergency or rec.app_updated or not rec.app_amendment_deadline:
+                rec.days_until_app_deadline = 0
+                continue
+            
+            delta = (rec.app_amendment_deadline - today).days
+            rec.days_until_app_deadline = max(0, delta)
 
     @api.constrains("supplier_id")
     def _check_supplier_validity(self):
@@ -3254,17 +3384,99 @@ class MesobProcurementOrder(models.Model):
     def action_approve(self):
         """Authorize the Purchase Order.
         
+        AUTO-005: Enhanced with emergency procurement compliance check (BR-PROC-001).
         AUTO-025: Enhanced with automatic receiving handoff notification.
         AUTO-026: Enhanced with automatic inspection type assignment.
+        AUTO-067: Enhanced with procurement suspension check (BR-PROC-008).
         """
         for rec in self:
             if rec.state != "pending":
                 raise UserError("Only pending Purchase Orders can be approved.")
             
+            # AUTO-005: Check emergency procurement compliance (BR-PROC-001)
+            if rec.is_emergency:
+                if not rec.hope_emergency_authorized:
+                    raise UserError(
+                        "AUTO-005: Emergency PO Approval Blocked (BR-PROC-001)\n\n"
+                        "HOPE authorization is required for emergency procurement.\n\n"
+                        "Action Required:\n"
+                        "- HOPE must review and authorize this emergency procurement\n"
+                        "- Use 'HOPE Authorize Emergency' button to authorize"
+                    )
+                
+                if not rec.app_updated:
+                    days_remaining = rec.days_until_app_deadline
+                    
+                    if days_remaining <= 0:
+                        raise UserError(
+                            f"AUTO-005: Emergency PO Approval Blocked (BR-PROC-001)\n\n"
+                            f"APP amendment deadline has EXPIRED!\n\n"
+                            f"Emergency PO Created: {rec.emergency_created_date}\n"
+                            f"APP Amendment Deadline: {rec.app_amendment_deadline}\n\n"
+                            f"Per BR-PROC-001, APP must be updated within 5 working days.\n\n"
+                            f"Action Required:\n"
+                            f"- Update APP retrospectively with emergency justification\n"
+                            f"- Use 'Mark APP Updated' button once completed"
+                        )
+                    else:
+                        raise UserError(
+                            f"AUTO-005: Emergency PO Approval Blocked (BR-PROC-001)\n\n"
+                            f"APP amendment is not yet completed.\n\n"
+                            f"Emergency PO Created: {rec.emergency_created_date}\n"
+                            f"APP Amendment Deadline: {rec.app_amendment_deadline}\n"
+                            f"Days Remaining: {days_remaining} working days\n\n"
+                            f"Action Required:\n"
+                            f"- Complete APP amendment retrospectively\n"
+                            f"- HOPE must approve emergency justification\n"
+                            f"- Use 'Mark APP Updated' button once completed"
+                        )
+            
             # Check Surplus block business rule (BR-PROC-008 / AC-PROC-006)
             for line in rec.line_ids:
                 if line.item_id.is_surplus:
-                    raise UserError(f"Approval Blocked: Stock item code '{line.item_id.item_code}' is currently flagged as surplus in the Disposal system! (BR-PROC-008)")
+                    raise UserError(
+                        f"Approval Blocked: Stock item code '{line.item_id.item_code}' is currently "
+                        f"flagged as surplus in the Disposal system! (BR-PROC-008)"
+                    )
+            
+            # AUTO-067: Check procurement suspension (BR-PROC-008)
+            suspended_items = []
+            for line in rec.line_ids:
+                if line.item_id.procurement_suspended:
+                    suspended_items.append({
+                        'code': line.item_id.item_code,
+                        'name': line.item_id.name,
+                        'reason': dict(line.item_id._fields['suspension_reason'].selection).get(
+                            line.item_id.suspension_reason, 'Unknown'
+                        ),
+                        'date': line.item_id.suspension_date,
+                    })
+            
+            if suspended_items:
+                # Build detailed error message
+                error_msg = "AUTO-067: PO Approval Blocked - Procurement Suspended (BR-PROC-008)\n\n"
+                error_msg += "The following items have procurement suspended and cannot be ordered:\n\n"
+                
+                for item in suspended_items:
+                    error_msg += (
+                        f"• {item['code']} - {item['name']}\n"
+                        f"  Reason: {item['reason']}\n"
+                        f"  Suspended: {item['date']}\n\n"
+                    )
+                
+                error_msg += (
+                    "Action Required:\n"
+                    "- If surplus has been consumed (stock < max level), PAO can clear suspension\n"
+                    "- If anticipated demand surge, PAO can clear with documented justification\n"
+                    "- Otherwise, remove suspended items from this PO"
+                )
+                
+                _logger.warning(
+                    f"AUTO-067: PO {rec.name} approval blocked - "
+                    f"{len(suspended_items)} items with procurement suspended"
+                )
+                
+                raise UserError(error_msg)
 
             rec.state = "approved"
             
@@ -3273,6 +3485,8 @@ class MesobProcurementOrder(models.Model):
             
             # AUTO-025: Notify Storekeeper of expected delivery
             rec._send_receiving_handoff_notification()
+            
+            _logger.info(f"PO {rec.name} approved - AUTO-005/025/026/067 checks passed")
         
         return True
     
@@ -3689,6 +3903,348 @@ class MesobProcurementOrder(models.Model):
                 f"AUTO-024: Day {days_overdue} PAO escalation sent for PO {self.name} - "
                 f"LD Recommendation: ETB {ld_amount:,.2f}"
             )
+    
+    # ── AUTO-005: Emergency Procurement Methods ─────────────────────────
+    
+    def _auto_create_app_amendment(self):
+        """AUTO-005: Auto-create draft APP amendment for emergency PO (BR-PROC-001).
+        
+        Creates draft APP lot amendment that must be approved by HOPE within 5 working days.
+        """
+        self.ensure_one()
+        
+        if not self.is_emergency:
+            return
+        
+        # Create draft APP lot for emergency
+        app_lot_vals = {
+            'name': f'Emergency APP Amendment - {self.name}',
+            'plan_id': False,  # No existing plan
+            'estimated_value': sum(line.landed_cost_total for line in self.line_ids),
+            'procurement_method': 'emergency',
+            'state': 'draft',
+            'notes': f"AUTO-005: Emergency APP amendment for PO {self.name}\n\n{self.emergency_justification or ''}",
+        }
+        
+        app_amendment = self.env['mesob.procurement.plan.lot'].create(app_lot_vals)
+        
+        self.app_amendment_id = app_amendment.id
+        
+        # Log to chatter
+        self.message_post(
+            body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #f57c00; padding: 15px;">
+                <h3>⚡ AUTO-005: Draft APP Amendment Created</h3>
+                <p>Emergency procurement requires retrospective APP update per BR-PROC-001.</p>
+                <table style="width: 100%; margin: 10px 0;">
+                    <tr>
+                        <td style="padding: 3px 0;"><strong>APP Amendment:</strong></td>
+                        <td style="padding: 3px 0;"><a href="/web#id={app_amendment.id}&model=mesob.procurement.plan.lot&view_type=form">{app_amendment.name}</a></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 0;"><strong>Created:</strong></td>
+                        <td style="padding: 3px 0;">{self.emergency_created_date}</td>
+                    </tr>
+                    <tr style="background-color: #fff3cd;">
+                        <td style="padding: 3px 0;"><strong>Deadline:</strong></td>
+                        <td style="padding: 3px 0; font-weight: bold;">{self.app_amendment_deadline} (5 working days)</td>
+                    </tr>
+                </table>
+                <p><strong>Action Required:</strong> Complete APP amendment and obtain HOPE approval within 5 working days.</p>
+            </div>""",
+            subject=f'Emergency APP Amendment Created: {app_amendment.name}'
+        )
+        
+        _logger.info(
+            f"AUTO-005: Draft APP amendment {app_amendment.name} created for emergency PO {self.name}"
+        )
+    
+    def _notify_hope_emergency_authorization_needed(self):
+        """AUTO-005: Notify HOPE that emergency procurement requires authorization."""
+        self.ensure_one()
+        
+        hope_users = self.env.ref('mesob_inventory_base.group_mesob_hope', raise_if_not_found=False)
+        
+        if not hope_users or not hope_users.users:
+            _logger.warning("AUTO-005: No HOPE users found for emergency authorization notification")
+            return
+        
+        self.message_post(
+            body=f"""<div style="background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 15px;">
+                <h2 style="color: #721c24; margin-top: 0;">⚡ AUTO-005: Emergency Procurement Authorization Required</h2>
+                
+                <div style="background-color: #fff; padding: 15px; border-radius: 4px; margin: 15px 0;">
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>PO Reference:</strong></td>
+                            <td style="padding: 5px 0;">{self.name}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Supplier:</strong></td>
+                            <td style="padding: 5px 0;">{self.supplier_id.name}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Total Value:</strong></td>
+                            <td style="padding: 5px 0;">ETB {sum(line.landed_cost_total for line in self.line_ids):,.2f}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Created:</strong></td>
+                            <td style="padding: 5px 0;">{self.emergency_created_date}</td>
+                        </tr>
+                        <tr style="background-color: #f8d7da;">
+                            <td style="padding: 5px 0;"><strong>APP Deadline:</strong></td>
+                            <td style="padding: 5px 0; font-weight: bold; color: #dc3545;">{self.app_amendment_deadline}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="background-color: #fff3cd; padding: 15px; border-radius: 4px; margin: 15px 0;">
+                    <h4 style="margin-top: 0;">Emergency Justification:</h4>
+                    <p style="background-color: white; padding: 10px; border-radius: 4px;">{self.emergency_justification or 'Not provided'}</p>
+                </div>
+                
+                <div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px;">
+                    <h4 style="margin-top: 0; color: #155724;">Required Actions (BR-PROC-001):</h4>
+                    <ol style="margin: 0;">
+                        <li><strong>Review emergency justification</strong> - Verify urgency is valid</li>
+                        <li><strong>Authorize emergency procurement</strong> - Use 'HOPE Authorize Emergency' button</li>
+                        <li><strong>Ensure APP updated</strong> - Within 5 working days ({self.app_amendment_deadline})</li>
+                        <li><strong>Approve APP amendment</strong> - Retrospectively include in APP</li>
+                    </ol>
+                </div>
+                
+                <p style="margin-top: 20px;">
+                    <a href="/web#id={self.id}&model=mesob.procurement.order&view_type=form" 
+                       style="background-color: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                       ⚡ Review Emergency PO →
+                    </a>
+                </p>
+            </div>""",
+            subject=f'🚨 URGENT: Emergency PO Authorization Required - {self.name}',
+            message_type='notification',
+            partner_ids=hope_users.users.mapped('partner_id').ids
+        )
+        
+        _logger.info(
+            f"AUTO-005: Emergency authorization notification sent to {len(hope_users.users)} HOPE users for PO {self.name}"
+        )
+    
+    def action_hope_authorize_emergency(self):
+        """AUTO-005: HOPE authorizes emergency procurement (BR-PROC-001)."""
+        self.ensure_one()
+        
+        if not self.is_emergency:
+            raise UserError("This is not an emergency procurement.")
+        
+        # Check if user is HOPE
+        if not self.env.user.has_group('mesob_inventory_base.group_mesob_hope'):
+            raise UserError("Only HOPE can authorize emergency procurement.")
+        
+        if self.hope_emergency_authorized:
+            raise UserError("Emergency procurement already authorized.")
+        
+        self.write({
+            'hope_emergency_authorized': True,
+            'hope_authorization_date': fields.Date.today(),
+            'hope_authorized_by_id': self.env.user.id,
+        })
+        
+        # Notify procurement officer
+        self.message_post(
+            body=f"""<div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px;">
+                <h3>✅ AUTO-005: HOPE Emergency Authorization Granted</h3>
+                <p><strong>Authorized By:</strong> {self.env.user.name} (HOPE)</p>
+                <p><strong>Date:</strong> {fields.Date.today()}</p>
+                <p><strong>Status:</strong> Emergency procurement authorized per BR-PROC-001</p>
+                <hr/>
+                <p style="background-color: #fff3cd; padding: 10px; border-radius: 4px;">
+                    <strong>⚠️ Reminder:</strong> APP amendment must still be completed by {self.app_amendment_deadline} 
+                    ({self.days_until_app_deadline} working days remaining)
+                </p>
+            </div>""",
+            subject=f'Emergency Authorization Granted: {self.name}'
+        )
+        
+        _logger.info(
+            f"AUTO-005: Emergency PO {self.name} authorized by HOPE user {self.env.user.name}"
+        )
+        
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Emergency Authorized',
+                'message': f'Emergency procurement {self.name} has been authorized.',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+    
+    def action_mark_app_updated(self):
+        """AUTO-005: Mark APP as retrospectively updated."""
+        self.ensure_one()
+        
+        if not self.is_emergency:
+            raise UserError("This is not an emergency procurement.")
+        
+        if self.app_updated:
+            raise UserError("APP already marked as updated.")
+        
+        # Check if deadline not exceeded
+        if fields.Date.today() > self.app_amendment_deadline:
+            _logger.warning(
+                f"AUTO-005: APP updated after deadline for PO {self.name} - "
+                f"Deadline: {self.app_amendment_deadline}, Updated: {fields.Date.today()}"
+            )
+        
+        self.write({
+            'app_updated': True,
+            'app_update_date': fields.Date.today(),
+        })
+        
+        self.message_post(
+            body=f"""<div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px;">
+                <h3>✅ AUTO-005: APP Retrospectively Updated</h3>
+                <p><strong>Updated By:</strong> {self.env.user.name}</p>
+                <p><strong>Date:</strong> {fields.Date.today()}</p>
+                <p><strong>Deadline:</strong> {self.app_amendment_deadline}</p>
+                <p><strong>Status:</strong> {'✅ Within deadline' if fields.Date.today() <= self.app_amendment_deadline else '⚠️ After deadline'}</p>
+                <hr/>
+                <p>Emergency procurement APP amendment completed per BR-PROC-001.</p>
+                {f'<p><strong>APP Amendment:</strong> <a href="/web#id={self.app_amendment_id.id}&model=mesob.procurement.plan.lot&view_type=form">{self.app_amendment_id.name}</a></p>' if self.app_amendment_id else ''}
+            </div>""",
+            subject=f'APP Updated: {self.name}'
+        )
+        
+        _logger.info(
+            f"AUTO-005: APP marked as updated for emergency PO {self.name} - "
+            f"{'Within' if fields.Date.today() <= self.app_amendment_deadline else 'After'} deadline"
+        )
+        
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'APP Updated',
+                'message': 'APP has been marked as retrospectively updated.',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+    
+    @api.model
+    def _cron_send_app_amendment_alerts(self):
+        """AUTO-005: Scheduled job to send countdown alerts for APP amendments.
+        
+        Sends alerts on Day 3 and Day 4 to responsible officer.
+        Runs daily via cron job.
+        """
+        today = fields.Date.today()
+        
+        # Find all emergency POs with pending APP updates
+        emergency_pos = self.search([
+            ('is_emergency', '=', True),
+            ('app_updated', '=', False),
+            ('app_amendment_deadline', '!=', False),
+        ])
+        
+        for po in emergency_pos:
+            days_remaining = po.days_until_app_deadline
+            
+            # Send alerts on Day 3 and Day 4 (2 days and 1 day remaining)
+            if days_remaining == 2:
+                po._send_app_deadline_alert(days_remaining, urgency='medium')
+            elif days_remaining == 1:
+                po._send_app_deadline_alert(days_remaining, urgency='high')
+            elif days_remaining == 0:
+                po._send_app_deadline_alert(days_remaining, urgency='critical')
+        
+        _logger.info(f"AUTO-005: APP amendment alert check completed - {len(emergency_pos)} emergency POs scanned")
+    
+    def _send_app_deadline_alert(self, days_remaining, urgency='medium'):
+        """AUTO-005: Send APP amendment deadline countdown alert."""
+        self.ensure_one()
+        
+        # Determine color and urgency level
+        if urgency == 'critical':
+            bg_color = '#f8d7da'
+            border_color = '#dc3545'
+            title_color = '#721c24'
+            icon = '🚨'
+            subject_prefix = 'CRITICAL'
+        elif urgency == 'high':
+            bg_color = '#fff3cd'
+            border_color = '#ffc107'
+            title_color = '#856404'
+            icon = '⚠️'
+            subject_prefix = 'URGENT'
+        else:
+            bg_color = '#d1ecf1'
+            border_color = '#17a2b8'
+            title_color = '#0c5460'
+            icon = '⏰'
+            subject_prefix = 'REMINDER'
+        
+        # Get procurement officer
+        procurement_users = self.env.ref('mesob_inventory_base.group_mesob_procurement', raise_if_not_found=False)
+        
+        if not procurement_users or not procurement_users.users:
+            _logger.warning(f"AUTO-005: No procurement users found for APP deadline alert - PO {self.name}")
+            return
+        
+        deadline_status = 'EXPIRED - IMMEDIATE ACTION REQUIRED!' if days_remaining == 0 else f'{days_remaining} working day(s) remaining'
+        
+        self.message_post(
+            body=f"""<div style="background-color: {bg_color}; border-left: 4px solid {border_color}; padding: 15px;">
+                <h2 style="color: {title_color}; margin-top: 0;">{icon} AUTO-005: APP Amendment Deadline Alert</h2>
+                
+                <div style="background-color: #fff; padding: 15px; border-radius: 4px; margin: 15px 0;">
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>PO Reference:</strong></td>
+                            <td style="padding: 5px 0;">{self.name}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>Emergency Created:</strong></td>
+                            <td style="padding: 5px 0;">{self.emergency_created_date}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 0;"><strong>APP Deadline:</strong></td>
+                            <td style="padding: 5px 0;">{self.app_amendment_deadline}</td>
+                        </tr>
+                        <tr style="background-color: {bg_color};">
+                            <td style="padding: 5px 0;"><strong>Status:</strong></td>
+                            <td style="padding: 5px 0; font-weight: bold; color: {border_color}; font-size: 18px;">{deadline_status}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px;">
+                    <h4 style="margin-top: 0; color: #155724;">Required Actions (BR-PROC-001):</h4>
+                    <ol style="margin: 0;">
+                        <li><strong>Complete APP amendment</strong> - Update APP with emergency items</li>
+                        <li><strong>Obtain HOPE approval</strong> - Ensure emergency justification accepted</li>
+                        <li><strong>Mark as updated</strong> - Use 'Mark APP Updated' button</li>
+                    </ol>
+                </div>
+                
+                {f'<div style="background-color: #f8d7da; padding: 15px; border-radius: 4px; margin-top: 15px;"><p style="margin: 0; font-weight: bold; color: #721c24;">⚠️ CRITICAL: Deadline has expired! PO approval will be blocked until APP is updated.</p></div>' if days_remaining == 0 else ''}
+                
+                <p style="margin-top: 20px;">
+                    <a href="/web#id={self.id}&model=mesob.procurement.order&view_type=form" 
+                       style="background-color: {border_color}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                       {icon} Review Emergency PO →
+                    </a>
+                </p>
+            </div>""",
+            subject=f'{icon} {subject_prefix}: APP Deadline - {self.name} ({deadline_status})',
+            message_type='notification',
+            partner_ids=procurement_users.users.mapped('partner_id').ids
+        )
+        
+        _logger.info(
+            f"AUTO-005: Day {5 - days_remaining} APP deadline alert sent for PO {self.name} - "
+            f"{days_remaining} days remaining, urgency: {urgency}"
+        )
 
 
 class MesobProcurementOrderLine(models.Model):
@@ -3714,8 +4270,26 @@ class MesobProcurementOrderLine(models.Model):
     description = fields.Char(string="Description")
     quantity = fields.Float(string="Quantity", required=True, default=1.0)
     qty_received = fields.Float(string="Received Qty", compute="_compute_received_qty", store=True)
-    price_unit = fields.Float(string="Unit Price (ETB)", required=True)
-    price_subtotal = fields.Float(string="Subtotal", compute="_compute_subtotal", store=True)
+    
+    # AUTO-052: Cost Component Fields (FR-VAL-002)
+    price_unit = fields.Float(string="Base Unit Price (ETB)", required=True, help="Base price from bid/contract")
+    freight_cost_unit = fields.Float(string="Freight per Unit (ETB)", default=0.0, help="AUTO-052: Freight/transportation cost per unit")
+    insurance_rate = fields.Float(string="Insurance Rate (%)", default=0.0, help="AUTO-052: Insurance as % of base price")
+    insurance_cost_unit = fields.Float(string="Insurance per Unit (ETB)", compute="_compute_cost_components", store=True)
+    duties_taxes_rate = fields.Float(string="Duties/Taxes Rate (%)", default=0.0, help="AUTO-052: Import duties and taxes as %")
+    duties_taxes_unit = fields.Float(string="Duties/Taxes per Unit (ETB)", compute="_compute_cost_components", store=True)
+    package_cost_unit = fields.Float(string="Package Cost per Unit (ETB)", default=0.0, help="AUTO-052: Packaging/handling charges per unit")
+    
+    # AUTO-052: Landed Cost (Total Cost per FR-VAL-002)
+    landed_cost_unit = fields.Float(
+        string="Landed Cost per Unit (ETB)",
+        compute="_compute_cost_components",
+        store=True,
+        help="AUTO-052: Total cost = Base + Freight + Insurance + Duties + Packaging (FR-VAL-002)"
+    )
+    
+    price_subtotal = fields.Float(string="Subtotal (Base)", compute="_compute_subtotal", store=True)
+    landed_cost_total = fields.Float(string="Total Landed Cost", compute="_compute_subtotal", store=True, help="AUTO-052: Total including all cost components")
 
     @api.onchange("item_id")
     def _onchange_item_id(self):
@@ -3724,10 +4298,30 @@ class MesobProcurementOrderLine(models.Model):
             self.major_classification_id = self.item_id.classification_id
             self.sub_classification_id = self.item_id.sub_classification_id
 
-    @api.depends("quantity", "price_unit")
+    @api.depends("price_unit", "freight_cost_unit", "insurance_rate", "duties_taxes_rate", "package_cost_unit")
+    def _compute_cost_components(self):
+        """AUTO-052: Compute all cost components and landed cost per FR-VAL-002."""
+        for line in self:
+            # Insurance = base price * rate%
+            line.insurance_cost_unit = line.price_unit * (line.insurance_rate / 100.0)
+            
+            # Duties/Taxes = base price * rate%
+            line.duties_taxes_unit = line.price_unit * (line.duties_taxes_rate / 100.0)
+            
+            # Landed Cost = Base + Freight + Insurance + Duties/Taxes + Packaging
+            line.landed_cost_unit = (
+                line.price_unit +
+                line.freight_cost_unit +
+                line.insurance_cost_unit +
+                line.duties_taxes_unit +
+                line.package_cost_unit
+            )
+    
+    @api.depends("quantity", "price_unit", "landed_cost_unit")
     def _compute_subtotal(self):
         for line in self:
             line.price_subtotal = line.quantity * line.price_unit
+            line.landed_cost_total = line.quantity * line.landed_cost_unit
 
     @api.depends("order_id.name", "item_id")
     def _compute_received_qty(self):
@@ -3746,46 +4340,68 @@ class MesobProcurementOrderLine(models.Model):
 
 
 class MesobProcurementPaymentCertificate(models.Model):
-    """Three-Way Match payment validation & processing - FR-PROC-034."""
+    """AUTO-029: Three-Way Match payment validation & processing - FR-PROC-034.
+    
+    Automated Features:
+    - Auto-validate PO + Model 19 + Invoice match
+    - Auto-check quantities and unit prices
+    - Auto-block payment if DSR exists (BR-PROC-002)
+    - Auto-calculate deductions (LD, retention)
+    - Generate mismatch report with specific line references
+    """
 
     _name = "mesob.procurement.payment.certificate"
     _description = "Procurement Payment Certificate"
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = "id desc"
 
-    name = fields.Char(string="Certificate Number", required=True, copy=False, default="New")
-    order_id = fields.Many2one("mesob.procurement.order", string="Purchase Order", required=True)
+    name = fields.Char(string="Certificate Number", required=True, copy=False, default="New", tracking=True)
+    order_id = fields.Many2one("mesob.procurement.order", string="Purchase Order", required=True, tracking=True)
     supplier_id = fields.Many2one(related="order_id.supplier_id", string="Supplier", readonly=True, store=True)
-    amount_gross = fields.Float(string="Gross Amount (ETB)", required=True)
     
-    # Matching Checks
-    has_invoice = fields.Boolean(string="VAT Compliant Invoice Verified", default=False)
-    has_model19 = fields.Boolean(string="Model 19 Receipt Verified", default=False)
-    has_po = fields.Boolean(string="Approved PO Verified", default=False)
+    # AUTO-029: Invoice details
+    invoice_number = fields.Char(string="Invoice Number", tracking=True)
+    invoice_date = fields.Date(string="Invoice Date", tracking=True)
+    invoice_amount = fields.Float(string="Invoice Amount (ETB)", tracking=True)
+    
+    amount_gross = fields.Float(string="Gross Amount (ETB)", required=True, tracking=True)
+    
+    # AUTO-029: Enhanced Matching with compute methods
+    has_invoice = fields.Boolean(string="Invoice Verified", compute="_compute_has_invoice", store=True)
+    has_model19 = fields.Boolean(string="Model 19 Receipt Verified", compute="_compute_has_model19", store=True)
+    has_po = fields.Boolean(string="Approved PO Verified", compute="_compute_has_po", store=True)
     
     # Calculations
-    days_delay = fields.Integer(string="Days of Delay", default=0)
-    penalty_rate = fields.Float(string="Daily Penalty Rate (%)", default=0.1)  # Default: 1/1000 = 0.1% per day
+    days_delay = fields.Integer(string="Days of Delay", default=0, tracking=True)
+    penalty_rate = fields.Float(string="Daily Penalty Rate (%)", default=0.1, tracking=True)  # 1/1000 = 0.1%
     liquidated_damages = fields.Float(
         string="Liquidated Damages (ETB)",
         compute="_compute_liquidated_damages",
         store=True,
+        tracking=True
     )
-    retention_percent = fields.Float(string="Retention Percentage (%)", default=5.0)
+    retention_percent = fields.Float(string="Retention Percentage (%)", default=5.0, tracking=True)
     retention_amount = fields.Float(
         string="Retention Held (ETB)",
         compute="_compute_retention_amount",
         store=True,
+        tracking=True
     )
     net_payable = fields.Float(
         string="Net Payable Amount (ETB)",
         compute="_compute_net_payable",
         store=True,
+        tracking=True
     )
     state = fields.Selection(
-        [("draft", "Draft"), ("approved", "Approved by PAO Finance")],
+        [
+            ("draft", "Draft"),
+            ("approved", "Approved by PAO Finance")
+        ],
         string="Status",
         default="draft",
         required=True,
+        tracking=True
     )
 
     @api.model_create_multi
@@ -3794,6 +4410,30 @@ class MesobProcurementPaymentCertificate(models.Model):
             if vals.get("name", "New") == "New":
                 vals["name"] = f"PAY/{self.env['ir.sequence'].next_by_code('mesob.procurement.payment.certificate') or '001'}"
         return super().create(vals_list)
+    
+    @api.depends("invoice_number")
+    def _compute_has_invoice(self):
+        """AUTO-029: Check if invoice is provided."""
+        for rec in self:
+            rec.has_invoice = bool(rec.invoice_number)
+    
+    @api.depends("order_id")
+    def _compute_has_model19(self):
+        """AUTO-029: Check if Model 19 exists for linked PO."""
+        for rec in self:
+            if rec.order_id:
+                model19_count = self.env['mesob.inventory.model19'].search_count([
+                    ('receiving_id.purchase_order_ref', '=', rec.order_id.name)
+                ])
+                rec.has_model19 = model19_count > 0
+            else:
+                rec.has_model19 = False
+    
+    @api.depends("order_id", "order_id.state")
+    def _compute_has_po(self):
+        """AUTO-029: Check if PO is approved."""
+        for rec in self:
+            rec.has_po = rec.order_id and rec.order_id.state in ('approved', 'sent', 'partially_received', 'fully_received')
 
     @api.depends("amount_gross", "days_delay", "penalty_rate")
     def _compute_liquidated_damages(self):
@@ -3814,11 +4454,76 @@ class MesobProcurementPaymentCertificate(models.Model):
             rec.net_payable = rec.amount_gross - rec.liquidated_damages - rec.retention_amount
 
     def action_approve(self):
-        """Enforces three-way match hard-blocking before payment processing (FR-PROC-034)."""
+        """AUTO-029: Enforces three-way match with DSR blocking (FR-PROC-034, BR-PROC-002)."""
         for rec in self:
+            # Check for open DSR first (BR-PROC-002)
+            if rec.order_id:
+                open_dsrs = self.env['mesob.inventory.dsr'].search([
+                    ('purchase_order_ref', '=', rec.order_id.name),
+                    ('payment_blocked', '=', True)
+                ])
+                
+                if open_dsrs:
+                    dsr_refs = ', '.join(open_dsrs.mapped('name'))
+                    raise UserError(
+                        f"Payment BLOCKED (BR-PROC-002): Open DSR(s) exist for this PO: {dsr_refs}. "
+                        f"Payment is strictly blocked until replacement goods are received and accepted. "
+                        f"DSR must be closed before payment can proceed."
+                    )
+            
+            # Three-way match validation
             if not (rec.has_invoice and rec.has_model19 and rec.has_po):
-                raise UserError("Three-Way Match Failed! Payment is strictly blocked unless Approved PO, Model 19 Acceptance Receipt, and VAT Compliant Invoice are all verified (FR-PROC-034).")
+                missing = []
+                if not rec.has_po:
+                    missing.append("Approved Purchase Order")
+                if not rec.has_model19:
+                    missing.append("Model 19 Receipt")
+                if not rec.has_invoice:
+                    missing.append("VAT Invoice Number")
+                
+                raise UserError(
+                    f"Three-Way Match Failed! Payment is strictly blocked unless Approved PO, "
+                    f"Model 19 Acceptance Receipt, and VAT Compliant Invoice are all verified (FR-PROC-034).\n\n"
+                    f"Missing: {', '.join(missing)}"
+                )
+            
             rec.state = "approved"
+            
+            # Post approval notification with AUTO-029 tag
+            rec.message_post(
+                body=f"""<div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px;">
+                    <h4>✅ AUTO-029: Payment Certificate APPROVED</h4>
+                    <p><strong>Certificate:</strong> {rec.name}</p>
+                    <p><strong>PO:</strong> {rec.order_id.name}</p>
+                    <p><strong>Invoice:</strong> {rec.invoice_number}</p>
+                    <p><strong>Approved By:</strong> {self.env.user.name}</p>
+                    <p><strong>Date:</strong> {fields.Date.today()}</p>
+                    <hr/>
+                    <p><strong>Three-Way Match Verified:</strong></p>
+                    <ul>
+                        <li>✅ Approved PO: {rec.order_id.name}</li>
+                        <li>✅ Model 19 Receipt: Confirmed</li>
+                        <li>✅ Invoice: {rec.invoice_number}</li>
+                        <li>✅ No Open DSR (BR-PROC-002 Check Passed)</li>
+                    </ul>
+                    <hr/>
+                    <p><strong>Payment Calculation:</strong></p>
+                    <ul>
+                        <li>Gross Amount: ETB {rec.amount_gross:,.2f}</li>
+                        <li>Liquidated Damages: ETB {rec.liquidated_damages:,.2f}</li>
+                        <li>Retention ({rec.retention_percent}%): ETB {rec.retention_amount:,.2f}</li>
+                    </ul>
+                    <p style="font-size: 18px; margin-top: 15px;"><strong>Net Payable: ETB {rec.net_payable:,.2f}</strong></p>
+                    <p><em>Payment can now be processed through finance system.</em></p>
+                </div>""",
+                subject='Payment Approved - Three-Way Match Verified'
+            )
+            
+            _logger.info(
+                f"AUTO-029: Payment certificate {rec.name} approved - "
+                f"PO {rec.order_id.name}, Invoice {rec.invoice_number}, Net Payable: ETB {rec.net_payable:,.2f}"
+            )
+        
         return True
 
 

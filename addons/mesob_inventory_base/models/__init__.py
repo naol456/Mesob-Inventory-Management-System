@@ -32,3 +32,10 @@ from . import mesob_payment_validation
 from . import mesob_stock_taking
 from . import mesob_stock_handover
 from . import mesob_storage_security
+
+# AUTO-009, 015, 030, 031, 035, 055: Lelisa's Automation Calculation Engines
+from . import mesob_domestic_preference_calc
+from . import mesob_liquidated_damages_calc
+from . import mesob_price_adjustment_calc
+from . import mesob_procurement_stock_reconciliation
+from . import mesob_stock_accuracy_scorecard
