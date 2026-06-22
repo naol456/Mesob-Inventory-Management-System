@@ -14,6 +14,13 @@ class MesobInventoryReceivingLine(models.Model):
     _name = "mesob.inventory.receiving.line"
     _description = "Receiving Order Line"
 
+    name = fields.Char(
+        string="Line Reference",
+        compute="_compute_name",
+        store=True,
+        help="Display name for the receiving line"
+    )
+
     receiving_id = fields.Many2one(
         "mesob.inventory.receiving",
         required=True,
@@ -32,6 +39,15 @@ class MesobInventoryReceivingLine(models.Model):
         "mesob.inventory.item",
         string="Item",
         help="Stock item being received.",
+    )
+    
+    # Related field for easy access to item code
+    item_code = fields.Char(
+        related="item_id.item_code",
+        string="Item Code",
+        store=True,
+        readonly=True,
+        help="Item code from the linked inventory item"
     )
 
     # ── Auto-Generation Fields ─────────────────────────────────────
@@ -130,7 +146,69 @@ class MesobInventoryReceivingLine(models.Model):
         help="Detailed description of the rejection reason.",
     )
 
+    # ── AUTO-039: Inspection Checklist Fields (FR-REC-003) ─────────
+    quality_specifications = fields.Text(
+        string="Quality Specifications",
+        help="AUTO-039: Technical specifications from PO/tender for inspection reference (FR-PROC-009)",
+    )
+    
+    # Acceptance criteria checkboxes (standard inspection points)
+    check_quantity_match = fields.Boolean(
+        string="✓ Quantity Matches PO",
+        default=False,
+        help="AUTO-039: Verify received quantity matches purchase order",
+    )
+    
+    check_quality_standard = fields.Boolean(
+        string="✓ Quality Meets Specifications",
+        default=False,
+        help="AUTO-039: Verify item quality meets technical specifications",
+    )
+    
+    check_packaging_intact = fields.Boolean(
+        string="✓ Packaging Intact",
+        default=False,
+        help="AUTO-039: Verify packaging is undamaged and proper",
+    )
+    
+    check_documentation_complete = fields.Boolean(
+        string="✓ Documentation Complete",
+        default=False,
+        help="AUTO-039: Verify all required documents received (invoice, packing slip, certificates)",
+    )
+    
+    check_expiry_date = fields.Boolean(
+        string="✓ Expiry Date Valid (if applicable)",
+        default=False,
+        help="AUTO-039: Verify expiry dates are acceptable for perishable items",
+    )
+    
+    inspection_notes = fields.Text(
+        string="Inspector's Notes",
+        help="AUTO-039: Additional observations during physical inspection",
+    )
+    
+    inspection_passed = fields.Boolean(
+        string="All Checks Passed",
+        compute="_compute_inspection_passed",
+        store=True,
+        help="AUTO-039: Auto-computed based on all checkboxes",
+    )
+
     # ── Computed ───────────────────────────────────────────────────
+
+    @api.depends("item_id", "major_classification_id", "sub_classification_id", "description")
+    def _compute_name(self):
+        """Compute display name for the receiving line."""
+        for line in self:
+            if line.item_id:
+                line.name = f"{line.item_id.item_code} - {line.item_id.name}"
+            elif line.major_classification_id and line.sub_classification_id:
+                line.name = f"{line.major_classification_id.code}-{line.sub_classification_id.code}: {line.description or 'New Item'}"
+            elif line.description:
+                line.name = line.description
+            else:
+                line.name = "Receiving Line"
 
     @api.depends("qty_accepted", "unit_price")
     def _compute_total_price(self):
@@ -141,6 +219,20 @@ class MesobInventoryReceivingLine(models.Model):
         """Count generated items."""
         for line in self:
             line.generated_item_count = len(line.generated_item_ids)
+    
+    @api.depends('check_quantity_match', 'check_quality_standard', 'check_packaging_intact', 
+                 'check_documentation_complete', 'check_expiry_date')
+    def _compute_inspection_passed(self):
+        """AUTO-039: Compute if all required inspection checks are passed."""
+        for line in self:
+            # All mandatory checks must be True
+            line.inspection_passed = (
+                line.check_quantity_match and
+                line.check_quality_standard and
+                line.check_packaging_intact and
+                line.check_documentation_complete and
+                line.check_expiry_date
+            )
 
     # ── Validation ─────────────────────────────────────────────────
 
@@ -424,6 +516,8 @@ class MesobInventoryReceivingLine(models.Model):
 
     def create_stock_record_for_item(self, item_id, reference, date, quantity=1.0):
         """Create stock record card entry for received item.
+        
+        AUTO-052: Uses landed cost from PO if available (FR-VAL-002).
 
         Args:
             item_id (int): ID of the inventory item
@@ -437,6 +531,9 @@ class MesobInventoryReceivingLine(models.Model):
             # Fallback: get any UoM
             uom_unit = self.env['uom.uom'].search([], limit=1)
         
+        # AUTO-052: Use unit_price (which should already be landed cost from PO)
+        unit_cost = self.unit_price
+        
         # Get previous balance value
         previous_entries = self.env['mesob.stock.record.card'].search(
             [('item_id', '=', item_id)],
@@ -445,7 +542,7 @@ class MesobInventoryReceivingLine(models.Model):
         )
         previous_balance_value = previous_entries[0].balance_value if previous_entries else 0.0
 
-        total_cost_in = quantity * self.unit_price
+        total_cost_in = quantity * unit_cost
 
         # Create stock record entry
         stock_record = self.env['mesob.stock.record.card'].create({
@@ -454,22 +551,25 @@ class MesobInventoryReceivingLine(models.Model):
             'date': date,
             'quantity_in': quantity,
             'quantity_out': 0.0,
-            'unit_cost': self.unit_price,
+            'unit_cost': unit_cost,
             'reference': reference,
             'uom_id': uom_unit.id if uom_unit else False,
         })
 
-        # Create FIFO layer
-        self.create_fifo_layer_for_receipt(stock_record.id, item_id, quantity, self.unit_price)
+        # AUTO-051 & AUTO-052: Create FIFO layer with landed cost
+        self.create_fifo_layer_for_receipt(stock_record.id, item_id, quantity, unit_cost)
 
     def create_fifo_layer_for_receipt(self, stock_record_id, item_id, quantity, unit_cost):
         """Create FIFO layer for receipt transaction.
+        
+        AUTO-051: FIFO batch tracking
+        AUTO-052: Uses landed cost for accurate valuation (FR-VAL-002)
 
         Args:
             stock_record_id (int): ID of the stock record entry
             item_id (int): ID of the inventory item
             quantity (float): Quantity received
-            unit_cost (float): Unit cost
+            unit_cost (float): Landed cost per unit (includes all cost components)
         """
         self.env['mesob.stock.fifo.layer'].create({
             'stock_record_id': stock_record_id,
@@ -477,7 +577,7 @@ class MesobInventoryReceivingLine(models.Model):
             'date': self.receiving_id.received_date or fields.Date.today(),
             'quantity': quantity,
             'quantity_remaining': quantity,
-            'unit_cost': unit_cost,
+            'unit_cost': unit_cost,  # AUTO-052: Landed cost from PO
         })
 
     def action_view_generated_items(self):

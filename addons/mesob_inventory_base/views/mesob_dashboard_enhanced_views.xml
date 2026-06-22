@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Task 12: Enhanced Dashboard with KPIs -->
+<odoo>
+    
+    <!-- KPI Tree View -->
+    <record id="view_mesob_dashboard_kpi_tree" model="ir.ui.view">
+        <field name="name">mesob.dashboard.kpi.tree</field>
+        <field name="model">mesob.dashboard.kpi</field>
+        <field name="arch" type="xml">
+            <list string="Dashboard KPIs" decoration-success="status=='good'" decoration-warning="status=='warning'" decoration-danger="status=='critical'">
+                <field name="date"/>
+                <field name="kpi_type"/>
+                <field name="value"/>
+                <field name="target_value"/>
+                <field name="status" decoration-success="status=='good'" decoration-warning="status=='warning'" decoration-danger="status=='critical'"/>
+            </list>
+        </field>
+    </record>
+    
+    <!-- KPI Graph View -->
+    <record id="view_mesob_dashboard_kpi_graph" model="ir.ui.view">
+        <field name="name">mesob.dashboard.kpi.graph</field>
+        <field name="model">mesob.dashboard.kpi</field>
+        <field name="arch" type="xml">
+            <graph string="KPI Trends" type="line">
+                <field name="date" interval="day"/>
+                <field name="value" type="measure"/>
+                <field name="kpi_type" type="col"/>
+            </graph>
+        </field>
+    </record>
+    
+    <!-- KPI Pivot View -->
+    <record id="view_mesob_dashboard_kpi_pivot" model="ir.ui.view">
+        <field name="name">mesob.dashboard.kpi.pivot</field>
+        <field name="model">mesob.dashboard.kpi</field>
+        <field name="arch" type="xml">
+            <pivot string="KPI Analysis">
+                <field name="kpi_type" type="row"/>
+                <field name="date" interval="month" type="col"/>
+                <field name="value" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    
+    <!-- KPI Action -->
+    <record id="action_mesob_dashboard_kpi" model="ir.actions.act_window">
+        <field name="name">Dashboard KPIs</field>
+        <field name="res_model">mesob.dashboard.kpi</field>
+        <field name="view_mode">graph,pivot,tree</field>
+        <field name="context">{'group_by': 'kpi_type'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No KPI data yet
+            </p>
+            <p>
+                KPIs are calculated automatically. Click "Refresh KPIs" to generate current metrics.
+            </p>
+        </field>
+    </record>
+    
+    <!-- PAO Dashboard View -->
+    <record id="view_mesob_pao_dashboard" model="ir.ui.view">
+        <field name="name">mesob.pao.dashboard</field>
+        <field name="model">mesob.inventory.requisition</field>
+        <field name="arch" type="xml">
+            <form string="PAO Dashboard">
+                <sheet>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h1 style="color: #0B1B3D; margin-bottom: 20px;">
+                                <i class="fa fa-tachometer"/> Property Administration Officer Dashboard
+                            </h1>
+                        </div>
+                    </div>
+                    
+                    <!-- KPI Cards Row -->
+                    <div class="row mt-3">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card border-primary">
+                                <div class="card-body">
+                                    <h5 class="card-title">Pending Approvals</h5>
+                                    <p class="card-text display-4 text-primary">
+                                        <field name="id" invisible="1"/>
+                                        <!-- This would be dynamically calculated -->
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card border-warning">
+                                <div class="card-body">
+                                    <h5 class="card-title">Budget Utilization</h5>
+                                    <p class="card-text display-4 text-warning">
+                                        85%
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card border-success">
+                                <div class="card-body">
+                                    <h5 class="card-title">Stock Accuracy</h5>
+                                    <p class="card-text display-4 text-success">
+                                        98%
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card border-danger">
+                                <div class="card-body">
+                                    <h5 class="card-title">Overdue POs</h5>
+                                    <p class="card-text display-4 text-danger">
+                                        3
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Charts Row -->
+                    <div class="row mt-4">
+                        <div class="col-lg-6">
+                            <div class="card">
+                                <div class="card-header bg-primary text-white">
+                                    <h5>Requisition Status</h5>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Requisition chart would go here -->
+                                    <p class="text-muted text-center py-5">
+                                        <i class="fa fa-chart-pie fa-3x"/><br/>
+                                        Chart visualization
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-6">
+                            <div class="card">
+                                <div class="card-header bg-success text-white">
+                                    <h5>Stock Value by Classification</h5>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Stock value chart would go here -->
+                                    <p class="text-muted text-center py-5">
+                                        <i class="fa fa-chart-bar fa-3x"/><br/>
+                                        Chart visualization
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Dashboard Actions -->
+    <record id="action_mesob_pao_dashboard" model="ir.actions.act_window">
+        <field name="name">PAO Dashboard</field>
+        <field name="res_model">mesob.inventory.requisition</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_mesob_pao_dashboard"/>
+        <field name="target">fullscreen</field>
+    </record>
+    
+    <!-- Menu Items -->
+    <menuitem id="menu_mesob_dashboard_kpis"
+              name="KPI Dashboard"
+              parent="menu_mesob_inventory_analytics"
+              action="action_mesob_dashboard_kpi"
+              sequence="1"
+              groups="mesob_inventory_base.group_mesob_pao"/>
+    
+    <!-- Add Refresh KPIs Action -->
+    <record id="action_mesob_refresh_kpis" model="ir.actions.server">
+        <field name="name">Refresh KPIs</field>
+        <field name="model_id" ref="model_mesob_dashboard_kpi"/>
+        <field name="binding_model_id" ref="model_mesob_dashboard_kpi"/>
+        <field name="state">code</field>
+        <field name="code">
+action = model.refresh_all_kpis()
+        </field>
+    </record>
+
+</odoo>

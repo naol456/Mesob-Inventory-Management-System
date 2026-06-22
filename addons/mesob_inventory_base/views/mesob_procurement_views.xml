@@ -86,6 +86,14 @@
                                     <field name="mechanism"/>
                                     <field name="budget" sum="Total Budget"/>
                                     <field name="state"/>
+                                    <!-- AUTO-022: Generate PO Button -->
+                                    <button name="action_generate_purchase_order" 
+                                            string="Generate PO" 
+                                            type="object"
+                                            icon="fa-file-text-o"
+                                            invisible="state not in ('approved', 'tender', 'rfq')"
+                                            class="btn-primary"
+                                            help="AUTO-022: Auto-generate draft Purchase Order from this approved lot"/>
                                 </list>
                             </field>
                         </page>
@@ -403,9 +411,68 @@
                 <field name="supplier_id"/>
                 <field name="plan_lot_id"/>
                 <field name="date_order"/>
-                <field name="inspection_type"/>
-                <field name="state" widget="badge"/>
+                <field name="inspection_type" optional="show"/>
+                <field name="state" widget="badge" decoration-warning="state == 'approved'" decoration-info="state == 'sent'" decoration-success="state == 'fully_received'"/>
             </list>
+        </field>
+    </record>
+
+    <!-- AUTO-025: Kanban view for Expected Deliveries Dashboard -->
+    <record id="view_mesob_procurement_order_kanban" model="ir.ui.view">
+        <field name="name">mesob.procurement.order.kanban</field>
+        <field name="model">mesob.procurement.order</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" sample="1">
+                <field name="name"/>
+                <field name="supplier_id"/>
+                <field name="date_order"/>
+                <field name="inspection_type"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="o_kanban_record_top">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="o_kanban_record_title">
+                                        <field name="name"/>
+                                    </strong>
+                                    <span class="o_kanban_record_subtitle">
+                                        <field name="supplier_id"/>
+                                    </span>
+                                </div>
+                                <span class="badge badge-pill" t-attf-class="badge-{{state == 'approved' ? 'warning' : state == 'sent' ? 'info' : 'secondary'}}">
+                                    <field name="state"/>
+                                </span>
+                            </div>
+                            <div class="o_kanban_record_body">
+                                <div class="row mb-2">
+                                    <div class="col-6">
+                                        <i class="fa fa-calendar"/> <field name="date_order"/>
+                                    </div>
+                                    <div class="col-6">
+                                        <i class="fa fa-search"/> <field name="inspection_type"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="o_kanban_record_bottom mt-2">
+                                <div class="oe_kanban_bottom_left">
+                                    <span class="badge badge-info">
+                                        <t t-if="record.inspection_type.raw_value == 'storekeeper'">
+                                            <i class="fa fa-user"/> Storekeeper
+                                        </t>
+                                        <t t-elif="record.inspection_type.raw_value == 'technical'">
+                                            <i class="fa fa-wrench"/> Technical
+                                        </t>
+                                        <t t-else="">
+                                            <i class="fa fa-users"/> Independent
+                                        </t>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
         </field>
     </record>
 
@@ -610,7 +677,27 @@
     <record id="action_mesob_procurement_order" model="ir.actions.act_window">
         <field name="name">Purchase Orders</field>
         <field name="res_model">mesob.procurement.order</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">list,kanban,form</field>
+    </record>
+
+    <!-- AUTO-025: Expected Deliveries Dashboard for Storekeepers -->
+    <record id="action_mesob_expected_deliveries" model="ir.actions.act_window">
+        <field name="name">📦 Expected Deliveries</field>
+        <field name="res_model">mesob.procurement.order</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('state', 'in', ['approved', 'sent', 'partially_received'])]</field>
+        <field name="context">{
+            'search_default_group_by_inspection_type': 1,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No expected deliveries at this time
+            </p>
+            <p>
+                AUTO-025: This dashboard shows Purchase Orders that have been approved and are awaiting delivery.<br/>
+                Prepare receiving area and inspection checklist based on inspection type.
+            </p>
+        </field>
     </record>
 
     <record id="action_mesob_procurement_payment" model="ir.actions.act_window">
