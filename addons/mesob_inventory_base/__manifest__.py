@@ -53,9 +53,7 @@
         "data/mesob_automation_calculation_sequences.xml",
         "data/mesob_overdue_po_cron.xml",
         "data/mesob_auto_reorder_cron.xml",
-        "data/mesob_phase3_cron.xml",
-        "data/mesob_notification_activity_types.xml",  # Task 7: Activity types for notifications
-        "data/mesob_dashboard_kpi_cron.xml",  # Task 12: KPI refresh cron
+data/mesob_phase3_cron.xml
         # Company data
         "data/mesob_company_data.xml",
         # Views (Base)
@@ -86,7 +84,6 @@
         "views/mesob_stock_taking_handover_views.xml",
         "views/mesob_storage_security_views.xml",
         "views/mesob_inventory_dashboard_views.xml",
-        "views/mesob_dashboard_enhanced_views.xml",  # Task 12: Enhanced dashboards
         # Login customization
         "views/mesob_login_template.xml",
         # Wizards
@@ -98,16 +95,6 @@
         "wizard/mesob_procurement_need_reject_wizard_views.xml",
         "wizard/mesob_intelligent_consolidation_wizard_views.xml",
         "wizard/mesob_requisition_reject_wizard_views.xml",
-        "wizard/mesob_gate_pass_override_wizard_views.xml",  # AUTO-046
-        "wizard/mesob_manual_adjustment_wizard_views.xml",  # AUTO-050
-        "wizard/mesob_duplicate_item_wizard_views.xml",  # AUTO-038
-        "wizard/mesob_quarterly_movement_report_wizard_views.xml",  # AUTO-054
-        "wizard/mesob_gate_pass_extend_wizard_views.xml",  # AUTO-048
-        "wizard/mesob_barcode_scanner_wizard_views.xml",  # Task 9
-        # Notification preferences (Task 7)
-        "views/mesob_notification_preference_views.xml",
-        # Digital Signatures (Task 11)
-        "views/mesob_digital_signature_views.xml",
         # Reports
         "reports/mesob_gate_pass_report.xml",
     ],
