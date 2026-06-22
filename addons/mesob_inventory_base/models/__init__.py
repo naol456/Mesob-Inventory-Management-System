@@ -69,10 +69,10 @@ from . import mesob_stock_handover
 from . import mesob_stock_discrepancy_investigation
 
 # ═══════════════════════════════════════════════════════════
-# ADDITIONAL FEATURES (Task 7, 11, 12, Contract Extensions)
+# ADDITIONAL FEATURES (Task 7, 11, 12)
 # ═══════════════════════════════════════════════════════════
 from . import mesob_notification_preference  # Task 7: User notification preferences
 from . import mesob_digital_signature  # Task 11: Digital signature records
 from . import mesob_dashboard_kpi  # Task 12: Dashboard KPIs
-from . import mesob_contract_extensions  # Contract management
+# from . import mesob_contract_extensions  # TODO: Fix - invalid Python syntax (methods without class)
 from . import mesob_storage_security  # Storage security tracking
