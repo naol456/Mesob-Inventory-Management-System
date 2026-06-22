@@ -306,6 +306,9 @@ class MesobInventoryModel19(models.Model):
             
             # AUTO-027: Check if ready for automatic payment certificate creation
             rec._check_three_way_match_ready()
+            
+            # AUTO-027: Auto-trigger payment validation (AUTO-029)
+            rec._trigger_payment_validation()
         
         return True
     
@@ -369,6 +372,165 @@ class MesobInventoryModel19(models.Model):
                 f"AUTO-027: Model 19 {self.name} confirmed and linked to PO {po.name}. "
                 f"PAO notified to create payment certificate when invoice received."
             )
+    
+    def _trigger_payment_validation(self):
+        """AUTO-027: Auto-create payment validation when Model 19 confirmed.
+        
+        Automatically creates a Payment Validation record to trigger AUTO-029 three-way match.
+        This eliminates the manual step where PAO had to navigate to create payment certificate.
+        
+        Workflow:
+        1. Model 19 confirmed → AUTO-027 triggers this method
+        2. Find linked Purchase Order
+        3. Auto-create Payment Validation record (mesob.payment.validation)
+        4. AUTO-029 validation logic runs automatically
+        5. PAO receives notification with validation results
+        
+        Returns:
+            bool: True if payment validation created, False otherwise
+        """
+        self.ensure_one()
+        
+        try:
+            # Skip if no payment expected (department returns)
+            if self.is_no_payment:
+                _logger.info(
+                    f"AUTO-027: Model 19 {self.name} is department return (no payment). "
+                    "Skipping payment validation creation."
+                )
+                return False
+            
+            # Get linked Receiving Order
+            if not self.receiving_id:
+                _logger.warning(
+                    f"AUTO-027: Model 19 {self.name} has no linked receiving order. "
+                    "Cannot create payment validation."
+                )
+                return False
+            
+            # Get linked Purchase Order
+            if not self.receiving_id.purchase_order_ref:
+                _logger.warning(
+                    f"AUTO-027: Receiving {self.receiving_id.name} has no PO reference. "
+                    "Cannot create payment validation."
+                )
+                return False
+            
+            po = self.env['mesob.procurement.order'].search([
+                ('name', '=', self.receiving_id.purchase_order_ref)
+            ], limit=1)
+            
+            if not po:
+                _logger.warning(
+                    f"AUTO-027: Purchase Order {self.receiving_id.purchase_order_ref} not found. "
+                    "Cannot create payment validation."
+                )
+                return False
+            
+            # Check if payment validation already exists
+            existing_validation = self.env['mesob.payment.validation'].search([
+                ('po_id', '=', po.id),
+                ('model19_id', '=', self.id)
+            ], limit=1)
+            
+            if existing_validation:
+                _logger.info(
+                    f"AUTO-027: Payment validation {existing_validation.name} already exists "
+                    f"for Model 19 {self.name} and PO {po.name}. Skipping creation."
+                )
+                return False
+            
+            # Create Payment Validation record
+            payment_validation = self.env['mesob.payment.validation'].create({
+                'po_id': po.id,
+                'model19_id': self.id,
+                'invoice_number': 'PENDING',  # PAO updates when supplier invoice received
+                'invoice_date': fields.Date.today(),
+                'invoice_amount': self.total_amount,
+            })
+            
+            # Notify PAO about auto-created payment validation
+            pao_group = self.env.ref('mesob_inventory_base.group_mesob_pao', raise_if_not_found=False)
+            if pao_group and pao_group.users:
+                validation_status_color = {
+                    'pass': '#28a745',  # green
+                    'warning': '#ffc107',  # yellow
+                    'fail': '#dc3545'  # red
+                }.get(payment_validation.validation_status, '#6c757d')
+                
+                validation_status_text = {
+                    'pass': '✅ PASS',
+                    'warning': '⚠️ WARNING',
+                    'fail': '❌ FAIL'
+                }.get(payment_validation.validation_status, '⏳ PENDING')
+                
+                self.message_post(
+                    body=f"""<div style="background-color: #e7f3ff; border-left: 4px solid #0066cc; padding: 15px;">
+                        <h3>🤖 AUTO-027 + AUTO-029: Payment Validation Auto-Created</h3>
+                        <p><strong>Payment Validation:</strong> {payment_validation.name}</p>
+                        <p><strong>Model 19:</strong> {self.name}</p>
+                        <p><strong>Purchase Order:</strong> {po.name}</p>
+                        <p><strong>Supplier:</strong> {self.supplier_id.name if self.supplier_id else 'N/A'}</p>
+                        <hr/>
+                        <div style="background-color: {validation_status_color}; color: white; padding: 10px; border-radius: 5px; text-align: center; margin: 15px 0;">
+                            <h4 style="margin: 0; color: white;">Validation Status: {validation_status_text}</h4>
+                        </div>
+                        <hr/>
+                        <p><strong>Invoice Status:</strong> 📄 PENDING (Update when supplier invoice received)</p>
+                        <p><strong>Model 19 Total:</strong> ETB {self.total_amount:,.2f}</p>
+                        <p><strong>PO Total:</strong> ETB {po.total_price:,.2f}</p>
+                        <hr/>
+                        <div style="background-color: #fff3cd; padding: 10px; border-radius: 4px; margin-top: 15px;">
+                            <p style="margin: 0;"><strong>ACTION REQUIRED:</strong></p>
+                            <p style="margin: 5px 0 0 0;">1. When supplier's VAT invoice is received, update Invoice Number and Date</p>
+                            <p style="margin: 5px 0 0 0;">2. Review three-way match results (PO + Model 19 + Invoice)</p>
+                            <p style="margin: 5px 0 0 0;">3. Approve payment if validation passes (BR-PROC-002, FR-PROC-033)</p>
+                        </div>
+                        <p style="margin-top: 15px;">
+                            <a href="/web#id={payment_validation.id}&model=mesob.payment.validation&view_type=form" 
+                               style="background-color: #0066cc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                               View Payment Validation →
+                            </a>
+                        </p>
+                    </div>""",
+                    subject=f'AUTO-027: Payment Validation Created - {self.name}',
+                    partner_ids=pao_group.users.mapped('partner_id').ids,
+                    message_type='notification'
+                )
+            
+            _logger.info(
+                f"AUTO-027: Payment Validation {payment_validation.name} auto-created for "
+                f"Model 19 {self.name} and PO {po.name}. "
+                f"Status: {payment_validation.validation_status}. "
+                f"PAO notified."
+            )
+            
+            return True
+        
+        except Exception as e:
+            # Log error but don't block Model 19 confirmation
+            _logger.error(
+                f"AUTO-027: Error auto-creating payment validation for Model 19 {self.name}: {str(e)}",
+                exc_info=True
+            )
+            
+            # Notify PAO of the error
+            pao_group = self.env.ref('mesob_inventory_base.group_mesob_pao', raise_if_not_found=False)
+            if pao_group and pao_group.users:
+                self.message_post(
+                    body=f"""<div style="background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 15px;">
+                        <h4>⚠️ AUTO-027: Payment Validation Auto-Creation Failed</h4>
+                        <p><strong>Model 19:</strong> {self.name}</p>
+                        <p><strong>Error:</strong> {str(e)}</p>
+                        <hr/>
+                        <p><strong>ACTION REQUIRED:</strong> Please manually create Payment Certificate from Procurement → Payment Certificates → Create</p>
+                    </div>""",
+                    subject=f'AUTO-027 Error: Manual Payment Certificate Required - {self.name}',
+                    partner_ids=pao_group.users.mapped('partner_id').ids,
+                    message_type='notification'
+                )
+            
+            return False
     
     def _send_four_copy_distribution_notifications(self):
         """AUTO-040: Four-Copy Digital Distribution Auto-Routing (FR-REC-006).

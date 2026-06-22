@@ -531,6 +531,7 @@ class MesobStockTaking(models.Model):
             # AUTO-059: Send investigation alerts for material discrepancies
             if critical_discrepancies:
                 rec._send_investigation_alerts(critical_discrepancies, total_discrepancy_value)
+                rec._create_investigations(critical_discrepancies)
             
             # AUTO-057: Send completion summary
             rec.message_post(
@@ -1209,3 +1210,62 @@ class MesobStockTakingSheetIssuance(models.Model):
         )
 
 
+
+    def _create_investigations(self, critical_discrepancies):
+        """AUTO-059: Auto-create formal investigation records for material discrepancies.
+        
+        Creates structured investigation workflow for each critical discrepancy:
+        - Assigns to PAO as lead investigator
+        - Sets target completion based on severity
+        - Links to stock taking line for traceability
+        
+        Args:
+            critical_discrepancies: List of dicts with 'line', 'percentage', 'value' keys
+        """
+        self.ensure_one()
+        
+        Investigation = self.env['mesob.stock.discrepancy.investigation']
+        
+        created_investigations = []
+        for disc in critical_discrepancies:
+            line = disc['line']
+            
+            # Create investigation
+            investigation = Investigation.create({
+                'stock_taking_id': self.id,
+                'stock_taking_line_id': line.id,
+                'assigned_to_id': self.pao_id.id,  # Assign to stock taking PAO
+            })
+            
+            created_investigations.append(investigation)
+            
+            # Update stock taking line status
+            line.write({
+                'investigation_status': 'pending',
+                'requires_investigation': True
+            })
+        
+        # Send summary notification
+        if created_investigations:
+            self.message_post(
+                body=f"""<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px;">
+                    <h3>🔍 AUTO-059: Investigations Auto-Created</h3>
+                    <p><strong>Stock Taking:</strong> {self.name}</p>
+                    <p><strong>Investigations Created:</strong> {len(created_investigations)}</p>
+                    <p><strong>Assigned To:</strong> {self.pao_id.name}</p>
+                    <hr/>
+                    <p><em>Material discrepancies require formal investigation per FR-ST-006.</em></p>
+                    <p><strong>Investigation References:</strong></p>
+                    <ul>
+                        {''.join(f'<li>{inv.name} - {inv.item_code} (ETB {inv.discrepancy_value:,.2f})</li>' for inv in created_investigations[:10])}
+                        {f'<li><em>...and {len(created_investigations) - 10} more</em></li>' if len(created_investigations) > 10 else ''}
+                    </ul>
+                </div>""",
+                subject=f'AUTO-059: {len(created_investigations)} Investigations Created'
+            )
+            
+            _logger.info(
+                f"AUTO-059: Created {len(created_investigations)} investigations for stock taking {self.name}"
+            )
+        
+        return created_investigations

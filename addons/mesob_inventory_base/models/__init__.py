@@ -31,3 +31,10 @@ from . import mesob_liquidated_damages_calc
 from . import mesob_price_adjustment_calc
 from . import mesob_procurement_stock_reconciliation
 from . import mesob_stock_accuracy_scorecard
+
+# Stock Taking & Handover (Section 4.8)
+from . import mesob_stock_taking
+from . import mesob_stock_handover
+
+# AUTO-059: Stock Discrepancy Investigation Workflow
+from . import mesob_stock_discrepancy_investigation
