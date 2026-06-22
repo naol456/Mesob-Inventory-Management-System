@@ -10,7 +10,6 @@
             <field name="code">model._cron_generate_monthly_scorecard()</field>
             <field name="interval_number">1</field>
             <field name="interval_type">months</field>
-            <field name="max_number_call">-1</field>
             <field name="doall" eval="False"/>
             <field name="active" eval="True"/>
             <field name="priority">10</field>
