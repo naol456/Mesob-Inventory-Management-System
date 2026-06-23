@@ -93,9 +93,7 @@
         # "wizard/mesob_requisition_stock_alert_wizard_views.xml",
         "wizard/mesob_procurement_need_reject_wizard_views.xml",
         "wizard/mesob_intelligent_consolidation_wizard_views.xml",
-<<<<<<< HEAD
         "wizard/mesob_requisition_reject_wizard_views.xml",
-=======
         "wizard/mesob_gate_pass_override_wizard_views.xml",  # AUTO-046
         "wizard/mesob_manual_adjustment_wizard_views.xml",  # AUTO-050
         "wizard/mesob_duplicate_item_wizard_views.xml",  # AUTO-038
@@ -106,7 +104,6 @@
         "views/mesob_notification_preference_views.xml",
         # Digital Signatures (Task 11)
         "views/mesob_digital_signature_views.xml",
->>>>>>> feature/automation-tasks
         # Reports
         "reports/mesob_gate_pass_report.xml",
     ],
