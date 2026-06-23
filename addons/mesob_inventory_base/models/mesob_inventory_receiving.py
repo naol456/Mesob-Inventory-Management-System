@@ -219,7 +219,9 @@ class MesobInventoryReceiving(models.Model):
             ], limit=1)
             if po:
                 self.supplier_id = po.supplier_id
-                self.inspection_type = po.inspection_type
+                
+                # AUTO-026: Auto-assign inspection type per classification (FR-PROC-031)
+                self._auto_assign_inspection_type(po)
                 
                 # AUTO-039: Get technical specifications from linked tender/lot if available
                 quality_specs = ""
@@ -247,7 +249,7 @@ class MesobInventoryReceiving(models.Model):
                                 sub_id = lot.sub_classification_id.id
                             if not major_id and lot.sub_classification_id.major_classification_id:
                                 major_id = lot.sub_classification_id.major_classification_id.id
-
+                    
                     line_vals = {
                         "item_id": line.item_id.id if line.item_id else False,
                         "major_classification_id": major_id,
@@ -279,6 +281,68 @@ class MesobInventoryReceiving(models.Model):
                 _logger.info(
                     f"AUTO-052: Landed cost auto-populated from PO {po.name} for accurate FIFO valuation (FR-VAL-002)"
                 )
+    
+    def _auto_assign_inspection_type(self, purchase_order):
+        """AUTO-026: Auto-assign inspection type based on item classification (FR-PROC-031).
+        
+        Classification mapping:
+        - 4401-4403 (office supplies, stationery, cleaning) → Storekeeper inspection
+        - 4405 (fuel), 4411 (drugs/chemicals) → Technical staff inspection
+        - 4413 (vehicles), 4414 (equipment) → Technical inspection
+        - Others → Storekeeper (default)
+        """
+        # Classification to inspection type mapping
+        classification_map = {
+            '4401': 'storekeeper',  # Office furniture
+            '4402': 'storekeeper',  # Office equipment/supplies
+            '4403': 'storekeeper',  # Stationery & cleaning
+            '4404': 'storekeeper',  # General supplies
+            '4405': 'technical',     # Fuel & lubricants (requires testing)
+            '4406': 'storekeeper',  # Food supplies
+            '4407': 'storekeeper',  # Clothing
+            '4408': 'storekeeper',  # Construction materials
+            '4409': 'storekeeper',  # Spare parts
+            '4410': 'storekeeper',  # Medical supplies (basic)
+            '4411': 'technical',     # Drugs & chemicals (requires certification)
+            '4412': 'storekeeper',  # Agricultural supplies
+            '4413': 'technical',     # Vehicles (user + technical inspection)
+            '4414': 'technical',     # Equipment & machinery
+            '4415': 'storekeeper',  # Books & publications
+            '4416': 'storekeeper',  # Software
+            '4417': 'storekeeper',  # Services
+            '4418': 'storekeeper',  # Others
+        }
+        
+        # Get first item's major classification
+        first_line = purchase_order.line_ids[0] if purchase_order.line_ids else False
+        
+        if first_line:
+            # Try to get classification from PO line
+            major_classification = first_line.major_classification_id
+            
+            # Fallback to APP lot classification if line classification missing
+            if not major_classification and purchase_order.plan_lot_id:
+                major_classification = purchase_order.plan_lot_id.major_classification_id
+            
+            if major_classification and major_classification.code:
+                inspection_type = classification_map.get(
+                    major_classification.code, 
+                    'storekeeper'  # Default fallback
+                )
+                
+                self.inspection_type = inspection_type
+                
+                _logger.info(
+                    f"AUTO-026: Receiving {self.name} - Auto-assigned inspection type '{inspection_type}' "
+                    f"for classification {major_classification.code} ({major_classification.name})"
+                )
+            else:
+                self.inspection_type = 'storekeeper'  # Safe default
+                _logger.warning(
+                    f"AUTO-026: Receiving {self.name} - No classification found, using storekeeper inspection"
+                )
+        else:
+            self.inspection_type = 'storekeeper'
     
     # ── Actions ────────────────────────────────────────────────────
 

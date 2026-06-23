@@ -757,14 +757,17 @@ class MesobProcurementPlanLot(models.Model):
                 lot.brand_name_violations_list = ''
                 continue
             
-            if not lot.spec_template_id:
-                lot.has_brand_name_violations = False
-                lot.brand_name_violations_list = ''
-                continue
+            # Use template's brand keywords if available, otherwise use default list
+            if lot.spec_template_id and lot.spec_template_id.brand_name_keywords:
+                brand_keywords = lot.spec_template_id.brand_name_keywords
+            else:
+                # Default common brand names for Ethiopian context
+                brand_keywords = "Dell, HP, Lenovo, Asus, Acer, Toshiba, Sony, Samsung, LG, Apple, Microsoft, Toyota, Nissan, Hyundai, Kia, Mercedes, BMW, Caterpillar, Volvo, JCB, Canon, Epson, Brother, Xerox, Cisco, Huawei, Oracle, SAP"
             
             # Check for brand names
-            has_violations, detected_brands = lot.spec_template_id._check_brand_names(
-                tender.technical_specifications
+            has_violations, detected_brands = self.env['mesob.technical.spec.template']._check_brand_names_static(
+                tender.technical_specifications,
+                brand_keywords
             )
             
             lot.has_brand_name_violations = has_violations
@@ -776,6 +779,35 @@ class MesobProcurementPlanLot(models.Model):
                 )
             else:
                 lot.brand_name_violations_list = ''
+    
+    def action_check_brand_names(self):
+        """AUTO-007: Manually trigger brand name check and display results."""
+        self.ensure_one()
+        
+        # Force recompute
+        self._compute_brand_name_check()
+        
+        if self.has_brand_name_violations:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Brand Name Violations Detected',
+                    'message': self.brand_name_violations_list,
+                    'type': 'warning',
+                    'sticky': True,
+                }
+            }
+        else:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'No Brand Name Violations',
+                    'message': 'Technical specifications comply with FR-PROC-009 (function/performance-based specs).',
+                    'type': 'success',
+                }
+            }
     
     @api.depends('budget')
     def _compute_suggested_mechanism(self):
@@ -6759,51 +6791,9 @@ class MesobProcurementPaymentCertificate(models.Model):
         return True
 
 
-class MesobProcurementComplaint(models.Model):
-    """Complaints and Appeals Register - FR-PROC-038."""
-
-    _name = "mesob.procurement.complaint"
-    _description = "Procurement Complaints Register"
-    _order = "date_filed desc, id desc"
-
-    name = fields.Char(string="Complaint ID", required=True, copy=False, default="New")
-    complainant_name = fields.Char(string="Complainant Name", required=True)
-    lot_id = fields.Many2one("mesob.procurement.plan.lot", string="Subject APP Lot", required=True)
-    date_filed = fields.Date(string="Date Filed", default=fields.Date.today, required=True)
-    nature = fields.Selection(
-        [
-            ("bidding", "Bidding Irregularity"),
-            ("specification", "Specification Dispute"),
-            ("award", "Award Challenge"),
-            ("contract", "Contract Dispute"),
-        ],
-        string="Nature of Complaint",
-        required=True,
-    )
-    details = fields.Text(string="Complaint Details", required=True)
-    action_taken = fields.Text(string="Response Action Taken")
-    resolution = fields.Text(string="Resolution Outcome")
-    state = fields.Selection(
-        [("open", "Open / Standstill Block"), ("resolved", "Resolved")],
-        string="Status",
-        default="open",
-        required=True,
-    )
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        for vals in vals_list:
-            if vals.get("name", "New") == "New":
-                vals["name"] = f"COM/{self.env['ir.sequence'].next_by_code('mesob.procurement.complaint') or '001'}"
-        return super().create(vals_list)
-
-    def action_resolve(self):
-        for rec in self:
-            if not rec.resolution:
-                raise UserError("Please document the resolution outcome first.")
-            rec.state = "resolved"
-        return True
-
+# AUTO-033: OLD COMPLAINT MODEL REMOVED
+# The old simple complaint model (lines 6794-6836) has been replaced by the AUTO-033
+# enhanced version at line ~7319 with self-service portal, auto-linking, and contract blocking.
 
 
 class MesobTechnicalSpecTemplate(models.Model):
@@ -6905,8 +6895,24 @@ class MesobTechnicalSpecTemplate(models.Model):
         if not self.brand_name_keywords or not text:
             return (False, [])
         
+        return self._check_brand_names_static(text, self.brand_name_keywords)
+    
+    @staticmethod
+    def _check_brand_names_static(text, brand_keywords):
+        """AUTO-007: Static method to check brand names without template instance.
+        
+        Args:
+            text: Text to check for brand names
+            brand_keywords: Comma-separated string of brand keywords
+            
+        Returns:
+            tuple: (has_violations, list of detected brand names)
+        """
+        if not brand_keywords or not text:
+            return (False, [])
+        
         # Parse brand name keywords
-        keywords = [k.strip().lower() for k in self.brand_name_keywords.split(',') if k.strip()]
+        keywords = [k.strip().lower() for k in brand_keywords.split(',') if k.strip()]
         
         if not keywords:
             return (False, [])
