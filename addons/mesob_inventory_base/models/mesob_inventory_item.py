@@ -783,7 +783,7 @@ class MesobInventoryItem(models.Model):
                 twelve_months_ago = fields.Date.today() - timedelta(days=365)
                 issue_lines = self.env['mesob.inventory.issue.voucher.line'].search([
                     ('item_id', '=', rec.id),
-                    ('issue_date', '>=', twelve_months_ago)
+                    ('voucher_id.issue_date', '>=', twelve_months_ago)
                 ])
                 
                 total_issued = sum(line.quantity_issued for line in issue_lines)
@@ -1325,7 +1325,7 @@ class MesobInventoryItem(models.Model):
             for line in issue_lines:
                 issue_date = line.voucher_id.issue_date
                 month_key = issue_date.strftime('%Y-%m')
-                monthly_usage[month_key] += line.quantity
+                monthly_usage[month_key] += line.quantity_issued
             
             if monthly_usage:
                 usage_values = list(monthly_usage.values())
@@ -1446,14 +1446,14 @@ class MesobInventoryItem(models.Model):
                 item.seasonal_adjustment_factor = 1.0
                 continue
             
-            # Get issue history by month
-            issues = self.env['mesob.inventory.issue.voucher'].search([
+            # Get issue history by month from issue voucher lines
+            issue_lines = self.env['mesob.inventory.issue.voucher.line'].search([
                 ('item_id', '=', item.id),
-                ('issue_date', '>=', fields.Date.today() - timedelta(days=365)),
-                ('state', '=', 'approved'),
+                ('voucher_id.issue_date', '>=', fields.Date.today() - timedelta(days=365)),
+                ('voucher_id.state', '=', 'approved'),
             ])
             
-            if len(issues) < 12:  # Need at least 1 year of data
+            if len(issue_lines) < 12:  # Need at least 1 year of data
                 item.seasonal_pattern_detected = False
                 item.peak_season_months = ''
                 item.seasonal_adjustment_factor = 1.0
@@ -1461,9 +1461,9 @@ class MesobInventoryItem(models.Model):
             
             # Group by month
             monthly_usage = {}
-            for issue in issues:
-                month = issue.issue_date.month
-                monthly_usage[month] = monthly_usage.get(month, 0) + issue.quantity
+            for line in issue_lines:
+                month = line.voucher_id.issue_date.month
+                monthly_usage[month] = monthly_usage.get(month, 0) + line.quantity_issued
             
             if not monthly_usage:
                 item.seasonal_pattern_detected = False
@@ -1503,23 +1503,23 @@ class MesobInventoryItem(models.Model):
             months = item.historical_period_months
             midpoint = fields.Date.today() - timedelta(days=int(months * 30 / 2))
             
-            # First half usage
-            first_half = self.env['mesob.inventory.issue.voucher'].search([
+            # First half usage - search issue voucher lines
+            first_half_lines = self.env['mesob.inventory.issue.voucher.line'].search([
                 ('item_id', '=', item.id),
-                ('issue_date', '<', midpoint),
-                ('issue_date', '>=', fields.Date.today() - timedelta(days=months * 30)),
-                ('state', '=', 'approved'),
+                ('voucher_id.issue_date', '<', midpoint),
+                ('voucher_id.issue_date', '>=', fields.Date.today() - timedelta(days=months * 30)),
+                ('voucher_id.state', '=', 'approved'),
             ])
             
-            # Second half usage
-            second_half = self.env['mesob.inventory.issue.voucher'].search([
+            # Second half usage - search issue voucher lines
+            second_half_lines = self.env['mesob.inventory.issue.voucher.line'].search([
                 ('item_id', '=', item.id),
-                ('issue_date', '>=', midpoint),
-                ('state', '=', 'approved'),
+                ('voucher_id.issue_date', '>=', midpoint),
+                ('voucher_id.state', '=', 'approved'),
             ])
             
-            first_total = sum(first_half.mapped('quantity'))
-            second_total = sum(second_half.mapped('quantity'))
+            first_total = sum(first_half_lines.mapped('quantity_issued'))
+            second_total = sum(second_half_lines.mapped('quantity_issued'))
             
             if first_total == 0:
                 item.usage_trend = 'stable'
@@ -1548,14 +1548,14 @@ class MesobInventoryItem(models.Model):
                 item.demand_variability = 0.0
                 continue
             
-            # Get monthly usage values
-            issues = self.env['mesob.inventory.issue.voucher'].search([
+            # Get monthly usage values from issue voucher lines
+            issue_lines = self.env['mesob.inventory.issue.voucher.line'].search([
                 ('item_id', '=', item.id),
-                ('issue_date', '>=', fields.Date.today() - timedelta(days=item.historical_period_months * 30)),
-                ('state', '=', 'approved'),
+                ('voucher_id.issue_date', '>=', fields.Date.today() - timedelta(days=item.historical_period_months * 30)),
+                ('voucher_id.state', '=', 'approved'),
             ])
             
-            if len(issues) < 3:
+            if len(issue_lines) < 3:
                 item.demand_variability = 0.0
                 continue
             
@@ -1564,14 +1564,14 @@ class MesobInventoryItem(models.Model):
             current_month = None
             month_total = 0
             
-            for issue in issues.sorted('issue_date'):
-                issue_month = (issue.issue_date.year, issue.issue_date.month)
+            for line in issue_lines.sorted(lambda l: l.voucher_id.issue_date):
+                issue_month = (line.voucher_id.issue_date.year, line.voucher_id.issue_date.month)
                 if current_month != issue_month:
                     if current_month is not None:
                         monthly_values.append(month_total)
                     current_month = issue_month
                     month_total = 0
-                month_total += issue.quantity
+                month_total += line.quantity_issued
             
             if month_total > 0:
                 monthly_values.append(month_total)
@@ -1747,14 +1747,14 @@ class MesobInventoryItem(models.Model):
                 item.significant_change_detected = False
                 continue
             
-            # Compare recent usage (last month) vs average
-            recent_issues = self.env['mesob.inventory.issue.voucher'].search([
+            # Compare recent usage (last month) vs average from issue voucher lines
+            recent_issue_lines = self.env['mesob.inventory.issue.voucher.line'].search([
                 ('item_id', '=', item.id),
-                ('issue_date', '>=', fields.Date.today() - timedelta(days=30)),
-                ('state', '=', 'approved'),
+                ('voucher_id.issue_date', '>=', fields.Date.today() - timedelta(days=30)),
+                ('voucher_id.state', '=', 'approved'),
             ])
             
-            recent_usage = sum(recent_issues.mapped('quantity'))
+            recent_usage = sum(recent_issue_lines.mapped('quantity_issued'))
             
             # Check if change exceeds threshold
             if item.average_monthly_usage > 0:
@@ -1773,12 +1773,14 @@ class MesobInventoryItem(models.Model):
         """AUTO-066: Auto-flag dormant and slow-moving items (FR-REP-003, FR-DISP2-001)"""
         for item in self:
             # Find last issue date
-            last_issue = self.env['mesob.inventory.issue.voucher.line'].search([
+            last_issue_lines = self.env['mesob.inventory.issue.voucher.line'].search([
                 ('item_id', '=', item.id),
                 ('voucher_id.state', 'in', ['issued', 'received'])
-            ], order='voucher_id.issue_date desc', limit=1)
+            ])
             
-            if last_issue:
+            if last_issue_lines:
+                # Sort by voucher issue date and get the most recent
+                last_issue = max(last_issue_lines, key=lambda l: l.voucher_id.issue_date)
                 last_issue_date = last_issue.voucher_id.issue_date
                 today = fields.Date.today()
                 delta = (today - last_issue_date).days

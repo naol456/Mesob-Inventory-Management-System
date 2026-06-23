@@ -32,9 +32,9 @@
     "license": "LGPL-3",
     "depends": ["stock", "mail"],
     "data": [
-        # Security (load first) - CSV temporarily disabled due to truncated error
+        # Security (load first)
         "security/mesob_inventory_groups.xml",
-        # "security/ir.model.access.csv",  # TODO: Debug with Odoo CLI to see full error
+        "security/ir.model.access.csv",
         "security/mesob_inventory_record_rules.xml",
         "security/mesob_gate_pass_rules.xml",
         # Root Menu
