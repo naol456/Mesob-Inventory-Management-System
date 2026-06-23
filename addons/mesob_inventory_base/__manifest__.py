@@ -53,7 +53,7 @@
         "data/mesob_automation_calculation_sequences.xml",
         "data/mesob_overdue_po_cron.xml",
         "data/mesob_auto_reorder_cron.xml",
-data/mesob_phase3_cron.xml
+        "data/mesob_phase3_cron.xml",
         # Company data
         "data/mesob_company_data.xml",
         # Views (Base)
