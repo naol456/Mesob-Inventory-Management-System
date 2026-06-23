@@ -204,12 +204,33 @@
               parent="menu_mesob_procurement"
               action="action_mesob_procurement_complaint"
               sequence="60"/>
+    
+    <!-- PHASE 3: Compliance & Monitoring -->
+    <menuitem id="menu_mesob_procurement_compliance"
+              name="Compliance &amp; Monitoring"
+              parent="menu_mesob_procurement"
+              sequence="65"/>
+    
+    <!-- AUTO-034: Progress Dashboard -->
+    <menuitem id="menu_mesob_progress_dashboard"
+              name="Progress Dashboard"
+              parent="menu_mesob_procurement_compliance"
+              action="action_mesob_procurement_progress_dashboard"
+              sequence="10"/>
+
 
     <menuitem id="menu_mesob_budget_allocation"
               name="Budget Allocations"
               parent="menu_mesob_procurement"
               action="action_mesob_budget_allocation"
               sequence="15"/>
+    
+    <!-- AUTO-007: Technical Specification Templates -->
+    <menuitem id="menu_mesob_technical_spec_templates"
+              name="Technical Spec Templates"
+              parent="menu_mesob_procurement"
+              action="action_mesob_technical_spec_template"
+              sequence="25"/>
 
     <!-- ── Automation Calculators (Lelisa Features) ──────────────────── -->
     <menuitem id="menu_mesob_automation_calculators"
@@ -251,6 +272,13 @@
               action="action_mesob_stock_accuracy_scorecard"
               groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_stock_clerk"
               sequence="50"/>
+
+    <menuitem id="menu_mesob_procurement_stock_reconciliation"
+              name="Procurement-Stock Reconciliation (AUTO-035)"
+              parent="menu_mesob_automation_calculators"
+              action="action_mesob_procurement_stock_reconciliation_wizard"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_procurement"
+              sequence="60"/>
 
     <!-- ── Master Data ────────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_master_data"

@@ -63,6 +63,12 @@
         <field name="model">mesob.inventory.item</field>
         <field name="arch" type="xml">
             <form string="Inventory Item">
+                <header>
+                    <!-- AUTO-038: Duplicate Detection Button -->
+                    <button name="action_check_duplicates" string="Check for Duplicates" type="object" 
+                            class="btn-warning" icon="fa-search"
+                            help="AUTO-038: Search for similar items to prevent duplicates"/>
+                </header>
                 <sheet>
                     <!-- AUTO-038: Duplicate Check Button -->
                     <div class="oe_button_box" name="button_box">

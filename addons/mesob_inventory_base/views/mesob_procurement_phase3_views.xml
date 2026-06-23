@@ -1,0 +1,469 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ==================== PHASE 3: COMPLAINT REGISTER (AUTO-033) ==================== -->
+    <record id="view_mesob_procurement_complaint_tree" model="ir.ui.view">
+        <field name="name">mesob.procurement.complaint.tree</field>
+        <field name="model">mesob.procurement.complaint</field>
+        <field name="arch" type="xml">
+            <list string="Procurement Complaints (AUTO-033)">
+                <field name="name"/>
+                <field name="complaint_date"/>
+                <field name="supplier_id"/>
+                <field name="complaint_type"/>
+                <field name="complaint_subject"/>
+                <field name="related_tender_id" optional="show"/>
+                <field name="responsible_officer_id"/>
+                <field name="days_open"/>
+                <field name="sla_status" widget="badge" 
+                       decoration-success="sla_status == 'on_time'"
+                       decoration-warning="sla_status == 'warning'"
+                       decoration-danger="sla_status == 'overdue'"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state in ('submitted', 'under_investigation')"
+                       decoration-success="state == 'resolved'"
+                       decoration-danger="state in ('rejected', 'escalated')"/>
+                <field name="blocks_contract_signature" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_procurement_complaint_form" model="ir.ui.view">
+        <field name="name">mesob.procurement.complaint.form</field>
+        <field name="model">mesob.procurement.complaint</field>
+        <field name="arch" type="xml">
+            <form string="Procurement Complaint (AUTO-033)">
+                <header>
+                    <button name="action_submit" string="Submit Complaint" type="object" 
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_start_investigation" string="Start Investigation" type="object" 
+                            class="oe_highlight" invisible="state != 'submitted'" 
+                            groups="mesob_inventory_base.group_mesob_procurement"/>
+                    <button name="action_resolve" string="Resolve Complaint" type="object" 
+                            class="oe_highlight" invisible="state not in ('submitted', 'under_investigation')" 
+                            groups="mesob_inventory_base.group_mesob_procurement"/>
+                    <button name="action_reject" string="Reject as Invalid" type="object" 
+                            invisible="state not in ('submitted', 'under_investigation')" 
+                            groups="mesob_inventory_base.group_mesob_procurement"/>
+                    <button name="action_escalate_to_fppa" string="Escalate to FPPA" type="object" 
+                            class="btn-danger" invisible="state not in ('under_investigation', 'submitted')" 
+                            groups="mesob_inventory_base.group_mesob_pao"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,under_investigation,resolved"/>
+                </header>
+                <sheet>
+                    <!-- SLA Status Banner -->
+                    <div class="alert alert-danger" role="alert" invisible="sla_status != 'overdue'">
+                        <h4><i class="fa fa-exclamation-triangle"/> SLA OVERDUE</h4>
+                        <p>This complaint has been open for <strong><field name="days_open" class="oe_inline"/> days</strong> 
+                           and has exceeded the resolution deadline of <field name="sla_deadline" class="oe_inline"/>.</p>
+                        <p><strong>Immediate action required per FR-PROC-038.</strong></p>
+                    </div>
+                    
+                    <!-- Standstill Warning -->
+                    <div class="alert alert-warning" role="alert" invisible="not blocks_contract_signature">
+                        <h4><i class="fa fa-ban"/> CONTRACT SIGNATURE BLOCKED (FR-PROC-020)</h4>
+                        <p>This complaint was lodged during the standstill period.</p>
+                        <p><strong>Related contract cannot be signed until this complaint is resolved.</strong></p>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="complaint_date" readonly="state != 'draft'"/>
+                            <field name="complaint_type" readonly="state != 'draft'"/>
+                            <field name="supplier_id" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="contact_person" readonly="state != 'draft'"/>
+                            <field name="contact_email" readonly="state != 'draft'"/>
+                            <field name="contact_phone" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    
+                    <group string="AUTO-033: Related Procurement Objects">
+                        <group>
+                            <field name="related_tender_id" readonly="state != 'draft'"/>
+                            <field name="related_lot_id" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="related_contract_id" readonly="state != 'draft'"/>
+                            <field name="related_bid_id" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Complaint Details">
+                        <field name="complaint_subject" readonly="state != 'draft'" placeholder="Brief summary of complaint"/>
+                    </group>
+                    
+                    <group>
+                        <field name="complaint_description" readonly="state != 'draft'" 
+                               placeholder="Provide detailed description of the complaint with supporting facts and evidence..."/>
+                    </group>
+                    
+                    <group>
+                        <field name="requested_remedy" readonly="state != 'draft'" 
+                               placeholder="Describe what resolution or remedy you are seeking..."/>
+                    </group>
+                    
+                    <group string="Supporting Documents">
+                        <field name="supporting_documents" widget="many2many_binary" readonly="state != 'draft'"/>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Assignment &amp; Routing" name="routing" invisible="state == 'draft'">
+                            <group>
+                                <group>
+                                    <field name="responsible_officer_id" readonly="1"/>
+                                    <field name="sla_deadline" readonly="1"/>
+                                    <field name="days_open" readonly="1"/>
+                                    <field name="sla_status" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="is_standstill_complaint" readonly="1"/>
+                                    <field name="blocks_contract_signature" readonly="1"/>
+                                    <field name="escalation_alert_sent" readonly="1"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="routing_notes" readonly="1"/>
+                            </group>
+                        </page>
+                        
+                        <page string="Investigation" name="investigation" 
+                              invisible="state in ('draft', 'submitted')">
+                            <group>
+                                <field name="investigation_findings" 
+                                       placeholder="Document investigation findings, interviews conducted, evidence reviewed..."/>
+                            </group>
+                        </page>
+                        
+                        <page string="Resolution" name="resolution" 
+                              invisible="state not in ('resolved', 'rejected')">
+                            <group>
+                                <field name="resolution_action" readonly="1"/>
+                                <field name="resolution_date" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Complaint Actions -->
+    <record id="action_mesob_procurement_complaint" model="ir.actions.act_window">
+        <field name="name">Procurement Complaints</field>
+        <field name="res_model">mesob.procurement.complaint</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'default_state': 'draft'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No complaints registered yet
+            </p>
+            <p>
+                AUTO-033: Suppliers can submit complaints about procurement processes.
+                System auto-links complaints to relevant tenders/contracts and routes to responsible officers.
+            </p>
+        </field>
+    </record>
+
+
+    <!-- ==================== PHASE 3: PROGRESS DASHBOARD (AUTO-034) ==================== -->
+    <record id="view_mesob_procurement_progress_dashboard_tree" model="ir.ui.view">
+        <field name="name">mesob.procurement.progress.dashboard.tree</field>
+        <field name="model">mesob.procurement.progress.dashboard</field>
+        <field name="arch" type="xml">
+            <list string="APP Execution Progress Dashboard (AUTO-034)" 
+                  decoration-success="stage_color == 'success'"
+                  decoration-warning="stage_color == 'warning'"
+                  decoration-danger="stage_color == 'danger'"
+                  decoration-info="stage_color == 'info'"
+                  decoration-muted="stage_color == 'muted'">
+                <field name="name"/>
+                <field name="fiscal_year"/>
+                <field name="lot_id"/>
+                <field name="major_classification_id" optional="show"/>
+                <field name="procurement_method"/>
+                <field name="current_stage" widget="badge"/>
+                <field name="original_budget" sum="Total Budget" widget="monetary"/>
+                <field name="contract_value" sum="Contract Value" widget="monetary" optional="show"/>
+                <field name="budget_variance_percent" widget="percentage" optional="show"/>
+                <field name="days_behind_schedule" 
+                       decoration-success="days_behind_schedule &lt;= 0"
+                       decoration-warning="days_behind_schedule &gt; 0 and days_behind_schedule &lt;= 7"
+                       decoration-danger="days_behind_schedule &gt; 7"/>
+                <field name="schedule_status" widget="badge"
+                       decoration-success="schedule_status in ('ahead', 'on_time')"
+                       decoration-warning="schedule_status == 'minor_delay'"
+                       decoration-danger="schedule_status in ('significant_delay', 'critical_delay')"/>
+                <field name="delivery_percent" widget="progressbar"/>
+                <field name="payment_percent" widget="progressbar" optional="show"/>
+                <field name="stage_color" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_procurement_progress_dashboard_form" model="ir.ui.view">
+        <field name="name">mesob.procurement.progress.dashboard.form</field>
+        <field name="model">mesob.procurement.progress.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Procurement Progress (AUTO-034)">
+                <header>
+                    <button name="action_view_lot_details" string="View Lot Details" type="object" class="oe_highlight"/>
+                    <button name="action_refresh_dashboard" string="Refresh Data" type="object"/>
+                    <field name="stage_color" widget="statusbar" invisible="1"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_lot_details" type="object" class="oe_stat_button" icon="fa-folder-open">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">View</span>
+                                <span class="o_stat_text">Lot</span>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <!-- Status Banner -->
+                    <div class="alert alert-danger" role="alert" invisible="schedule_status != 'critical_delay'">
+                        <h4><i class="fa fa-exclamation-triangle"/> CRITICAL DELAY</h4>
+                        <p>This procurement is <strong><field name="days_behind_schedule" class="oe_inline"/> days behind schedule</strong>.</p>
+                        <p>Immediate intervention required.</p>
+                    </div>
+                    
+                    <group>
+                        <group string="Identification">
+                            <field name="name" readonly="1"/>
+                            <field name="fiscal_year" readonly="1"/>
+                            <field name="lot_id" readonly="1"/>
+                            <field name="plan_id" readonly="1"/>
+                        </group>
+                        <group string="Classification">
+                            <field name="major_classification_id" readonly="1"/>
+                            <field name="sub_classification_id" readonly="1"/>
+                            <field name="procurement_method" readonly="1"/>
+                            <field name="department_names" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Current Status">
+                        <field name="current_stage" widget="badge"/>
+                        <field name="stage_color" widget="badge"/>
+                        <field name="schedule_status" widget="badge"/>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Financial Metrics" name="financial">
+                            <group>
+                                <group>
+                                    <field name="original_budget" widget="monetary" readonly="1"/>
+                                    <field name="contract_value" widget="monetary" readonly="1"/>
+                                    <field name="budget_variance" widget="monetary" readonly="1"/>
+                                    <field name="budget_variance_percent" widget="percentage" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="total_payment_due" widget="monetary" readonly="1"/>
+                                    <field name="total_payment_made" widget="monetary" readonly="1"/>
+                                    <field name="payment_percent" widget="percentage" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Schedule Tracking" name="schedule">
+                            <group>
+                                <group string="Award Decision">
+                                    <field name="planned_award_date" readonly="1"/>
+                                    <field name="actual_award_date" readonly="1"/>
+                                </group>
+                                <group string="Contract Signature">
+                                    <field name="planned_contract_date" readonly="1"/>
+                                    <field name="actual_contract_date" readonly="1"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Delivery">
+                                    <field name="planned_delivery_date" readonly="1"/>
+                                    <field name="actual_delivery_date" readonly="1"/>
+                                </group>
+                                <group string="Schedule Analysis">
+                                    <field name="days_behind_schedule" readonly="1"/>
+                                    <field name="schedule_status" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Delivery Progress" name="delivery">
+                            <group>
+                                <field name="total_items_ordered" readonly="1"/>
+                                <field name="total_items_delivered" readonly="1"/>
+                                <field name="delivery_percent" widget="percentage" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Dashboard Kanban View -->
+    <record id="view_mesob_procurement_progress_dashboard_kanban" model="ir.ui.view">
+        <field name="name">mesob.procurement.progress.dashboard.kanban</field>
+        <field name="model">mesob.procurement.progress.dashboard</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_dashboard">
+                <field name="name"/>
+                <field name="current_stage"/>
+                <field name="schedule_status"/>
+                <field name="days_behind_schedule"/>
+                <field name="delivery_percent"/>
+                <field name="budget_variance_percent"/>
+                <field name="stage_color"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_card oe_kanban_global_click 
+                                           #{record.stage_color.raw_value == 'danger' ? 'border-danger' : ''}
+                                           #{record.stage_color.raw_value == 'warning' ? 'border-warning' : ''}
+                                           #{record.stage_color.raw_value == 'success' ? 'border-success' : ''}">
+                            <div class="o_kanban_card_header">
+                                <div class="o_kanban_card_header_title">
+                                    <div class="o_primary"><field name="name"/></div>
+                                    <div class="o_secondary"><field name="lot_id"/></div>
+                                </div>
+                            </div>
+                            <div class="o_kanban_card_content">
+                                <div class="o_kanban_card_manage_section">
+                                    <div>Stage: <field name="current_stage" widget="badge"/></div>
+                                    <div>Schedule: <field name="schedule_status" widget="badge"/></div>
+                                    <div t-if="record.days_behind_schedule.raw_value != 0">
+                                        Days Behind: <strong t-att-class="record.days_behind_schedule.raw_value &gt; 0 ? 'text-danger' : 'text-success'">
+                                            <field name="days_behind_schedule"/>
+                                        </strong>
+                                    </div>
+                                    <div class="mt-2">
+                                        <span>Delivery Progress:</span>
+                                        <field name="delivery_percent" widget="progressbar"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Dashboard Actions -->
+    <record id="action_mesob_procurement_progress_dashboard" model="ir.actions.act_window">
+        <field name="name">APP Execution Progress Dashboard</field>
+        <field name="res_model">mesob.procurement.progress.dashboard</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">
+                No dashboard data available
+            </p>
+            <p>
+                AUTO-034: Real-time procurement execution progress dashboard (FR-PROC-039).
+                Click "Refresh Dashboard" to generate/update data from approved APPs.
+            </p>
+        </field>
+    </record>
+    
+    <record id="action_refresh_progress_dashboard" model="ir.actions.server">
+        <field name="name">Refresh Dashboard</field>
+        <field name="model_id" ref="model_mesob_procurement_progress_dashboard"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_refresh_dashboard()</field>
+    </record>
+
+    <record id="action_export_to_fppa" model="ir.actions.server">
+        <field name="name">Export to FPPA e-GP</field>
+        <field name="model_id" ref="model_mesob_procurement_progress_dashboard"/>
+        <field name="binding_model_id" ref="model_mesob_procurement_progress_dashboard"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    action = records.action_export_to_fppa()
+</field>
+    </record>
+    
+    <!-- ==================== CONTRACT VARIATIONS (AUTO-021) ==================== -->
+    <record id="view_mesob_contract_variation_tree" model="ir.ui.view">
+        <field name="name">mesob.contract.variation.tree</field>
+        <field name="model">mesob.contract.variation</field>
+        <field name="arch" type="xml">
+            <list string="Contract Variations (AUTO-021)" create="0" edit="0">
+                <field name="name"/>
+                <field name="variation_date"/>
+                <field name="contract_id"/>
+                <field name="variation_amount" sum="Total Variations" 
+                       decoration-success="variation_amount &gt; 0"
+                       decoration-danger="variation_amount &lt; 0"/>
+                <field name="cumulative_after" sum="Cumulative Total"/>
+                <field name="percentage_after" widget="percentage"
+                       decoration-info="percentage_after &lt; 10"
+                       decoration-warning="percentage_after &gt;= 10 and percentage_after &lt; 15"
+                       decoration-danger="percentage_after &gt;= 15"/>
+                <field name="approved_by_id"/>
+            </list>
+        </field>
+    </record>
+    
+    <record id="view_mesob_contract_variation_form" model="ir.ui.view">
+        <field name="name">mesob.contract.variation.form</field>
+        <field name="model">mesob.contract.variation</field>
+        <field name="arch" type="xml">
+            <form string="Contract Variation (AUTO-021)" create="0" edit="0">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="contract_id" readonly="1"/>
+                            <field name="variation_date" readonly="1"/>
+                            <field name="variation_amount" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="cumulative_after" readonly="1"/>
+                            <field name="percentage_after" widget="percentage" readonly="1"/>
+                            <field name="approved_by_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Variation Description">
+                        <field name="description" readonly="1" nolabel="1"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    
+    <record id="action_mesob_contract_variations" model="ir.actions.act_window">
+        <field name="name">Contract Variations</field>
+        <field name="res_model">mesob.contract.variation</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                📊 AUTO-021: Contract Variation Tracker
+            </p>
+            <p>
+                Variations are automatically tracked when added to contracts.
+                System monitors cumulative percentage and enforces thresholds:
+            </p>
+            <ul>
+                <li>10% - Information alert</li>
+                <li>15% - Warning alert</li>
+                <li>20% - HOPE approval required</li>
+            </ul>
+        </field>
+    </record>
+    
+</odoo>
