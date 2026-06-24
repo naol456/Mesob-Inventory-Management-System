@@ -397,18 +397,27 @@ class MesobInventoryItem(models.Model):
             
             if line:
                 voucher = line.voucher_id
-                requisition = voucher.requisition_id
-                if requisition:
-                    if requisition.department:
-                        rec.current_holder = f"🏢 {requisition.department}"
-                    elif requisition.requested_by_id:
-                        user = requisition.requested_by_id
-                        name = user.name or ""
-                        parts = name.split()
-                        initials = "".join([p[0].upper() for p in parts if p])[:2]
-                        rec.current_holder = f"👤 {initials} {name}"
-                    else:
-                        rec.current_holder = ""
+                
+                # PRIORITY 1: Check assigned_to_id on the voucher (the user who was assigned)
+                if voucher.assigned_to_id:
+                    user = voucher.assigned_to_id
+                    name = user.name or ""
+                    parts = name.split()
+                    initials = "".join([p[0].upper() for p in parts if p])[:2]
+                    rec.current_holder = f"👤 {initials} {name}"
+                
+                # PRIORITY 2: Check requested_by_id from requisition (fallback)
+                elif voucher.requisition_id and voucher.requisition_id.requested_by_id:
+                    user = voucher.requisition_id.requested_by_id
+                    name = user.name or ""
+                    parts = name.split()
+                    initials = "".join([p[0].upper() for p in parts if p])[:2]
+                    rec.current_holder = f"👤 {initials} {name}"
+                
+                # PRIORITY 3: Show department only as last resort
+                elif voucher.requisition_id and voucher.requisition_id.department:
+                    rec.current_holder = f"🏢 {voucher.requisition_id.department}"
+                
                 else:
                     rec.current_holder = ""
             else:

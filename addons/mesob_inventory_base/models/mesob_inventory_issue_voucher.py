@@ -55,6 +55,25 @@ class MesobInventoryIssueVoucher(models.Model):
         store=True,
         readonly=True,
     )
+    
+    requested_by_id = fields.Many2one(
+        "res.users",
+        related="requisition_id.requested_by_id",
+        string="Requested By (User)",
+        store=True,
+        readonly=True,
+        help="The user who originally requested these items.",
+    )
+    
+    assigned_to_id = fields.Many2one(
+        "res.users",
+        string="Assigned To",
+        compute="_compute_assigned_to",
+        store=True,
+        readonly=False,
+        tracking=True,
+        help="User to whom these items are assigned. Defaults to the requester.",
+    )
 
     # ── Issue Details ───────────────────────────────────────────────────
 
@@ -184,11 +203,22 @@ class MesobInventoryIssueVoucher(models.Model):
     note = fields.Text(string="Internal Notes")
 
     # ── Computed Fields ─────────────────────────────────────────────────
+    
+    @api.depends("requisition_id", "requisition_id.requested_by_id")
+    def _compute_assigned_to(self):
+        """Automatically assign items to the user who requested them."""
+        for rec in self:
+            if rec.requisition_id and rec.requisition_id.requested_by_id:
+                rec.assigned_to_id = rec.requisition_id.requested_by_id
+            else:
+                rec.assigned_to_id = False
 
     @api.depends("line_ids.quantity_issued", "line_ids.item_id")
     def _compute_display_name(self):
         for rec in self:
-            if rec.name and rec.requesting_department:
+            if rec.name and rec.assigned_to_id:
+                rec.display_name = f"{rec.name} - {rec.assigned_to_id.name}"
+            elif rec.name and rec.requesting_department:
                 rec.display_name = f"{rec.name} - {rec.requesting_department}"
             else:
                 rec.display_name = rec.name or "New Issue Voucher"

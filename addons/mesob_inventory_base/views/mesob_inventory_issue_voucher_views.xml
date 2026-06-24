@@ -14,7 +14,8 @@
                 <field name="name" class="fw-bold font-monospace text-primary"/>
                 <field name="issue_date" class="font-monospace text-muted"/>
                 <field name="requisition_id" optional="show" class="font-monospace text-muted"/>
-                <field name="requesting_department" optional="show" class="fw-semibold"/>
+                <field name="assigned_to_id" optional="show" class="fw-semibold text-info"/>
+                <field name="requesting_department" optional="hide" class="fw-semibold"/>
                 <field name="issued_by_id" class="fw-semibold text-muted"/>
                 <field name="received_by_id" optional="hide"/>
                 <field name="state" widget="badge"
@@ -37,6 +38,7 @@
                 <field name="issue_date"/>
                 <field name="requisition_id"/>
                 <field name="requesting_department"/>
+                <field name="assigned_to_id"/>
                 <field name="issued_by_id"/>
                 <field name="state"/>
                 <templates>
@@ -51,7 +53,8 @@
                                 </span>
                             </div>
                             <h4 class="o_kanban_record_title fw-bold text-dark fs-5 mb-1 mt-1">
-                                <t t-esc="record.requesting_department.value or 'General Store'"/>
+                                <i class="fa fa-user text-info me-2"/>
+                                <t t-esc="record.assigned_to_id.value or record.requesting_department.value or 'Unassigned'"/>
                             </h4>
                             <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
                                 <span class="text-muted small">
@@ -121,7 +124,10 @@
                             <field name="requisition_id" readonly="1" options="{'no_open': True, 'no_create': True}" class="mb-2"/>
                         </group>
                         <group string="Receiving details" class="glass-card p-3 rounded shadow-sm border">
-                            <field name="requesting_department" placeholder="e.g. IT Department, Logistics, Administration..." readonly="state != 'draft'" class="mb-2"/>
+                            <field name="requested_by_id" readonly="1" class="mb-2" string="Requested By"/>
+                            <field name="assigned_to_id" readonly="state != 'draft'" class="mb-2" 
+                                   options="{'no_create': True, 'no_open': True}"/>
+                            <field name="requesting_department" placeholder="e.g. IT Department, Logistics, Administration..." readonly="1" class="mb-2"/>
                         </group>
                     </group>
                     
@@ -222,10 +228,18 @@
             <search string="Issue Vouchers">
                 <field name="name"/>
                 <field name="requisition_id"/>
+                <field name="assigned_to_id"/>
                 <field name="issued_by_id"/>
+                <field name="requesting_department"/>
+                <filter string="My Issues" name="my_issues" domain="[('assigned_to_id', '=', uid)]"/>
+                <separator/>
                 <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
                 <filter string="Issued" name="issued" domain="[('state', '=', 'issued')]"/>
                 <filter string="Received" name="received" domain="[('state', '=', 'received')]"/>
+                <separator/>
+                <filter string="Assigned To" name="group_assigned_to" context="{'group_by': 'assigned_to_id'}"/>
+                <filter string="Department" name="group_department" context="{'group_by': 'requesting_department'}"/>
+                <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
             </search>
         </field>
     </record>
