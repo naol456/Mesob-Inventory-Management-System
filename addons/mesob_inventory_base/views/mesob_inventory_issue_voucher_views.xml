@@ -14,6 +14,7 @@
                 <field name="name" class="fw-bold font-monospace text-primary"/>
                 <field name="issue_date" class="font-monospace text-muted"/>
                 <field name="requisition_id" optional="show" class="font-monospace text-muted"/>
+                <field name="assigned_to_id" string="Assigned To" class="fw-semibold"/>
                 <field name="requesting_department" optional="show" class="fw-semibold"/>
                 <field name="issued_by_id" class="fw-semibold text-muted"/>
                 <field name="received_by_id" optional="hide"/>
@@ -36,6 +37,7 @@
                 <field name="name"/>
                 <field name="issue_date"/>
                 <field name="requisition_id"/>
+                <field name="assigned_to_id"/>
                 <field name="requesting_department"/>
                 <field name="issued_by_id"/>
                 <field name="state"/>
@@ -51,8 +53,13 @@
                                 </span>
                             </div>
                             <h4 class="o_kanban_record_title fw-bold text-dark fs-5 mb-1 mt-1">
-                                <t t-esc="record.requesting_department.value or 'General Store'"/>
+                                <i class="fa fa-user text-primary me-2"/>
+                                <t t-esc="record.assigned_to_id.value or 'Not Assigned'"/>
                             </h4>
+                            <p class="text-muted small mb-0 mt-2">
+                                <i class="fa fa-building me-1"/> 
+                                <t t-esc="record.requesting_department.value or 'General Store'"/>
+                            </p>
                             <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
                                 <span class="text-muted small">
                                     <i class="fa fa-user-circle me-1"/> <t t-esc="record.issued_by_id.value"/>
@@ -121,7 +128,9 @@
                             <field name="requisition_id" readonly="1" options="{'no_open': True, 'no_create': True}" class="mb-2"/>
                         </group>
                         <group string="Receiving details" class="glass-card p-3 rounded shadow-sm border">
-                            <field name="requesting_department" placeholder="e.g. IT Department, Logistics, Administration..." readonly="state != 'draft'" class="mb-2"/>
+                            <field name="requested_by_id" string="Requested By" readonly="1" class="mb-2"/>
+                            <field name="assigned_to_id" string="Assigned To" readonly="1" class="mb-2"/>
+                            <field name="requesting_department" placeholder="e.g. IT Department, Logistics, Administration..." readonly="1" class="mb-2"/>
                         </group>
                     </group>
                     

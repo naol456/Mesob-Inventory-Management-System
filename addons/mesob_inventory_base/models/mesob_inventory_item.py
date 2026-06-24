@@ -399,14 +399,17 @@ class MesobInventoryItem(models.Model):
                 voucher = line.voucher_id
                 requisition = voucher.requisition_id
                 if requisition:
-                    if requisition.department:
-                        rec.current_holder = f"🏢 {requisition.department}"
-                    elif requisition.requested_by_id:
+                    # PRIORITY: Show user first, then department as fallback
+                    if requisition.requested_by_id:
                         user = requisition.requested_by_id
                         name = user.name or ""
                         parts = name.split()
                         initials = "".join([p[0].upper() for p in parts if p])[:2]
-                        rec.current_holder = f"👤 {initials} {name}"
+                        dept = dict(requisition._fields['department'].selection).get(requisition.department, '')
+                        rec.current_holder = f"👤 {initials} {name} ({dept})"
+                    elif requisition.department:
+                        dept = dict(requisition._fields['department'].selection).get(requisition.department, requisition.department)
+                        rec.current_holder = f"🏢 {dept}"
                     else:
                         rec.current_holder = ""
                 else:
