@@ -7,6 +7,14 @@
               groups="mesob_inventory_base.group_mesob_inventory_user,mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao"
               sequence="10"/>
 
+    <!-- AUTO-025: Expected Deliveries Dashboard for Storekeepers -->
+    <menuitem id="menu_mesob_expected_deliveries"
+              name="📦 Expected Deliveries"
+              parent="menu_mesob_inventory_operations"
+              action="action_mesob_expected_deliveries"
+              groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_pao"
+              sequence="1"/>
+
     <menuitem id="menu_mesob_inventory_receiving"
               name="Receiving Orders"
               parent="menu_mesob_inventory_operations"
@@ -119,6 +127,13 @@
               groups="mesob_inventory_base.group_mesob_pao"
               sequence="40"/>
 
+    <!-- ── Settings ───────────────────────────────────────────────── -->
+    <menuitem id="menu_mesob_inventory_settings"
+              name="Settings"
+              parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_pao"
+              sequence="100"/>
+
     <!-- ── Stock Control ──────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_stock_control"
               name="Stock Control"
@@ -131,6 +146,15 @@
               parent="menu_mesob_inventory_stock_control"
               action="action_mesob_stock_reorder_alert"
               sequence="10"/>
+
+    <!-- TODO: Uncomment after wizard views are loaded before menus
+    <menuitem id="menu_mesob_quarterly_movement_report"
+              name="Quarterly Movement Report"
+              parent="menu_mesob_inventory_stock_control"
+              action="action_mesob_quarterly_movement_report_wizard"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_stock_clerk"
+              sequence="20"/>
+    -->
 
     <!-- ── Procurement (Section 4.13) ────────────────────────────── -->
     <menuitem id="menu_mesob_procurement"
@@ -179,6 +203,81 @@
               name="Complaints &amp; Appeals"
               parent="menu_mesob_procurement"
               action="action_mesob_procurement_complaint"
+              sequence="60"/>
+    
+    <!-- PHASE 3: Compliance & Monitoring -->
+    <menuitem id="menu_mesob_procurement_compliance"
+              name="Compliance &amp; Monitoring"
+              parent="menu_mesob_procurement"
+              sequence="65"/>
+    
+    <!-- AUTO-034: Progress Dashboard -->
+    <menuitem id="menu_mesob_progress_dashboard"
+              name="Progress Dashboard"
+              parent="menu_mesob_procurement_compliance"
+              action="action_mesob_procurement_progress_dashboard"
+              sequence="10"/>
+
+
+    <menuitem id="menu_mesob_budget_allocation"
+              name="Budget Allocations"
+              parent="menu_mesob_procurement"
+              action="action_mesob_budget_allocation"
+              sequence="15"/>
+    
+    <!-- AUTO-007: Technical Specification Templates -->
+    <menuitem id="menu_mesob_technical_spec_templates"
+              name="Technical Spec Templates"
+              parent="menu_mesob_procurement"
+              action="action_mesob_technical_spec_template"
+              sequence="25"/>
+
+    <!-- ── Automation Calculators (Lelisa Features) ──────────────────── -->
+    <menuitem id="menu_mesob_automation_calculators"
+              name="Automation Calculators"
+              parent="menu_mesob_procurement"
+              sequence="65"/>
+
+    <menuitem id="menu_mesob_domestic_preference_calc"
+              name="Domestic Preference (AUTO-015)"
+              parent="menu_mesob_automation_calculators"
+              action="action_mesob_domestic_preference_calculation"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_procurement"
+              sequence="10"/>
+
+    <menuitem id="menu_mesob_liquidated_damages_calc"
+              name="Liquidated Damages (AUTO-030)"
+              parent="menu_mesob_automation_calculators"
+              action="action_mesob_liquidated_damages_calculation"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_procurement"
+              sequence="20"/>
+
+    <menuitem id="menu_mesob_price_adjustment_calc"
+              name="Price Adjustment (AUTO-031)"
+              parent="menu_mesob_automation_calculators"
+              action="action_mesob_price_adjustment_calculation"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_procurement"
+              sequence="30"/>
+
+    <menuitem id="menu_mesob_procurement_stock_reconciliation"
+              name="Procurement-Stock Reconciliation (AUTO-035)"
+              parent="menu_mesob_automation_calculators"
+              action="action_mesob_procurement_stock_reconciliation"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_stock_clerk"
+              sequence="40"/>
+
+    <menuitem id="menu_mesob_stock_accuracy_scorecard"
+              name="Stock Accuracy Scorecard (AUTO-055)"
+              parent="menu_mesob_automation_calculators"
+              action="action_mesob_stock_accuracy_scorecard"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_stock_clerk"
+              sequence="50"/>
+
+    <menuitem id="menu_mesob_procurement_stock_reconciliation"
+              name="Procurement-Stock Reconciliation (AUTO-035)"
+              parent="menu_mesob_automation_calculators"
+              action="action_mesob_procurement_stock_reconciliation_wizard"
+              groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_procurement"
               sequence="60"/>
 
     <!-- ── Master Data ────────────────────────────────────────────── -->

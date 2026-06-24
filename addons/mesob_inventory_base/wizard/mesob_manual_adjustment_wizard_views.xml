@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AUTO-050: Manual Stock Adjustment Wizard Views -->
+<odoo>
+    
+    <!-- Manual Adjustment Wizard Form -->
+    <record id="view_mesob_manual_adjustment_wizard_form" model="ir.ui.view">
+        <field name="name">mesob.manual.adjustment.wizard.form</field>
+        <field name="model">mesob.manual.adjustment.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Manual Stock Adjustment">
+                <group>
+                    <group string="Item &amp; Location">
+                        <field name="sub_classification_id" options="{'no_create': True}"/>
+                        <field name="major_classification_id" readonly="1"/>
+                        <field name="location"/>
+                        <field name="uom_id" options="{'no_create': True}"/>
+                        <field name="date"/>
+                    </group>
+                    
+                    <group string="Stock Levels">
+                        <field name="current_balance" readonly="1" class="fw-bold text-primary"/>
+                        <field name="physical_count" class="fw-bold text-success"/>
+                        <field name="adjustment_quantity" readonly="1" 
+                               class="fw-bold"
+                               decoration-success="adjustment_quantity &gt; 0"
+                               decoration-danger="adjustment_quantity &lt; 0"/>
+                        <field name="adjustment_type" readonly="1" widget="badge"
+                               decoration-success="adjustment_type == 'increase'"
+                               decoration-danger="adjustment_type == 'decrease'"/>
+                    </group>
+                </group>
+                
+                <separator string="📋 Justification (Required)"/>
+                
+                <div class="alert alert-warning" role="alert">
+                    <p><strong>⚠️ PAO Approval Required</strong></p>
+                    <p>This manual adjustment will be submitted for PAO approval before posting to stock.</p>
+                    <p>Provide detailed justification for this adjustment.</p>
+                </div>
+                
+                <group>
+                    <field name="adjustment_reason" 
+                           placeholder="Example: Physical stock count conducted on [date] revealed discrepancy of X units due to [reason]. Supporting document: Stock Take Report #123..."
+                           nolabel="1"
+                           required="1"/>
+                    <field name="supporting_document" 
+                           placeholder="e.g., Stock Take Report #123, Damage Report #456, Memo Ref: PAO/2026/XXX"
+                           nolabel="1"/>
+                </group>
+                
+                <footer>
+                    <button name="action_create_adjustment" 
+                            string="Create Adjustment (Pending PAO Approval)" 
+                            type="object" 
+                            class="btn-primary"/>
+                    <button string="Cancel" 
+                            class="btn-secondary" 
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Action to open wizard from menu -->
+    <record id="action_mesob_manual_adjustment_wizard" model="ir.actions.act_window">
+        <field name="name">Create Manual Adjustment</field>
+        <field name="res_model">mesob.manual.adjustment.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_view_types">list</field>
+    </record>
+    
+</odoo>

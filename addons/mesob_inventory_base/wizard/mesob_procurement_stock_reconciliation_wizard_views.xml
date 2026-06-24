@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- AUTO-035: Procurement-Stock Reconciliation Wizard Form -->
+    <record id="view_mesob_procurement_stock_reconciliation_wizard_form" model="ir.ui.view">
+        <field name="name">mesob.procurement.stock.reconciliation.wizard.form</field>
+        <field name="model">mesob.procurement.stock.reconciliation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Procurement-Stock Reconciliation Report">
+                <header>
+                    <button name="action_generate_report" string="Generate Report" type="object" 
+                            class="btn-primary" icon="fa-play"/>
+                    <button name="action_export_pdf" string="Export PDF" type="object" 
+                            class="btn-secondary" icon="fa-file-pdf-o"
+                            invisible="not reconciliation_report"/>
+                </header>
+                
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <span>Procurement-Stock Reconciliation</span>
+                        </h1>
+                        <p style="color: #6c757d;">
+                            AUTO-035: Trace PO → Model 19 → Bin Card → Stock Record → Payment (FR-PROC-042)
+                        </p>
+                    </div>
+                    
+                    <group>
+                        <group string="Report Period">
+                            <field name="date_from" required="1"/>
+                            <field name="date_to" required="1"/>
+                        </group>
+                        <group string="Filters">
+                            <field name="classification_id" options="{'no_create': True}"/>
+                            <field name="po_status" widget="radio"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Reconciliation Report" name="report">
+                            <group>
+                                <group string="Summary Statistics" invisible="not reconciliation_report">
+                                    <field name="total_pos_checked" readonly="1"/>
+                                    <field name="pos_with_gaps" readonly="1"/>
+                                    <field name="total_value_discrepancy" readonly="1" widget="monetary"/>
+                                    <field name="currency_id" invisible="1"/>
+                                </group>
+                            </group>
+                            
+                            <field name="reconciliation_report" widget="html" nolabel="1"/>
+                        </page>
+                        
+                        <page string="Help" name="help">
+                            <div style="padding: 20px; background-color: #f8f9fa; border-radius: 5px;">
+                                <h3 style="color: #2c3e50;">📖 About This Report</h3>
+                                <p><strong>Purpose:</strong> FR-PROC-042 requires monthly reconciliation to detect fraud/errors early.</p>
+                                
+                                <h4 style="color: #e74c3c; margin-top: 20px;">🔍 What This Report Checks:</h4>
+                                <ol style="line-height: 1.8;">
+                                    <li><strong>PO → Model 19:</strong> Everything ordered was received?</li>
+                                    <li><strong>Model 19 → Bin Card:</strong> Received items recorded in bin card?</li>
+                                    <li><strong>Bin Card → Stock Record:</strong> Quantities match financial records?</li>
+                                    <li><strong>Stock Record → Payment:</strong> Paid amounts match received quantities?</li>
+                                    <li><strong>Price Consistency:</strong> PO unit price = Stock Record unit price?</li>
+                                </ol>
+                                
+                                <h4 style="color: #e74c3c; margin-top: 20px;">⚠️ Red Flags (Fraud Indicators):</h4>
+                                <ul style="line-height: 1.8;">
+                                    <li>PO ordered 100, Model 19 shows 80 (20 missing!)</li>
+                                    <li>Model 19 shows 100, Bin Card shows 70 (30 vanished!)</li>
+                                    <li>PO price 150 ETB, Stock Record shows 200 ETB (price manipulation!)</li>
+                                    <li>Payment for 100 units, only 80 received (overpayment!)</li>
+                                </ul>
+                                
+                                <h4 style="color: #28a745; margin-top: 20px;">✅ How to Use:</h4>
+                                <ol style="line-height: 1.8;">
+                                    <li>Select report period (e.g., last month)</li>
+                                    <li>Optionally filter by classification</li>
+                                    <li>Click "Generate Report"</li>
+                                    <li>Review flagged discrepancies (red rows)</li>
+                                    <li>Investigate gap details</li>
+                                    <li>Document corrective actions</li>
+                                </ol>
+                                
+                                <div style="background-color: #fff3cd; padding: 15px; margin-top: 20px; border-left: 4px solid #ffc107;">
+                                    <p style="margin: 0;"><strong>💡 Pro Tip:</strong> Run this report on 1st of each month for previous month. 
+                                    Early detection = Easier recovery!</p>
+                                </div>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action to open wizard -->
+    <record id="action_mesob_procurement_stock_reconciliation_wizard" model="ir.actions.act_window">
+        <field name="name">Procurement-Stock Reconciliation</field>
+        <field name="res_model">mesob.procurement.stock.reconciliation.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>
