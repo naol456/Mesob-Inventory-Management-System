@@ -231,19 +231,10 @@
             <search string="Issue Vouchers">
                 <field name="name"/>
                 <field name="requisition_id"/>
-                <field name="assigned_to_id"/>
                 <field name="issued_by_id"/>
                 <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
                 <filter string="Issued" name="issued" domain="[('state', '=', 'issued')]"/>
                 <filter string="Received" name="received" domain="[('state', '=', 'received')]"/>
-                <separator/>
-                <filter string="My Issues" name="my_issues" domain="[('assigned_to_id', '=', uid)]"/>
-                <separator/>
-                <group string="Group By">
-                    <filter string="Assigned To" name="group_assigned_to" context="{'group_by': 'assigned_to_id'}"/>
-                    <filter string="Department" name="group_department" context="{'group_by': 'requesting_department'}"/>
-                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
-                </group>
             </search>
         </field>
     </record>
