@@ -57,7 +57,65 @@
         </field>
     </record>
 
-    <!-- ── Form View ──────────────────────────────────────────────── -->
+    <!-- ── Simplified Form View (for popup/quick view) ──────────────── -->
+    <record id="view_mesob_inventory_item_form_simple" model="ir.ui.view">
+        <field name="name">mesob.inventory.item.form.simple</field>
+        <field name="model">mesob.inventory.item</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <form string="Item Details">
+                <sheet>
+                    <div class="oe_title mb-4">
+                        <span class="text-muted fw-bold text-uppercase fs-6">FDRE STOCK ITEM</span>
+                        <h1>
+                            <field name="item_code" readonly="1" class="fw-bold mb-2 text-primary"/>
+                        </h1>
+                    </div>
+                    
+                    <group class="mb-4">
+                        <group string="📦 Item Information" class="glass-card p-3 rounded shadow-sm border">
+                            <field name="name" string="Name (English)" readonly="1" class="fw-semibold"/>
+                            <field name="name_am" string="ስም (Amharic)" readonly="1"/>
+                        </group>
+                        
+                        <group string="👤 Current Holder" class="glass-card p-3 rounded shadow-sm border bg-info bg-opacity-10">
+                            <field name="current_holder" readonly="1" class="fw-bold fs-5 text-info" nolabel="1"/>
+                            <field name="issue_status" widget="badge" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group string="🏷️ Classification Details" class="glass-card p-3 rounded shadow-sm border mb-4">
+                        <field name="classification_id" readonly="1" class="fw-semibold"/>
+                        <field name="sub_classification_id" readonly="1" class="fw-semibold"/>
+                        <div class="d-flex gap-3 w-100 mt-3">
+                            <div class="flex-fill text-center">
+                                <label for="major_code" class="small text-muted mb-1 d-block">Major Code</label>
+                                <field name="major_code" readonly="1" class="font-monospace fw-bold fs-4 text-primary" nolabel="1"/>
+                            </div>
+                            <div class="flex-fill text-center">
+                                <label for="sub_code" class="small text-muted mb-1 d-block">Sub Code</label>
+                                <field name="sub_code" readonly="1" class="font-monospace fw-bold fs-4 text-success" nolabel="1"/>
+                            </div>
+                            <div class="flex-fill text-center">
+                                <label for="specific_code" class="small text-muted mb-1 d-block">Specific Code</label>
+                                <field name="specific_code" readonly="1" class="font-monospace fw-bold fs-4 text-warning" nolabel="1"/>
+                            </div>
+                        </div>
+                    </group>
+                    
+                    <div class="alert alert-info d-flex align-items-center" role="alert">
+                        <i class="fa fa-info-circle me-2 fs-5"/>
+                        <div>
+                            <strong>Quick View:</strong> This shows essential item details only. 
+                            <a href="#" class="alert-link" onclick="return false;">Open full details</a> for complete information.
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Full/Detailed Form View ──────────────────────────────────────────────── -->
     <record id="view_mesob_inventory_item_form" model="ir.ui.view">
         <field name="name">mesob.inventory.item.form</field>
         <field name="model">mesob.inventory.item</field>
@@ -173,5 +231,14 @@
                 to a major classification (4401–4418) for stock accounting.
             </p>
         </field>
+    </record>
+
+    <!-- ── Action for Simple Item View (used when clicking from lists) ───────── -->
+    <record id="action_mesob_inventory_item_simple" model="ir.actions.act_window">
+        <field name="name">Item Details</field>
+        <field name="res_model">mesob.inventory.item</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_mesob_inventory_item_form_simple"/>
+        <field name="target">new</field>
     </record>
 </odoo>
