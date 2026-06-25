@@ -105,7 +105,7 @@
         <field name="name">mesob.inventory.receiving.form</field>
         <field name="model">mesob.inventory.receiving</field>
         <field name="arch" type="xml">
-            <form string="Receiving Order">
+            <form string="Receiving Order" class="o_receiving_form_premium">
                 <header>
                     <button name="action_receive" type="object" string="Mark Received"
                             class="btn-primary"
@@ -139,26 +139,20 @@
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,received,inspecting,accepted,done"/>
                 </header>
-                <sheet>
+                <sheet class="o_receiving_sheet_premium">
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_model19" type="object"
-                                class="oe_stat_button" icon="fa-file-text"
-                                invisible="not model19_id"
-                                style="border: 1px solid rgba(212,175,55,0.3); border-radius: 8px; background: rgba(255,255,255,0.03);">
+                                class="oe_stat_button o_stat_button_premium" icon="fa-file-text"
+                                invisible="not model19_id">
                             <div class="o_stat_info">
-                                <span class="o_stat_text" style="color: #D4AF37; font-weight: 600;">
-                                    <i class="fa fa-file-text me-1" style="color: #10B981;"/>Model 19
-                                </span>
+                                <span class="o_stat_text">Model 19</span>
                             </div>
                         </button>
                         <button name="action_view_dsr" type="object"
-                                class="oe_stat_button" icon="fa-exclamation-triangle"
-                                invisible="not dsr_id"
-                                style="border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; background: rgba(255,255,255,0.03);">
+                                class="oe_stat_button o_stat_button_premium o_stat_button_danger" icon="fa-exclamation-triangle"
+                                invisible="not dsr_id">
                             <div class="o_stat_info">
-                                <span class="o_stat_text" style="color: #EF4444; font-weight: 600;">
-                                    <i class="fa fa-exclamation-triangle me-1"/>DSR
-                                </span>
+                                <span class="o_stat_text">DSR</span>
                             </div>
                         </button>
                     </div>
@@ -170,101 +164,115 @@
                         </h1>
                     </div>
 
-                    <group class="mb-4">
-                        <group string="📦 Source Details" col="1" class="glass-card p-3 rounded shadow-sm border" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px; padding: 18px;">
-                            <label for="source_type" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                                <i class="fa fa-tag" style="color: #D4AF37;"/>Source Type
-                            </label>
-                            <field name="source_type" readonly="state != 'draft'" class="mb-3" widget="radio" options="{'horizontal': true}"/>
-                            
-                            <label for="supplier_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                                <i class="fa fa-building" style="color: #D4AF37;"/>Supplier/Source
-                            </label>
-                            <field name="supplier_id" readonly="state != 'draft'" class="mb-3" placeholder="Select supplier or source..."/>
-                            
-                            <label for="purchase_order_ref" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                                <i class="fa fa-hashtag" style="color: #D4AF37;"/>Purchase Order Ref
-                            </label>
-                            <field name="purchase_order_ref" readonly="state != 'draft'" class="mb-3 font-monospace" placeholder="PO-XXXX-YYYY"/>
-                            
-                            <field name="is_no_payment" invisible="source_type != 'dept_return'" readonly="state != 'draft'" class="mb-2"/>
-                        </group>
-                        <group string="👤 Receiving Details" col="1" class="glass-card p-3 rounded shadow-sm border" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px; padding: 18px;">
-                            <label for="received_by_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                                <i class="fa fa-user-circle" style="color: #D4AF37;"/>Received By
-                            </label>
-                            <field name="received_by_id" readonly="state != 'draft'" class="mb-3"/>
-                            
-                            <label for="received_date" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                                <i class="fa fa-calendar-check-o" style="color: #D4AF37;"/>Received Date
-                            </label>
-                            <field name="received_date" readonly="state != 'draft'" class="mb-2 font-monospace"/>
-                        </group>
-                    </group>
+                    <!-- Source Information Section -->
+                    <div class="o_receiving_section_premium mb-4">
+                        <div class="o_section_header_premium">
+                            <i class="fa fa-cube me-2"/>
+                            <span>SOURCE INFORMATION</span>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="o_field_container_premium">
+                                    <label class="o_form_label_premium">Source Type</label>
+                                    <field name="source_type" readonly="state != 'draft'" widget="radio" options="{'horizontal': true}"/>
+                                </div>
+                                <div class="o_field_container_premium">
+                                    <label class="o_form_label_premium">Supplier</label>
+                                    <field name="supplier_id" readonly="state != 'draft'" placeholder="Select supplier or source..."/>
+                                </div>
+                                <div class="o_field_container_premium">
+                                    <label class="o_form_label_premium">PO / Packing Slip Reference</label>
+                                    <field name="purchase_order_ref" readonly="state != 'draft'" class="font-monospace" placeholder="PO-XXXX-YYYY"/>
+                                </div>
+                                <field name="is_no_payment" invisible="source_type != 'dept_return'" readonly="state != 'draft'"/>
+                            </div>
+                            <div class="col-6">
+                                <div class="o_field_container_premium">
+                                    <label class="o_form_label_premium">Received Date</label>
+                                    <field name="received_date" readonly="state != 'draft'" class="font-monospace"/>
+                                </div>
+                                <div class="o_field_container_premium">
+                                    <label class="o_form_label_premium">Received By</label>
+                                    <field name="received_by_id" readonly="state != 'draft'"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                    <group invisible="state == 'draft'" class="mb-4">
-                        <group string="🔍 Quality Assurance Inspection" col="1" class="glass-card p-3 rounded shadow-sm border" style="background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2) !important; border-radius: 12px; padding: 18px;">
-                            <label for="inspection_type" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                                <i class="fa fa-search" style="color: #3B82F6;"/>Inspection Type
-                            </label>
-                            <field name="inspection_type" readonly="state not in ('received', 'inspecting')" class="mb-3" widget="radio" options="{'horizontal': true}"/>
-                            
-                            <label for="inspector_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                                <i class="fa fa-user-md" style="color: #3B82F6;"/>Inspector
-                            </label>
-                            <field name="inspector_id" readonly="state not in ('received', 'inspecting')" class="mb-3"/>
-                            
-                            <label for="inspection_date" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                                <i class="fa fa-clock-o" style="color: #3B82F6;"/>Inspection Date
-                            </label>
-                            <field name="inspection_date" readonly="1" class="mb-2 font-monospace"/>
-                        </group>
-                    </group>
+                    <!-- Inspection Section -->
+                    <div class="o_receiving_section_premium o_inspection_section_premium mb-4" invisible="state == 'draft'">
+                        <div class="o_section_header_premium o_section_header_inspection">
+                            <i class="fa fa-search me-2"/>
+                            <span>RECEIVING DETAILS</span>
+                        </div>
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="o_field_container_premium">
+                                    <label class="o_form_label_premium">Inspection Type</label>
+                                    <field name="inspection_type" readonly="state not in ('received', 'inspecting')" widget="radio" options="{'horizontal': true}"/>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="o_field_container_premium">
+                                    <label class="o_form_label_premium">Inspector</label>
+                                    <field name="inspector_id" readonly="state not in ('received', 'inspecting')"/>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="o_field_container_premium">
+                                    <label class="o_form_label_premium">Inspection Date</label>
+                                    <field name="inspection_date" readonly="1" class="font-monospace"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                    <notebook class="mt-4">
-                        <page string="📋 Receiving Lines" name="lines" class="p-0">
+                    <!-- Tabs Section -->
+                    <notebook class="o_notebook_premium">
+                        <page string="Items" name="lines">
+                            <div class="o_items_step_premium">
+                                <i class="fa fa-info-circle me-2"/>
+                                <span>Step 1:</span> Add items you're receiving below. Fill in expected quantities.
+                            </div>
                             <field name="line_ids" readonly="state in ('done', 'cancelled')">
-                                <list editable="bottom" class="receiving-lines-premium" decoration-success="qty_accepted > 0" decoration-danger="qty_rejected > 0">
-                                    <field name="major_classification_id" class="fw-semibold" placeholder="Select major class..."/>
+                                <list editable="bottom" class="o_receiving_lines_table_premium">
+                                    <field name="major_classification_id" placeholder="Select major class..."/>
                                     <field name="sub_classification_id"
                                            domain="[('major_classification_id', '=', major_classification_id), ('active', '=', True)]"
                                            context="{'default_major_classification_id': major_classification_id}"
-                                           class="fw-semibold text-muted" placeholder="Select sub class..."/>
+                                           placeholder="Select sub class..."/>
                                     <field name="description" placeholder="Item description..."/>
-                                    <field name="qty_expected" class="text-end fw-bold font-monospace" style="color: #D4AF37;"/>
-                                    <field name="qty_received" class="text-end fw-bold font-monospace" style="color: #3B82F6;"/>
-                                    <field name="qty_accepted" class="text-end fw-bold font-monospace" style="color: #10B981;"/>
-                                    <field name="qty_rejected" class="text-end fw-bold font-monospace" style="color: #EF4444;"/>
-                                    <field name="unit_price" class="text-end font-monospace" widget="monetary"/>
-                                    <field name="total_price" class="text-end fw-bold font-monospace" style="color: #D4AF37;" sum="Total" widget="monetary"/>
+                                    <field name="qty_expected" class="text-end fw-bold"/>
+                                    <field name="qty_received" class="text-end fw-bold"/>
+                                    <field name="qty_accepted" class="text-end fw-bold"/>
+                                    <field name="qty_rejected" class="text-end fw-bold"/>
+                                    <field name="unit_price" class="text-end" widget="monetary"/>
+                                    <field name="total_price" class="text-end fw-bold" sum="Total" widget="monetary"/>
                                     <field name="generated_item_count" string="Generated" optional="hide"/>
                                     <field name="rejection_reason" optional="hide" placeholder="Reason for rejection..."/>
                                     <field name="auto_generate_items" column_invisible="1"/>
                                 </list>
                             </field>
                         </page>
-                        <page string="📝 Inspection Notes" name="inspection"
-                              invisible="state == 'draft'">
-                            <div class="p-4" style="background: rgba(59,130,246,0.03); border-radius: 12px; border: 1px solid rgba(59,130,246,0.1);">
-                                <div class="d-flex align-items-center gap-2 mb-3">
-                                    <i class="fa fa-clipboard" style="color: #3B82F6; font-size: 18px;"/>
-                                    <label for="inspection_notes" class="mb-0" style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 600;">Quality Audit &amp; Inspection Observations</label>
+                        <page string="Notes" name="inspection" invisible="state == 'draft'">
+                            <div class="o_notes_container_premium">
+                                <div class="o_notes_header_premium">
+                                    <i class="fa fa-clipboard me-2"/>
+                                    <span>Quality Audit &amp; Inspection Observations</span>
                                 </div>
                                 <field name="inspection_notes"
                                        placeholder="Record detailed structural, physical, or quantity check observations..."
-                                       readonly="state not in ('inspecting',)"
-                                       class="w-100" style="min-height: 120px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; color: white;"/>
+                                       readonly="state not in ('inspecting',)"/>
                             </div>
                         </page>
-                        <page string="💬 Additional Notes" name="notes">
-                            <div class="p-4" style="background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-                                <div class="d-flex align-items-center gap-2 mb-3">
-                                    <i class="fa fa-comment-o" style="color: #D4AF37; font-size: 18px;"/>
-                                    <label for="note" class="mb-0" style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 600;">Internal Comments / Logistics Notes</label>
+                        <page string="Additional Notes" name="notes">
+                            <div class="o_notes_container_premium">
+                                <div class="o_notes_header_premium">
+                                    <i class="fa fa-comment-o me-2"/>
+                                    <span>Internal Comments / Logistics Notes</span>
                                 </div>
                                 <field name="note"
-                                       placeholder="Add any administrative remarks or supplier communication logs..."
-                                       class="w-100" style="min-height: 120px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; color: white;"/>
+                                       placeholder="Add any administrative remarks or supplier communication logs..."/>
                             </div>
                         </page>
                     </notebook>
