@@ -76,6 +76,7 @@
         # Wizards
         "wizard/mesob_inventory_issue_receipt_wizard_views.xml",
         "wizard/mesob_abc_classification_wizard_views.xml",
+        "wizard/mesob_item_holder_details_wizard_view.xml",
         # Reports
         "reports/mesob_gate_pass_report.xml",
     ],

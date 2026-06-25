@@ -417,7 +417,7 @@ class MesobInventoryItem(models.Model):
                 rec.current_holder = ""
 
     def action_view_holder_details(self):
-        """Open popup showing detailed requisition and classification information for current holder"""
+        """Open wizard showing detailed requisition and classification information for current holder"""
         self.ensure_one()
         
         # Find the latest issue voucher line for this item
@@ -440,49 +440,25 @@ class MesobInventoryItem(models.Model):
         
         requisition = line.voucher_id.requisition_id
         
-        # Build the message content
-        message = f"""
-        <div style="font-family: monospace; padding: 20px;">
-            <h3 style="color: #0066cc; margin-bottom: 15px;">🧾 Requisition Details</h3>
-            
-            <div style="margin-bottom: 20px;">
-                <strong>Requested By:</strong> {requisition.requested_by_id.name if requisition.requested_by_id else 'N/A'}<br/>
-                <strong>Department:</strong> {requisition.department_id.name if requisition.department_id else 'N/A'}
-            </div>
-            
-            <h4 style="color: #0066cc; margin-top: 20px; margin-bottom: 10px;">📦 Classification Details</h4>
-            <table style="width: 100%; border-collapse: collapse;">
-                <tr style="background-color: #f0f0f0;">
-                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Major Classification</strong></td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">[{self.classification_id.code}] {self.classification_id.name}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Sub Classification</strong></td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">[{self.sub_classification_id.code}] {self.sub_classification_id.name}</td>
-                </tr>
-                <tr style="background-color: #f0f0f0;">
-                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Major Code</strong></td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">{self.major_code}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Sub Code</strong></td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">{self.sub_code}</td>
-                </tr>
-                <tr style="background-color: #f0f0f0;">
-                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Specific Code</strong></td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">{self.specific_code}</td>
-                </tr>
-            </table>
-        </div>
-        """
+        # Create wizard record with data
+        wizard = self.env['mesob.item.holder.details.wizard'].create({
+            'item_id': self.id,
+            'requested_by': requisition.requested_by_id.name if requisition.requested_by_id else 'N/A',
+            'department': requisition.department_id.name if requisition.department_id else 'N/A',
+            'major_classification': f"[{self.classification_id.code}] {self.classification_id.name}",
+            'sub_classification': f"[{self.sub_classification_id.code}] {self.sub_classification_id.name}",
+            'major_code': self.major_code or '',
+            'sub_code': self.sub_code or '',
+            'specific_code': self.specific_code or '',
+            'full_item_code': self.item_code or '',
+        })
         
         return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': _('Item Holder Information'),
-                'message': message,
-                'type': 'info',
-                'sticky': True,
-            }
+            'type': 'ir.actions.act_window',
+            'name': _('Item Holder Information'),
+            'res_model': 'mesob.item.holder.details.wizard',
+            'view_mode': 'form',
+            'res_id': wizard.id,
+            'target': 'new',
+            'context': self.env.context,
         }
