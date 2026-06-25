@@ -333,3 +333,118 @@
         }
     }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// Stock Record Card List View Premium Enhancements
+// ═══════════════════════════════════════════════════════════════
+
+.o_list_view {
+    .o_data_row {
+        // Date field styling
+        td[name="date"] {
+            font-family: 'Courier New', monospace;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        // Item ID - semibold blue
+        td[name="item_id"] {
+            font-weight: 600;
+            color: #3B82F6 !important;
+        }
+        
+        // Reference and source document - monospace
+        td[name="reference"],
+        td[name="source_document"] {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.85);
+        }
+        
+        // Quantity In - Green emphasis
+        td[name="quantity_in"] {
+            color: #10B981 !important;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            text-align: right;
+        }
+        
+        // Quantity Out - Red emphasis
+        td[name="quantity_out"] {
+            color: #EF4444 !important;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            text-align: right;
+        }
+        
+        // Quantity Balance - Blue emphasis
+        td[name="quantity_balance"] {
+            color: #3B82F6 !important;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            text-align: right;
+        }
+        
+        // Unit Cost - Green
+        td[name="unit_cost"] {
+            color: #10B981 !important;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            text-align: right;
+        }
+        
+        // Balance Value - Gold emphasis
+        td[name="balance_value"] {
+            color: #D4AF37 !important;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            text-align: right;
+        }
+        
+        // Average Cost - Purple emphasis
+        td[name="average_cost"] {
+            color: #A78BFA !important;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            text-align: right;
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Valuation Config List View Premium Enhancements
+// ═══════════════════════════════════════════════════════════════
+
+.o_list_view {
+    .o_data_row {
+        // Configuration Name - Bold emphasis
+        td[name="name"] {
+            font-weight: 700;
+            color: #3B82F6 !important;
+        }
+        
+        // Item and Classification - Muted semibold
+        td[name="item_id"],
+        td[name="classification_id"] {
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        // Valuation Method - Semibold
+        td[name="valuation_method"] {
+            font-weight: 600;
+            color: #D4AF37 !important;
+        }
+        
+        // Standard Cost - Monospace gold
+        td[name="standard_cost"] {
+            font-family: 'Courier New', monospace;
+            color: #D4AF37 !important;
+            text-align: right;
+            font-size: 14px;
+        }
+    }
+}
