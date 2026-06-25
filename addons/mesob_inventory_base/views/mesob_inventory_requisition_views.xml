@@ -13,7 +13,7 @@
                   decoration-muted="state == 'cancelled'">
                 <field name="name" class="fw-bold font-monospace text-primary"/>
                 <field name="issue_mode" class="fw-semibold"/>
-                <field name="department" optional="show"/>
+                <field name="department_id" optional="show"/>
                 <field name="requested_by_id" class="fw-semibold text-muted"/>
                 <field name="requested_on" class="font-monospace text-muted"/>
                 <field name="approved_by_id" optional="show"/>
@@ -36,7 +36,7 @@
                 <field name="name"/>
                 <field name="requested_by_id"/>
                 <field name="requested_on"/>
-                <field name="department"/>
+                <field name="department_id"/>
                 <field name="issue_mode"/>
                 <field name="state"/>
                 <templates>
@@ -142,7 +142,7 @@
                     <group class="mb-4" col="2">
                         <group string="Requisition Information" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
                             <field name="issue_mode" widget="radio" options="{'horizontal': true}" readonly="state != 'draft'" class="mb-3"/>
-                            <field name="department" placeholder="e.g. IT Department, Finance, Logistics..." readonly="state != 'draft'" class="mb-3"/>
+                            <field name="department_id" placeholder="Select requesting department..." readonly="state != 'draft'" class="mb-3"/>
                             <field name="requested_by_id" 
                                    readonly="1"
                                    options="{'no_open': True, 'no_create': True}" 
@@ -202,7 +202,7 @@
             <search string="Stores Requisitions">
                 <field name="name"/>
                 <field name="requested_by_id"/>
-                <field name="department"/>
+                <field name="department_id"/>
                 <filter string="Draft" name="filter_draft"
                         domain="[('state', '=', 'draft')]"/>
                 <filter string="Pending Approval" name="filter_submitted"

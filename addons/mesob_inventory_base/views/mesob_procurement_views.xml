@@ -63,7 +63,7 @@
         <field name="model">mesob.procurement.need</field>
         <field name="arch" type="xml">
             <list string="Department Needs Requests">
-                <field name="department"/>
+                <field name="department_id"/>
                 <field name="major_classification_id"/>
                 <field name="sub_classification_id"/>
                 <field name="item_code"/>
@@ -103,7 +103,7 @@
                     </div>
                     <group>
                         <group>
-                            <field name="department" readonly="state == 'locked'"/>
+                            <field name="department_id" readonly="state == 'locked'"/>
                             <field name="major_classification_id" readonly="state == 'locked'"/>
                             <field name="sub_classification_id" readonly="state == 'locked'" domain="[('major_classification_id', '=', major_classification_id)]"/>
                             <field name="item_code"/>

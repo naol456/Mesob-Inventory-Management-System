@@ -14,7 +14,7 @@
                 <field name="name" class="fw-bold font-monospace text-primary"/>
                 <field name="issue_date" class="font-monospace text-muted"/>
                 <field name="requisition_id" optional="show" class="font-monospace text-muted"/>
-                <field name="requesting_department" optional="show" class="fw-semibold"/>
+                <field name="requesting_department_id" optional="show" class="fw-semibold"/>
                 <field name="issued_by_id" class="fw-semibold text-muted"/>
                 <field name="received_by_id" optional="hide"/>
                 <field name="state" widget="badge"
@@ -36,7 +36,7 @@
                 <field name="name"/>
                 <field name="issue_date"/>
                 <field name="requisition_id"/>
-                <field name="requesting_department"/>
+                <field name="requesting_department_id"/>
                 <field name="issued_by_id"/>
                 <field name="state"/>
                 <templates>
@@ -51,7 +51,7 @@
                                 </span>
                             </div>
                             <h4 class="o_kanban_record_title fw-bold text-dark fs-5 mb-1 mt-1">
-                                <t t-esc="record.requesting_department.value or 'General Store'"/>
+                                <t t-esc="record.requesting_department_id.value or 'General Store'"/>
                             </h4>
                             <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
                                 <span class="text-muted small">
@@ -121,7 +121,7 @@
                             <field name="requisition_id" readonly="1" options="{'no_open': True, 'no_create': True}" class="mb-2"/>
                         </group>
                         <group string="Receiving details" class="glass-card p-3 rounded shadow-sm border">
-                            <field name="requesting_department" placeholder="e.g. IT Department, Logistics, Administration..." readonly="state != 'draft'" class="mb-2"/>
+                            <field name="requesting_department_id" placeholder="Select department..." readonly="state != 'draft'" class="mb-2"/>
                         </group>
                     </group>
                     
