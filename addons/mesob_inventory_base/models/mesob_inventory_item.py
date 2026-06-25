@@ -370,8 +370,10 @@ class MesobInventoryItem(models.Model):
                     ])
                     if not existing_need:
                         # Auto-create draft need request
+                        # Get default department (first available)
+                        default_dept = self.env['mesob.department'].search([], limit=1)
                         self.env['mesob.procurement.need'].create({
-                            'department': 'ministry_transport_logistics', # default department fallback
+                            'department_id': default_dept.id if default_dept else False,
                             'item_id': item.id,
                             'quantity': max(1.0, item.reorder_level - current),
                             'estimated_unit_price': 100.0, # default estimate

@@ -212,8 +212,16 @@ class TestMesobProcurement(TransactionCase):
     def test_05_auto_lotting_by_sub_classification(self):
         """Test Auto-Lotting by Sub-Classification automation."""
         # Create department needs request pointing directly to classification/sub-classification instead of item_id
+        # Get or create test departments
+        dept_health = self.env['mesob.department'].search([('code', '=', 'MH')], limit=1)
+        dept_telecom = self.env['mesob.department'].search([('code', '=', 'ET')], limit=1)
+        if not dept_health:
+            dept_health = self.env['mesob.department'].create({'name': 'Ministry of Health', 'code': 'MH'})
+        if not dept_telecom:
+            dept_telecom = self.env['mesob.department'].create({'name': 'Ethio Telecom', 'code': 'ET'})
+        
         need1 = self.need_model.create({
-            "department": "ministry_health",
+            "department_id": dept_health.id,
             "major_classification_id": self.classification.id,
             "sub_classification_id": self.sub_classification.id,
             "quantity": 100.0,
@@ -221,7 +229,7 @@ class TestMesobProcurement(TransactionCase):
             "expected_delivery_period": "Q1",
         })
         need2 = self.need_model.create({
-            "department": "ethio_telecom",
+            "department_id": dept_telecom.id,
             "major_classification_id": self.classification.id,
             "sub_classification_id": self.sub_classification.id,
             "quantity": 200.0,
