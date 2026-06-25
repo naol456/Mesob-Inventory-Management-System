@@ -400,17 +400,13 @@ class MesobInventoryItem(models.Model):
             if line:
                 voucher = line.voucher_id
                 requisition = voucher.requisition_id
-                if requisition:
-                    if requisition.department_id:
-                        rec.current_holder = f"🏢 {requisition.department_id.name}"
-                    elif requisition.requested_by_id:
-                        user = requisition.requested_by_id
-                        name = user.name or ""
-                        parts = name.split()
-                        initials = "".join([p[0].upper() for p in parts if p])[:2]
-                        rec.current_holder = f"👤 {initials} {name}"
-                    else:
-                        rec.current_holder = ""
+                if requisition and requisition.requested_by_id:
+                    # Always show the user who requested (not department)
+                    user = requisition.requested_by_id
+                    name = user.name or ""
+                    parts = name.split()
+                    initials = "".join([p[0].upper() for p in parts if p])[:2]
+                    rec.current_holder = f"👤 {initials} {name}"
                 else:
                     rec.current_holder = ""
             else:
