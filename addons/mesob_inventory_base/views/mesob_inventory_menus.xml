@@ -199,4 +199,10 @@
               parent="menu_mesob_inventory_master_data"
               action="action_mesob_sub_classification"
               sequence="30"/>
+
+    <menuitem id="menu_mesob_department"
+              name="Departments"
+              parent="menu_mesob_inventory_master_data"
+              action="action_mesob_department"
+              sequence="40"/>
 </odoo>

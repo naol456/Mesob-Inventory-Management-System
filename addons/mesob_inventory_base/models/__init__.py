@@ -1,5 +1,6 @@
 from . import mesob_inventory_major_classification
 from . import mesob_inventory_sub_classification
+from . import mesob_department
 from . import mesob_item_code_sequence
 from . import mesob_inventory_item
 from . import mesob_inventory_requisition

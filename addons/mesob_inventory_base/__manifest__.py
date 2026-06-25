@@ -41,6 +41,7 @@
         "views/mesob_inventory_root_menu.xml",
         # Seed / reference data
         "data/mesob_major_classification_data.xml",
+        "data/mesob_department_data.xml",
         "data/mesob_requisition_sequence.xml",
         "data/mesob_receiving_sequence.xml",
         "data/mesob_issue_voucher_sequence.xml",
@@ -52,6 +53,7 @@
         # Views (Base)
         "views/mesob_inventory_major_classification_views.xml",
         "views/mesob_inventory_sub_classification_views.xml",
+        "views/mesob_department_views.xml",
         "views/mesob_inventory_item_views.xml",
         "views/mesob_inventory_requisition_views.xml",
         "views/mesob_inventory_receiving_views.xml",
