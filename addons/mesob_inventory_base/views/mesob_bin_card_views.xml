@@ -11,22 +11,48 @@
                   decoration-warning="transaction_type == 'adjustment'"
                   decoration-success="transaction_type == 'receipt'"
                   decoration-danger="transaction_type == 'issue'">
-                <field name="date" class="font-monospace" widget="date"/>
-                <field name="major_classification_id" class="fw-semibold"/>
-                <field name="sub_classification_id" class="fw-semibold"/>
-                <field name="location" class="font-monospace fw-bold" style="color: #D4AF37;"/>
+                <field name="date" widget="date"/>
+                <field name="major_classification_id"/>
+                <field name="sub_classification_id"/>
+                <field name="location"/>
                 <field name="transaction_type" widget="badge"/>
-                <field name="reference" class="font-monospace"/>
-                <field name="quantity_received" string="Received" sum="Total Received" class="text-end fw-bold font-monospace" style="color: #10B981;"/>
-                <field name="quantity_distributed" string="Distributed" sum="Total Distributed" class="text-end fw-bold font-monospace" style="color: #EF4444;"/>
-                <field name="balance" sum="Total Balance" class="text-end fw-bold font-monospace" style="color: #3B82F6;"/>
+                <field name="reference"/>
+                <field name="quantity_received" string="Received" sum="Total Received"/>
+                <field name="quantity_distributed" string="Distributed" sum="Total Distributed"/>
+                <field name="balance" sum="Total Balance"/>
                 <field name="item_count" string="Items" optional="show"/>
                 <button name="action_view_items" type="object" 
                         string="View Items" 
                         icon="fa-cubes"
-                        class="btn btn-sm"
                         title="View detailed items with codes"/>
             </list>
+        </field>
+    </record>
+    
+    <!-- Bin Card Search View -->
+    <record id="view_mesob_bin_card_search" model="ir.ui.view">
+        <field name="name">mesob.bin.card.search</field>
+        <field name="model">mesob.bin.card</field>
+        <field name="arch" type="xml">
+            <search string="Search Bin Cards">
+                <field name="major_classification_id"/>
+                <field name="sub_classification_id"/>
+                <field name="location"/>
+                <field name="reference"/>
+                <field name="transaction_type"/>
+                <separator/>
+                <filter string="Receipt" name="filter_receipt" domain="[('transaction_type','=','receipt')]"/>
+                <filter string="Issue" name="filter_issue" domain="[('transaction_type','=','issue')]"/>
+                <filter string="Adjustment" name="filter_adjustment" domain="[('transaction_type','=','adjustment')]"/>
+                <filter string="Transfer" name="filter_transfer" domain="[('transaction_type','=','transfer')]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="Transaction Type" name="group_transaction_type" context="{'group_by':'transaction_type'}"/>
+                    <filter string="Location" name="group_location" context="{'group_by':'location'}"/>
+                    <filter string="Major Classification" name="group_major" context="{'group_by':'major_classification_id'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by':'date'}"/>
+                </group>
+            </search>
         </field>
     </record>
 
@@ -137,7 +163,7 @@
                     
                     <!-- Symmetrical Information: Multi-Column layout w/ No-Clutter Dropdowns -->
                     <group class="mb-4" col="2">
-                        <group string="📁 Classification Details" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px;">
+                        <group string="Classification Details" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px;">
                             <label for="major_classification_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
                                 <i class="fa fa-folder" style="color: #D4AF37;"/>Major Classification
                             </label>
@@ -149,7 +175,7 @@
                             <field name="sub_classification_id" options="{'no_open': True, 'no_create': True}" 
                                    domain="[('major_classification_id', '=', major_classification_id)]" class="mb-2"/>
                         </group>
-                        <group string="📝 Transaction Details" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px;">
+                        <group string="Transaction Details" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px;">
                             <label for="date" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
                                 <i class="fa fa-calendar-check-o" style="color: #3B82F6;"/>Transaction Date
                             </label>
@@ -168,7 +194,7 @@
                     </group>
 
                     <group class="mb-4" col="2">
-                        <group string="📦 Quantities" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.2) !important; border-radius: 12px;">
+                        <group string="Quantities" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.2) !important; border-radius: 12px;">
                             <label for="quantity_received" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
                                 <i class="fa fa-arrow-down" style="color: #10B981;"/>Quantity Received
                             </label>
@@ -184,7 +210,7 @@
                             </label>
                             <field name="balance" class="text-end fw-bold font-monospace mb-2" style="color: #3B82F6; font-size: 20px;"/>
                         </group>
-                        <group string="✍️ Verification Signatures" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px;">
+                        <group string="Verification Signatures" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px;">
                             <label for="received_by_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
                                 <i class="fa fa-user" style="color: #D4AF37;"/>Received By
                             </label>
@@ -198,7 +224,7 @@
                     </group>
                     
                     <notebook class="mt-4">
-                        <page string="📝 Transaction Description" name="description_tab">
+                        <page string="Transaction Description" name="description_tab">
                             <div class="p-4" style="background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
                                 <div class="d-flex align-items-center gap-2 mb-3">
                                     <i class="fa fa-file-text-o" style="color: #D4AF37; font-size: 18px;"/>

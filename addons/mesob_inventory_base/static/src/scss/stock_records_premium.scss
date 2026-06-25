@@ -272,3 +272,64 @@
     font-size: 14px !important;
     font-weight: 600 !important;
 }
+
+// ═══════════════════════════════════════════════════════════════
+// Bin Card List View Premium Enhancements
+// ═══════════════════════════════════════════════════════════════
+
+.o_list_view {
+    .o_data_row {
+        // Date field
+        td[name="date"] {
+            font-family: 'Courier New', monospace;
+        }
+        
+        // Major and Sub Classification - Semibold
+        td[name="major_classification_id"],
+        td[name="sub_classification_id"] {
+            font-weight: 600;
+        }
+        
+        // Location field - Gold monospace
+        td[name="location"] {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            color: #D4AF37 !important;
+            letter-spacing: 0.5px;
+        }
+        
+        // Reference field - Monospace styling
+        td[name="reference"] {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.85);
+        }
+        
+        // Quantity Received - Green emphasis
+        td[name="quantity_received"] {
+            color: #10B981 !important;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            text-align: right;
+        }
+        
+        // Quantity Distributed - Red emphasis
+        td[name="quantity_distributed"] {
+            color: #EF4444 !important;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            text-align: right;
+        }
+        
+        // Balance - Blue emphasis
+        td[name="balance"] {
+            color: #3B82F6 !important;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            text-align: right;
+        }
+    }
+}
