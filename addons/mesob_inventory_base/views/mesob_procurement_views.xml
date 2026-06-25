@@ -560,23 +560,13 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <!-- Action for Purchase Orders (view changes based on user role) -->
+    <!-- Action for Purchase Orders (automatically adapts based on user role) -->
     <record id="action_mesob_procurement_order" model="ir.actions.act_window">
         <field name="name">Purchase Orders</field>
         <field name="res_model">mesob.procurement.order</field>
         <field name="view_mode">kanban,list,form</field>
-        <field name="context">{
-            'search_default_filter_sent': 1 if context.get('default_storekeeper_view') else 0
-        }</field>
-    </record>
-    
-    <!-- Separate action for Storekeepers showing only sent POs -->
-    <record id="action_mesob_procurement_order_storekeeper" model="ir.actions.act_window">
-        <field name="name">Purchase Orders</field>
-        <field name="res_model">mesob.procurement.order</field>
-        <field name="view_mode">kanban</field>
-        <field name="domain">[('state', 'in', ['sent', 'partially_received'])]</field>
-        <field name="context">{'default_storekeeper_view': 1}</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
     </record>
 
     <record id="action_mesob_procurement_payment" model="ir.actions.act_window">

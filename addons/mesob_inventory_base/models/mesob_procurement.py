@@ -743,6 +743,21 @@ class MesobProcurementOrder(models.Model):
     )
 
     @api.model
+    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None, **read_kwargs):
+        """Override to filter POs for storekeepers - only show sent POs."""
+        domain = domain or []
+        user = self.env.user
+        is_storekeeper = user.has_group("mesob_inventory_base.group_mesob_storekeeper")
+        is_pao = user.has_group("mesob_inventory_base.group_mesob_pao")
+        is_procurement = user.has_group("mesob_inventory_base.group_mesob_procurement")
+        
+        # Storekeepers only see sent/partially_received POs (unless they're also PAO/Procurement)
+        if is_storekeeper and not (is_pao or is_procurement):
+            domain = domain + [('state', 'in', ['sent', 'partially_received'])]
+        
+        return super().search_read(domain, fields, offset, limit, order, **read_kwargs)
+    
+    @api.model
     def get_view(self, view_id=None, view_type="form", **options):
         """Override to show simplified kanban for storekeepers."""
         result = super().get_view(view_id, view_type, **options)
