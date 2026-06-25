@@ -289,27 +289,27 @@
                 
                 <separator/>
                 
-                <filter string="📝 Draft" name="filter_draft"
+                <filter string="Draft" name="filter_draft"
                         domain="[('state', '=', 'draft')]"/>
-                <filter string="📦 Received" name="filter_received"
+                <filter string="Received" name="filter_received"
                         domain="[('state', '=', 'received')]"/>
-                <filter string="🔍 Under Inspection" name="filter_inspecting"
+                <filter string="Under Inspection" name="filter_inspecting"
                         domain="[('state', '=', 'inspecting')]"/>
-                <filter string="✅ Accepted" name="filter_accepted"
+                <filter string="Accepted" name="filter_accepted"
                         domain="[('state', '=', 'accepted')]"/>
-                <filter string="❌ Rejected" name="filter_rejected"
+                <filter string="Rejected" name="filter_rejected"
                         domain="[('state', '=', 'rejected')]"/>
                 
                 <separator/>
                 
-                <filter string="🚚 From Supplier" name="filter_supplier"
+                <filter string="From Supplier" name="filter_supplier"
                         domain="[('source_type', '=', 'supplier')]"/>
-                <filter string="🔄 Dept Return" name="filter_dept_return"
+                <filter string="Dept Return" name="filter_dept_return"
                         domain="[('source_type', '=', 'dept_return')]"/>
                 
                 <separator/>
                 
-                <filter string="👤 My Receivings" name="filter_mine"
+                <filter string="My Receivings" name="filter_mine"
                         domain="[('received_by_id', '=', uid)]"/>
                         
                 <group expand="0" string="Group By">
@@ -319,6 +319,8 @@
                     <filter string="Received Date" name="group_by_date" context="{'group_by': 'received_date:month'}"/>
                 </group>
             </search>
+        </field>
+    </record>            </search>
         </field>
     </record>
 
