@@ -715,6 +715,16 @@ class MesobProcurementOrder(models.Model):
         "order_id",
         string="Purchase Order Lines",
     )
+    receiving_status = fields.Selection(
+        [
+            ("new", "New PO"),
+            ("received", "Received PO"),
+        ],
+        string="Receiving Status",
+        compute="_compute_receiving_status",
+        store=True,
+        help="Track whether this PO has been referenced in receiving orders.",
+    )
     state = fields.Selection(
         [
             ("draft", "Draft"),
@@ -732,6 +742,22 @@ class MesobProcurementOrder(models.Model):
         tracking=True,
     )
 
+    @api.depends("name")
+    def _compute_receiving_status(self):
+        """Compute whether this PO has been referenced in any receiving orders."""
+        for rec in self:
+            if not rec.name or rec.name == "New":
+                rec.receiving_status = "new"
+                continue
+            
+            # Check if this PO reference exists in any receiving order
+            receiving_count = self.env["mesob.inventory.receiving"].search_count([
+                ("purchase_order_ref", "=", rec.name),
+                ("state", "in", ("received", "inspecting", "accepted", "done"))
+            ])
+            
+            rec.receiving_status = "received" if receiving_count > 0 else "new"
+    
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
