@@ -189,8 +189,8 @@ class MesobInventoryIssueVoucher(models.Model):
     @api.depends("line_ids.quantity_issued", "line_ids.item_id")
     def _compute_display_name(self):
         for rec in self:
-            if rec.name and rec.requesting_department:
-                rec.display_name = f"{rec.name} - {rec.requesting_department}"
+            if rec.name and rec.requesting_department_id:
+                rec.display_name = f"{rec.name} - {rec.requesting_department_id.name}"
             else:
                 rec.display_name = rec.name or "New Issue Voucher"
 
