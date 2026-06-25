@@ -186,7 +186,7 @@
                         <group string="Classification">
                             <field name="major_classification_id" options="{'no_create': True}"/>
                             <field name="code"/>
-                            <field name="name"/>
+                            <field name="name" string="Name and Specification"/>
                         </group>
                         <group string="Status">
                             <field name="is_fixed_asset"/>
