@@ -57,6 +57,61 @@
         </field>
     </record>
 
+    <!-- ── Simplified Form View (for quick popup from lists) ──────────── -->
+    <record id="view_mesob_inventory_item_form_simple" model="ir.ui.view">
+        <field name="name">mesob.inventory.item.form.simple</field>
+        <field name="model">mesob.inventory.item</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <form string="Item Details" create="false" edit="false">
+                <sheet>
+                    <div class="oe_title mb-3">
+                        <h1>
+                            <field name="item_code" readonly="1" class="fw-bold text-primary font-monospace"/>
+                        </h1>
+                        <h3 class="text-muted mt-2">
+                            <field name="name" readonly="1" class="fw-semibold"/>
+                        </h3>
+                    </div>
+                    
+                    <!-- Current Holder Section -->
+                    <group string="👤 Current Holder" class="mb-4">
+                        <field name="current_holder" readonly="1" nolabel="1" class="fs-4 fw-bold text-info"/>
+                        <field name="issue_status" widget="badge" readonly="1"/>
+                    </group>
+
+                    <!-- Classification Details Section -->
+                    <group string="🏷️ Classification Details" class="mb-4">
+                        <field name="classification_id" readonly="1"/>
+                        <field name="sub_classification_id" readonly="1"/>
+                    </group>
+
+                    <!-- Codes Display -->
+                    <div class="d-flex gap-4 justify-content-center mt-3">
+                        <div class="text-center">
+                            <div class="text-muted small mb-1">Major Code</div>
+                            <div class="badge bg-primary text-white fs-5 px-3 py-2 font-monospace">
+                                <field name="major_code" readonly="1" nolabel="1"/>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-muted small mb-1">Sub Code</div>
+                            <div class="badge bg-success text-white fs-5 px-3 py-2 font-monospace">
+                                <field name="sub_code" readonly="1" nolabel="1"/>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-muted small mb-1">Specific Code</div>
+                            <div class="badge bg-warning text-dark fs-5 px-3 py-2 font-monospace">
+                                <field name="specific_code" readonly="1" nolabel="1"/>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <!-- ── Form View ──────────────────────────────────────────────── -->
     <record id="view_mesob_inventory_item_form" model="ir.ui.view">
         <field name="name">mesob.inventory.item.form</field>

@@ -125,7 +125,7 @@
 
                     <notebook>
                         <page string="📋 Individual Items" name="items_list" invisible="not is_fixed_asset">
-                            <field name="item_ids" readonly="1">
+                            <field name="item_ids" readonly="1" context="{'form_view_ref': 'mesob_inventory_base.view_mesob_inventory_item_form_simple'}">
                                 <list string="Items">
                                     <field name="name" string="Item Name"/>
                                     <field name="item_code" string="Item Code"/>
@@ -233,7 +233,7 @@
 
                     <notebook>
                         <page string="📋 Individual Items" name="items_list" invisible="not is_fixed_asset">
-                            <field name="item_ids" readonly="1">
+                            <field name="item_ids" readonly="1" context="{'form_view_ref': 'mesob_inventory_base.view_mesob_inventory_item_form_simple'}">
                                 <list string="Items">
                                     <field name="name" string="Item Name"/>
                                     <field name="item_code" string="Item Code"/>
