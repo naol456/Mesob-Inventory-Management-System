@@ -261,7 +261,6 @@
         <field name="name">mesob.procurement.order.kanban.storekeeper</field>
         <field name="model">mesob.procurement.order</field>
         <field name="priority">1</field>
-        <field name="groups_id" eval="[(4, ref('mesob_inventory_base.group_mesob_storekeeper'))]"/>
         <field name="arch" type="xml">
             <kanban default_group_by="receiving_status" create="0" edit="0" delete="0" class="o_kanban_mobile">
                 <field name="id"/>
@@ -287,7 +286,6 @@
         <field name="name">mesob.procurement.order.kanban</field>
         <field name="model">mesob.procurement.order</field>
         <field name="priority">10</field>
-        <field name="groups_id" eval="[(6, 0, [ref('mesob_inventory_base.group_mesob_procurement'), ref('mesob_inventory_base.group_mesob_pao')])]"/>
         <field name="arch" type="xml">
             <kanban default_group_by="receiving_status" drag_drop="false" class="o_kanban_mobile">
                 <field name="id"/>

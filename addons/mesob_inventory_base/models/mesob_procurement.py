@@ -742,6 +742,25 @@ class MesobProcurementOrder(models.Model):
         tracking=True,
     )
 
+    @api.model
+    def get_view(self, view_id=None, view_type="form", **options):
+        """Override to show simplified kanban for storekeepers, full kanban for others."""
+        result = super().get_view(view_id, view_type, **options)
+        
+        if view_type == "kanban":
+            user = self.env.user
+            is_storekeeper = user.has_group("mesob_inventory_base.group_mesob_storekeeper")
+            is_pao = user.has_group("mesob_inventory_base.group_mesob_pao")
+            is_procurement = user.has_group("mesob_inventory_base.group_mesob_procurement")
+            
+            # Storekeepers get simplified view (unless they're also PAO/Procurement)
+            if is_storekeeper and not (is_pao or is_procurement):
+                simplified_view = self.env.ref("mesob_inventory_base.view_mesob_procurement_order_kanban_storekeeper", raise_if_not_found=False)
+                if simplified_view:
+                    result = super().get_view(simplified_view.id, view_type, **options)
+        
+        return result
+    
     @api.depends("name")
     def _compute_receiving_status(self):
         """Compute whether this PO has been referenced in any receiving orders."""
