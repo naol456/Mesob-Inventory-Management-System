@@ -34,22 +34,12 @@
         <field name="name">mesob.bin.card.search</field>
         <field name="model">mesob.bin.card</field>
         <field name="arch" type="xml">
-            <search string="Search Bin Cards">
+            <search>
                 <field name="major_classification_id"/>
                 <field name="sub_classification_id"/>
                 <field name="location"/>
                 <field name="reference"/>
                 <field name="transaction_type"/>
-                <filter string="Receipt" name="filter_receipt" domain="[('transaction_type','=','receipt')]"/>
-                <filter string="Issue" name="filter_issue" domain="[('transaction_type','=','issue')]"/>
-                <filter string="Adjustment" name="filter_adjustment" domain="[('transaction_type','=','adjustment')]"/>
-                <filter string="Transfer" name="filter_transfer" domain="[('transaction_type','=','transfer')]"/>
-                <group expand="0" string="Group By">
-                    <filter string="Transaction Type" name="group_transaction_type" context="{'group_by':'transaction_type'}"/>
-                    <filter string="Location" name="group_location" context="{'group_by':'location'}"/>
-                    <filter string="Major Classification" name="group_major" context="{'group_by':'major_classification_id'}"/>
-                    <filter string="Date" name="group_date" context="{'group_by':'date'}"/>
-                </group>
             </search>
         </field>
     </record>
