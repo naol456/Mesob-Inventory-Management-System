@@ -1,55 +1,61 @@
 /* ═══════════════════════════════════════════════════════════════════════
    PREMIUM STOCK RECORDS & VALUATION UI ENHANCEMENTS
+   Navy Blue (#0B1B3D) Backgrounds + Golden (#D4AF37) Text
    ═══════════════════════════════════════════════════════════════════════ */
+
+// Import color variables
+@import 'variables';
 
 // Smart Button Enhancements for Stock Records
 .oe_stat_button {
     i.fa-cubes {
-        color: #3B82F6 !important;
+        color: #D4AF37 !important; // Golden icon
         font-size: 24px !important;
     }
     
     .o_stat_info {
         .o_stat_value {
-            color: #D4AF37 !important;
+            color: #D4AF37 !important; // Golden value
             font-weight: 700 !important;
             font-size: 24px !important;
         }
     }
 }
 
-// FIFO Layers Table Premium Styling
+// FIFO Layers Table Premium Styling - Navy Blue BG
 .fifo-layers-table {
     border-radius: 12px !important;
     overflow: hidden !important;
-    background: rgba(16, 185, 129, 0.03) !important;
+    background: #0B1B3D !important; // Solid navy blue
+    border: 1px solid rgba(212, 175, 55, 0.3) !important; // Golden border
     
     thead {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.08)) !important;
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.1)) !important; // Golden gradient header
         
         th {
-            color: #10B981 !important;
+            color: #D4AF37 !important; // Golden headers
             font-weight: 700 !important;
             font-size: 11px !important;
             text-transform: uppercase !important;
             letter-spacing: 0.8px !important;
             padding: 14px 12px !important;
-            border-bottom: 2px solid rgba(16, 185, 129, 0.3) !important;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.4) !important; // Golden divider
         }
     }
     
     tbody {
         tr {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+            background: #0B1B3D !important; // Navy blue rows
+            border-bottom: 1px solid rgba(212, 175, 55, 0.15) !important; // Subtle golden divider
             transition: all 0.2s ease !important;
             
             &:hover {
-                background: rgba(16, 185, 129, 0.05) !important;
+                background: rgba(212, 175, 55, 0.08) !important; // Golden hover
             }
             
             td {
                 padding: 12px !important;
-                color: rgba(255, 255, 255, 0.9) !important;
+                color: rgba(255, 255, 255, 0.9) !important; // White text
                 
                 &.o_data_cell {
                     font-family: 'JetBrains Mono', monospace !important;
@@ -69,21 +75,22 @@
     }
 }
 
-// Valuation Configuration Cards
+// Valuation Configuration Cards - Navy Blue BG + Golden Accents
 .valuation-config-card {
-    background: rgba(255, 255, 255, 0.03) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: #0B1B3D !important; // Solid navy blue
+    border: 1px solid rgba(212, 175, 55, 0.3) !important; // Golden border
     border-radius: 12px !important;
     padding: 20px !important;
     transition: all 0.2s ease !important;
     
     &:hover {
-        background: rgba(255, 255, 255, 0.05) !important;
-        border-color: rgba(212, 175, 55, 0.3) !important;
+        background: rgba(11, 27, 61, 0.9) !important;
+        border-color: rgba(212, 175, 55, 0.5) !important; // Brighter golden border on hover
+        box-shadow: 0 4px 20px rgba(212, 175, 55, 0.2) !important; // Golden glow
     }
     
     .config-title {
-        color: #D4AF37 !important;
+        color: #D4AF37 !important; // Golden title
         font-weight: 700 !important;
         font-size: 16px !important;
         margin-bottom: 12px !important;
@@ -92,8 +99,8 @@
     .config-method {
         display: inline-block !important;
         padding: 4px 12px !important;
-        background: linear-gradient(135deg, #3B82F6, #2563EB) !important;
-        color: white !important;
+        background: linear-gradient(135deg, #D4AF37, #C59B27) !important; // Golden gradient
+        color: #0B1B3D !important; // Navy text on golden background
         border-radius: 6px !important;
         font-size: 11px !important;
         font-weight: 600 !important;
@@ -147,15 +154,16 @@
     }
 }
 
-// Financial Value Display
+// Financial Value Display - Navy Blue BG with Golden Emphasis
 .financial-value-display {
-    background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.05)) !important;
-    border: 1px solid rgba(212, 175, 55, 0.2) !important;
+    background: #0B1B3D !important; // Solid navy blue
+    border: 2px solid rgba(212, 175, 55, 0.4) !important; // Golden border
     border-radius: 10px !important;
     padding: 16px !important;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.15) !important; // Golden glow
     
     .value-label {
-        color: rgba(255, 255, 255, 0.6) !important;
+        color: rgba(212, 175, 55, 0.8) !important; // Muted golden label
         font-size: 11px !important;
         text-transform: uppercase !important;
         letter-spacing: 0.8px !important;
@@ -164,20 +172,21 @@
     }
     
     .value-amount {
-        color: #D4AF37 !important;
+        color: #D4AF37 !important; // Bright golden amount
         font-size: 24px !important;
         font-weight: 700 !important;
         font-family: 'JetBrains Mono', monospace !important;
+        text-shadow: 0 2px 8px rgba(212, 175, 55, 0.3) !important; // Golden glow
     }
     
     .value-currency {
-        color: rgba(212, 175, 55, 0.6) !important;
+        color: rgba(212, 175, 55, 0.6) !important; // Muted golden currency
         font-size: 14px !important;
         margin-left: 4px !important;
     }
 }
 
-// Transaction Type Badges
+// Transaction Type Badges - Golden Gradient System
 .transaction-badge {
     display: inline-flex !important;
     align-items: center !important;
@@ -190,87 +199,104 @@
     letter-spacing: 0.5px !important;
     
     &.badge-receipt {
-        background: linear-gradient(135deg, #10B981, #059669) !important;
-        color: white !important;
+        background: linear-gradient(135deg, #D4AF37, #ECC844) !important; // Golden gradient for receipt
+        color: #0B1B3D !important; // Navy text
+        box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3) !important;
     }
     
     &.badge-issue {
-        background: linear-gradient(135deg, #EF4444, #DC2626) !important;
-        color: white !important;
+        background: linear-gradient(135deg, #C59B27, #B28816) !important; // Darker golden for issue
+        color: #FFFFFF !important; // White text
+        box-shadow: 0 2px 8px rgba(197, 155, 39, 0.3) !important;
     }
     
     &.badge-adjustment {
-        background: linear-gradient(135deg, #F59E0B, #D97706) !important;
-        color: white !important;
+        background: linear-gradient(135deg, #ECC844, #F9E060) !important; // Lighter golden for adjustment
+        color: #0B1B3D !important; // Navy text
+        box-shadow: 0 2px 8px rgba(236, 200, 68, 0.3) !important;
     }
     
     &.badge-transfer {
-        background: linear-gradient(135deg, #3B82F6, #2563EB) !important;
-        color: white !important;
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0.2)) !important; // Transparent golden for transfer
+        color: #D4AF37 !important; // Golden text
+        border: 1px solid rgba(212, 175, 55, 0.5) !important;
     }
 }
 
-// List View Row Decorations
+// List View Row Decorations - Navy Blue Base with Golden Accents
 .o_list_table {
+    background: #0B1B3D !important; // Navy blue table background
+    
     tr {
+        background: #0B1B3D !important;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.1) !important; // Subtle golden dividers
+        
         &.table-info {
-            background: rgba(59, 130, 246, 0.08) !important;
+            background: rgba(212, 175, 55, 0.08) !important; // Golden tint for info
+            border-left: 3px solid rgba(212, 175, 55, 0.5) !important;
         }
         
         &.table-warning {
-            background: rgba(245, 158, 11, 0.08) !important;
+            background: rgba(236, 200, 68, 0.08) !important; // Lighter golden for warning
+            border-left: 3px solid #ECC844 !important;
         }
         
         &.table-success {
-            background: rgba(16, 185, 129, 0.08) !important;
-            border-left: 3px solid #10B981 !important;
+            background: rgba(212, 175, 55, 0.12) !important; // Stronger golden for success
+            border-left: 3px solid #D4AF37 !important;
         }
         
         &.table-danger {
-            background: rgba(239, 68, 68, 0.08) !important;
-            border-left: 3px solid #EF4444 !important;
+            background: rgba(197, 155, 39, 0.08) !important; // Darker golden for danger
+            border-left: 3px solid #C59B27 !important;
+        }
+        
+        &:hover {
+            background: rgba(212, 175, 55, 0.05) !important; // Subtle golden hover
         }
     }
 }
 
-// Balance Scale Icon Animation
+// Balance Scale Icon - Golden Color
 .balance-icon {
-    color: #3B82F6 !important;
+    color: #D4AF37 !important; // Golden balance icon
     font-size: 18px !important;
+    filter: drop-shadow(0 2px 6px rgba(212, 175, 55, 0.4)) !important; // Golden glow
 }
 
-// Cost Layer Exhausted Toggle
+// Cost Layer Exhausted Toggle - Golden Theme
 .o_field_boolean_toggle {
     input:checked + .o_toggle_button {
-        background: linear-gradient(135deg, #EF4444, #DC2626) !important;
-        border-color: #EF4444 !important;
+        background: linear-gradient(135deg, #C59B27, #B28816) !important; // Darker golden for exhausted
+        border-color: #C59B27 !important;
     }
     
     input:not(:checked) + .o_toggle_button {
-        background: linear-gradient(135deg, #10B981, #059669) !important;
-        border-color: #10B981 !important;
+        background: linear-gradient(135deg, #D4AF37, #ECC844) !important; // Bright golden for active
+        border-color: #D4AF37 !important;
     }
 }
 
-// Average Cost Badge
+// Average Cost Badge - Golden Accent
 .avg-cost-badge {
     display: inline-block !important;
     padding: 4px 10px !important;
-    background: rgba(147, 51, 234, 0.15) !important;
-    border: 1px solid rgba(147, 51, 234, 0.3) !important;
+    background: rgba(212, 175, 55, 0.15) !important; // Golden tint background
+    border: 1px solid rgba(212, 175, 55, 0.4) !important; // Golden border
     border-radius: 6px !important;
-    color: #A78BFA !important;
+    color: #D4AF37 !important; // Golden text
     font-family: 'JetBrains Mono', monospace !important;
     font-size: 12px !important;
     font-weight: 600 !important;
 }
 
-// Unit Cost Display
+// Unit Cost Display - Golden Text
 .unit-cost-display {
-    color: #10B981 !important;
+    color: #D4AF37 !important; // Golden unit cost
     font-family: 'JetBrains Mono', monospace !important;
     font-size: 14px !important;
     font-weight: 600 !important;
+    text-shadow: 0 1px 4px rgba(212, 175, 55, 0.3) !important; // Subtle golden glow
 }
 
 // ═══════════════════════════════════════════════════════════════
