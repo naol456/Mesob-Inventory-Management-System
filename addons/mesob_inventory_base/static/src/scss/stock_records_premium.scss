@@ -1,0 +1,274 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   PREMIUM STOCK RECORDS & VALUATION UI ENHANCEMENTS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+// Smart Button Enhancements for Stock Records
+.oe_stat_button {
+    i.fa-cubes {
+        color: #3B82F6 !important;
+        font-size: 24px !important;
+    }
+    
+    .o_stat_info {
+        .o_stat_value {
+            color: #D4AF37 !important;
+            font-weight: 700 !important;
+            font-size: 24px !important;
+        }
+    }
+}
+
+// FIFO Layers Table Premium Styling
+.fifo-layers-table {
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    background: rgba(16, 185, 129, 0.03) !important;
+    
+    thead {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.08)) !important;
+        
+        th {
+            color: #10B981 !important;
+            font-weight: 700 !important;
+            font-size: 11px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.8px !important;
+            padding: 14px 12px !important;
+            border-bottom: 2px solid rgba(16, 185, 129, 0.3) !important;
+        }
+    }
+    
+    tbody {
+        tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+            transition: all 0.2s ease !important;
+            
+            &:hover {
+                background: rgba(16, 185, 129, 0.05) !important;
+            }
+            
+            td {
+                padding: 12px !important;
+                color: rgba(255, 255, 255, 0.9) !important;
+                
+                &.o_data_cell {
+                    font-family: 'JetBrains Mono', monospace !important;
+                }
+            }
+        }
+        
+        // Exhausted layer styling
+        tr:has(.o_field_boolean_toggle input:checked) {
+            opacity: 0.5 !important;
+            background: rgba(239, 68, 68, 0.05) !important;
+            
+            td {
+                text-decoration: line-through !important;
+            }
+        }
+    }
+}
+
+// Valuation Configuration Cards
+.valuation-config-card {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    transition: all 0.2s ease !important;
+    
+    &:hover {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border-color: rgba(212, 175, 55, 0.3) !important;
+    }
+    
+    .config-title {
+        color: #D4AF37 !important;
+        font-weight: 700 !important;
+        font-size: 16px !important;
+        margin-bottom: 12px !important;
+    }
+    
+    .config-method {
+        display: inline-block !important;
+        padding: 4px 12px !important;
+        background: linear-gradient(135deg, #3B82F6, #2563EB) !important;
+        color: white !important;
+        border-radius: 6px !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+    }
+}
+
+// Stock Quantity Indicators
+.stock-quantity-indicator {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 12px 16px !important;
+    border-radius: 8px !important;
+    
+    &.qty-in {
+        background: rgba(16, 185, 129, 0.1) !important;
+        border-left: 4px solid #10B981 !important;
+        
+        .qty-value {
+            color: #10B981 !important;
+            font-weight: 700 !important;
+            font-size: 20px !important;
+            font-family: 'JetBrains Mono', monospace !important;
+        }
+    }
+    
+    &.qty-out {
+        background: rgba(239, 68, 68, 0.1) !important;
+        border-left: 4px solid #EF4444 !important;
+        
+        .qty-value {
+            color: #EF4444 !important;
+            font-weight: 700 !important;
+            font-size: 20px !important;
+            font-family: 'JetBrains Mono', monospace !important;
+        }
+    }
+    
+    &.qty-balance {
+        background: rgba(59, 130, 246, 0.1) !important;
+        border-left: 4px solid #3B82F6 !important;
+        
+        .qty-value {
+            color: #3B82F6 !important;
+            font-weight: 700 !important;
+            font-size: 22px !important;
+            font-family: 'JetBrains Mono', monospace !important;
+        }
+    }
+}
+
+// Financial Value Display
+.financial-value-display {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.05)) !important;
+    border: 1px solid rgba(212, 175, 55, 0.2) !important;
+    border-radius: 10px !important;
+    padding: 16px !important;
+    
+    .value-label {
+        color: rgba(255, 255, 255, 0.6) !important;
+        font-size: 11px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.8px !important;
+        font-weight: 600 !important;
+        margin-bottom: 8px !important;
+    }
+    
+    .value-amount {
+        color: #D4AF37 !important;
+        font-size: 24px !important;
+        font-weight: 700 !important;
+        font-family: 'JetBrains Mono', monospace !important;
+    }
+    
+    .value-currency {
+        color: rgba(212, 175, 55, 0.6) !important;
+        font-size: 14px !important;
+        margin-left: 4px !important;
+    }
+}
+
+// Transaction Type Badges
+.transaction-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 6px 14px !important;
+    border-radius: 6px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    
+    &.badge-receipt {
+        background: linear-gradient(135deg, #10B981, #059669) !important;
+        color: white !important;
+    }
+    
+    &.badge-issue {
+        background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+        color: white !important;
+    }
+    
+    &.badge-adjustment {
+        background: linear-gradient(135deg, #F59E0B, #D97706) !important;
+        color: white !important;
+    }
+    
+    &.badge-transfer {
+        background: linear-gradient(135deg, #3B82F6, #2563EB) !important;
+        color: white !important;
+    }
+}
+
+// List View Row Decorations
+.o_list_table {
+    tr {
+        &.table-info {
+            background: rgba(59, 130, 246, 0.08) !important;
+        }
+        
+        &.table-warning {
+            background: rgba(245, 158, 11, 0.08) !important;
+        }
+        
+        &.table-success {
+            background: rgba(16, 185, 129, 0.08) !important;
+            border-left: 3px solid #10B981 !important;
+        }
+        
+        &.table-danger {
+            background: rgba(239, 68, 68, 0.08) !important;
+            border-left: 3px solid #EF4444 !important;
+        }
+    }
+}
+
+// Balance Scale Icon Animation
+.balance-icon {
+    color: #3B82F6 !important;
+    font-size: 18px !important;
+}
+
+// Cost Layer Exhausted Toggle
+.o_field_boolean_toggle {
+    input:checked + .o_toggle_button {
+        background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+        border-color: #EF4444 !important;
+    }
+    
+    input:not(:checked) + .o_toggle_button {
+        background: linear-gradient(135deg, #10B981, #059669) !important;
+        border-color: #10B981 !important;
+    }
+}
+
+// Average Cost Badge
+.avg-cost-badge {
+    display: inline-block !important;
+    padding: 4px 10px !important;
+    background: rgba(147, 51, 234, 0.15) !important;
+    border: 1px solid rgba(147, 51, 234, 0.3) !important;
+    border-radius: 6px !important;
+    color: #A78BFA !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+
+// Unit Cost Display
+.unit-cost-display {
+    color: #10B981 !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+}
