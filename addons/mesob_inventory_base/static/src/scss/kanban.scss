@@ -29,7 +29,6 @@
 
             &:hover {
                 @include glass-effect($glass-bg-light, $blur-heavy);
-                transform: translateY(-2px);
                 box-shadow: $shadow-medium;
             }
         }
