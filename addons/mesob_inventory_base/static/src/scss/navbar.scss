@@ -8,7 +8,7 @@
 
 // Custom variables for Gold & Navy luxury theme
 $navy-dark: rgba(11, 27, 61, 0.85);
-$gold-glow: #D4AF37;
+$gold-color: #D4AF37;
 $gold-border: rgba(212, 175, 55, 0.28);
 $gold-hover: rgba(212, 175, 55, 0.14);
 
@@ -18,15 +18,14 @@ $gold-hover: rgba(212, 175, 55, 0.14);
     border-radius: 24px !important;
     margin: 14px 24px !important;
     padding: 6px 24px !important;
-    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4), 0 0 35px rgba(212, 175, 55, 0.08) !important;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4) !important;
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     height: auto !important;
 
     &:hover {
         background: rgba(11, 27, 61, 0.94) !important;
         border-color: rgba(212, 175, 55, 0.55) !important;
-        box-shadow: 0 20px 60px rgba(212, 175, 55, 0.22) !important;
-        transform: translateY(-1px);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
     }
 }
 
@@ -45,7 +44,7 @@ $gold-hover: rgba(212, 175, 55, 0.14);
         border-radius: 12px !important;
         width: 40px !important;
         height: 40px !important;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: all 0.3s ease;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -53,10 +52,8 @@ $gold-hover: rgba(212, 175, 55, 0.14);
 
         &:hover {
             background: $gold-hover !important;
-            border-color: $gold-glow !important;
-            color: $gold-glow !important;
-            transform: scale(1.08) rotate(90deg);
-            box-shadow: 0 0 18px rgba(212, 175, 55, 0.45);
+            border-color: $gold-color !important;
+            color: $gold-color !important;
         }
     }
 
@@ -65,7 +62,7 @@ $gold-hover: rgba(212, 175, 55, 0.14);
         display: flex;
         align-items: center;
         gap: 8px;
-        color: $gold-glow !important;
+        color: $gold-color !important;
         font-family: $font-display;
         font-weight: 800;
         font-size: 16px;
@@ -162,16 +159,14 @@ $gold-hover: rgba(212, 175, 55, 0.14);
                 left: 50%;
                 width: 0;
                 height: 2px;
-                background: $gold-glow;
-                transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                background: $gold-color;
+                transition: all 0.3s ease;
                 transform: translateX(-50%);
-                box-shadow: 0 0 8px $gold-glow;
             }
 
             &:hover {
-                color: $gold-glow !important;
+                color: $gold-color !important;
                 background: $gold-hover !important;
-                transform: translateY(-1px);
 
                 &::after {
                     width: 60%;
@@ -179,7 +174,7 @@ $gold-hover: rgba(212, 175, 55, 0.14);
             }
 
             &.show, &.o_active {
-                color: $gold-glow !important;
+                color: $gold-color !important;
                 background: $gold-hover !important;
                 box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.1);
                 font-weight: 600;
@@ -211,7 +206,7 @@ $gold-hover: rgba(212, 175, 55, 0.14);
         .o_user_menu,
         .o_debug_manager {
             color: rgba(255, 255, 255, 0.88) !important;
-            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.25s ease;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -223,9 +218,7 @@ $gold-hover: rgba(212, 175, 55, 0.14);
             &:hover {
                 background: $gold-hover !important;
                 border: 1px solid rgba(212, 175, 55, 0.2) !important;
-                color: $gold-glow !important;
-                transform: scale(1.06) translateY(-1px);
-                box-shadow: 0 5px 15px rgba(212, 175, 55, 0.1);
+                color: $gold-color !important;
             }
 
             a, button, span {
@@ -275,7 +268,7 @@ $gold-hover: rgba(212, 175, 55, 0.14);
         padding-bottom: 15px;
 
         h3 {
-            color: $gold-glow !important;
+            color: $gold-color !important;
             font-family: $font-display;
             letter-spacing: 0.5px;
             font-size: 24px;
@@ -293,11 +286,9 @@ $gold-hover: rgba(212, 175, 55, 0.14);
             transition: all 0.3s ease;
 
             &:hover {
-                transform: rotate(90deg);
-                color: $gold-glow !important;
-                border-color: $gold-glow !important;
+                color: $gold-color !important;
+                border-color: $gold-color !important;
                 background: $gold-hover;
-                box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
             }
         }
     }
@@ -310,21 +301,18 @@ $gold-hover: rgba(212, 175, 55, 0.14);
         border-radius: 16px;
         border: 1px solid rgba(255, 255, 255, 0.06);
         background: rgba(255, 255, 255, 0.03);
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: all 0.3s ease;
 
         &:hover {
             background: $gold-hover !important;
             border-color: $gold-border !important;
-            transform: translateY(-4px) scale(1.03);
-            box-shadow: 0 10px 25px rgba(212, 175, 55, 0.18);
 
             .o_app_icon_container {
-                border-color: $gold-glow !important;
-                box-shadow: 0 0 20px rgba(212, 175, 55, 0.35);
+                border-color: $gold-color !important;
             }
 
             .o_app_name {
-                color: $gold-glow !important;
+                color: $gold-color !important;
             }
         }
 
@@ -337,10 +325,9 @@ $gold-hover: rgba(212, 175, 55, 0.14);
             background: rgba(255, 255, 255, 0.05) !important;
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.12) !important;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.3s ease;
 
             .o_app_icon {
-                filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
                 transition: transform 0.3s ease;
             }
 
