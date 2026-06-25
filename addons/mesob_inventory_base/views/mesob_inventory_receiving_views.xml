@@ -11,12 +11,14 @@
                   decoration-success="state in ('accepted', 'done')"
                   decoration-danger="state == 'rejected'"
                   decoration-muted="state == 'cancelled'">
-                <field name="name" class="fw-bold font-monospace text-primary"/>
-                <field name="source_type" class="fw-semibold"/>
+                <field name="name" class="fw-bold font-monospace text-primary" 
+                       decoration-bf="1" 
+                       widget="badge"/>
+                <field name="source_type" class="fw-semibold" widget="badge"/>
                 <field name="supplier_id" optional="show" class="fw-semibold text-muted"/>
                 <field name="received_by_id" class="fw-semibold text-muted"/>
-                <field name="received_date" class="font-monospace text-muted"/>
-                <field name="inspection_type" optional="hide"/>
+                <field name="received_date" class="font-monospace text-muted" widget="date"/>
+                <field name="inspection_type" optional="hide" widget="badge"/>
                 <field name="inspector_id" optional="hide"/>
                 <field name="state" widget="badge"
                        decoration-info="state == 'draft'"
@@ -42,32 +44,54 @@
                 <field name="state"/>
                 <templates>
                     <t t-name="card">
-                        <div t-attf-class="oe_kanban_global_click card shadow-sm border-0 rounded p-3 mb-3 bg-white" style="min-height: 120px;">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="badge bg-primary text-white font-monospace fs-6 px-2 py-1">
-                                    <t t-esc="record.name.value"/>
-                                </span>
+                        <div t-attf-class="oe_kanban_global_click" 
+                             style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; margin-bottom: 12px; min-height: 140px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                            
+                            <!-- Header Row: Document ID + Source Type Badge -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa fa-file-text-o" style="color: #D4AF37; font-size: 16px;"/>
+                                    <span class="fw-bold font-monospace" style="color: #D4AF37; font-size: 15px; letter-spacing: 0.5px;">
+                                        <t t-esc="record.name.value"/>
+                                    </span>
+                                </div>
                                 <t t-if="record.source_type.raw_value == 'supplier'">
-                                    <span class="badge bg-success text-white px-2 py-1 small">
+                                    <span class="badge" style="background: linear-gradient(135deg, #10B981, #059669); color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">
                                         <i class="fa fa-truck me-1"/>Supplier
                                     </span>
                                 </t>
                                 <t t-else="">
-                                    <span class="badge bg-info text-white px-2 py-1 small">
-                                        <i class="fa fa-refresh me-1"/>Return
+                                    <span class="badge" style="background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">
+                                        <i class="fa fa-undo me-1"/>Return
                                     </span>
                                 </t>
                             </div>
-                            <h4 class="o_kanban_record_title fw-bold text-dark fs-5 mb-1 mt-1">
-                                <t t-esc="record.supplier_id.value or 'Department Return'"/>
-                            </h4>
-                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
-                                <span class="text-muted small">
-                                    <i class="fa fa-user-circle me-1"/> <t t-esc="record.received_by_id.value"/>
-                                </span>
-                                <span class="text-muted small font-monospace">
-                                    <i class="fa fa-calendar me-1"/> <t t-esc="record.received_date.value"/>
-                                </span>
+
+                            <!-- Main Content: Supplier/Source Name -->
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="fa fa-building-o" style="color: rgba(255,255,255,0.5); font-size: 14px;"/>
+                                    <span style="color: rgba(255,255,255,0.5); font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;">Source</span>
+                                </div>
+                                <h5 class="fw-bold mb-0" style="color: #FFFFFF; font-size: 16px; line-height: 1.3;">
+                                    <t t-esc="record.supplier_id.value or 'Department Return'"/>
+                                </h5>
+                            </div>
+
+                            <!-- Footer Row: Received By + Date -->
+                            <div class="d-flex justify-content-between align-items-center pt-3" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa fa-user-circle" style="color: rgba(255,255,255,0.6); font-size: 14px;"/>
+                                    <span style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 500;">
+                                        <t t-esc="record.received_by_id.value"/>
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa fa-calendar" style="color: rgba(255,255,255,0.6); font-size: 13px;"/>
+                                    <span class="font-monospace" style="color: rgba(255,255,255,0.7); font-size: 11px;">
+                                        <t t-esc="record.received_date.value"/>
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </t>
@@ -118,14 +142,24 @@
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_model19" type="object"
-                                class="oe_stat_button" icon="fa-file-text-o"
-                                invisible="not model19_id">
-                            <span class="o_stat_text">Model 19</span>
+                                class="oe_stat_button" icon="fa-file-text"
+                                invisible="not model19_id"
+                                style="border: 1px solid rgba(212,175,55,0.3); border-radius: 8px; background: rgba(255,255,255,0.03);">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text" style="color: #D4AF37; font-weight: 600;">
+                                    <i class="fa fa-file-text me-1" style="color: #10B981;"/>Model 19
+                                </span>
+                            </div>
                         </button>
                         <button name="action_view_dsr" type="object"
                                 class="oe_stat_button" icon="fa-exclamation-triangle"
-                                invisible="not dsr_id">
-                            <span class="o_stat_text">DSR</span>
+                                invisible="not dsr_id"
+                                style="border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; background: rgba(255,255,255,0.03);">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text" style="color: #EF4444; font-weight: 600;">
+                                    <i class="fa fa-exclamation-triangle me-1"/>DSR
+                                </span>
+                            </div>
                         </button>
                     </div>
 
@@ -137,64 +171,100 @@
                     </div>
 
                     <group class="mb-4">
-                        <group string="Source Details" col="1" class="glass-card p-3 rounded shadow-sm border">
-                            <field name="source_type" readonly="state != 'draft'" class="mb-2"/>
-                            <field name="supplier_id" readonly="state != 'draft'" class="mb-2"/>
-                            <field name="purchase_order_ref" readonly="state != 'draft'" class="mb-2 font-monospace"/>
+                        <group string="📦 Source Details" col="1" class="glass-card p-3 rounded shadow-sm border" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px; padding: 18px;">
+                            <label for="source_type" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-tag" style="color: #D4AF37;"/>Source Type
+                            </label>
+                            <field name="source_type" readonly="state != 'draft'" class="mb-3" widget="radio" options="{'horizontal': true}"/>
+                            
+                            <label for="supplier_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-building" style="color: #D4AF37;"/>Supplier/Source
+                            </label>
+                            <field name="supplier_id" readonly="state != 'draft'" class="mb-3" placeholder="Select supplier or source..."/>
+                            
+                            <label for="purchase_order_ref" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-hashtag" style="color: #D4AF37;"/>Purchase Order Ref
+                            </label>
+                            <field name="purchase_order_ref" readonly="state != 'draft'" class="mb-3 font-monospace" placeholder="PO-XXXX-YYYY"/>
+                            
                             <field name="is_no_payment" invisible="source_type != 'dept_return'" readonly="state != 'draft'" class="mb-2"/>
                         </group>
-                        <group string="Receiving details" col="1" class="glass-card p-3 rounded shadow-sm border">
-                            <field name="received_by_id" readonly="state != 'draft'" class="mb-2"/>
+                        <group string="👤 Receiving Details" col="1" class="glass-card p-3 rounded shadow-sm border" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px; padding: 18px;">
+                            <label for="received_by_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-user-circle" style="color: #D4AF37;"/>Received By
+                            </label>
+                            <field name="received_by_id" readonly="state != 'draft'" class="mb-3"/>
+                            
+                            <label for="received_date" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-calendar-check-o" style="color: #D4AF37;"/>Received Date
+                            </label>
                             <field name="received_date" readonly="state != 'draft'" class="mb-2 font-monospace"/>
                         </group>
                     </group>
 
                     <group invisible="state == 'draft'" class="mb-4">
-                        <group string="Quality Assurance Inspection" col="1" class="glass-card p-3 rounded shadow-sm border">
-                            <field name="inspection_type" readonly="state not in ('received', 'inspecting')" class="mb-2"/>
-                            <field name="inspector_id" readonly="state not in ('received', 'inspecting')" class="mb-2"/>
+                        <group string="🔍 Quality Assurance Inspection" col="1" class="glass-card p-3 rounded shadow-sm border" style="background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2) !important; border-radius: 12px; padding: 18px;">
+                            <label for="inspection_type" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-search" style="color: #3B82F6;"/>Inspection Type
+                            </label>
+                            <field name="inspection_type" readonly="state not in ('received', 'inspecting')" class="mb-3" widget="radio" options="{'horizontal': true}"/>
+                            
+                            <label for="inspector_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-user-md" style="color: #3B82F6;"/>Inspector
+                            </label>
+                            <field name="inspector_id" readonly="state not in ('received', 'inspecting')" class="mb-3"/>
+                            
+                            <label for="inspection_date" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-clock-o" style="color: #3B82F6;"/>Inspection Date
+                            </label>
                             <field name="inspection_date" readonly="1" class="mb-2 font-monospace"/>
                         </group>
                     </group>
 
                     <notebook class="mt-4">
-                        <page string="Receiving Lines" name="lines">
+                        <page string="📋 Receiving Lines" name="lines" class="p-0">
                             <field name="line_ids" readonly="state in ('done', 'cancelled')">
-                                <list editable="bottom" class="glass-table border-0 rounded shadow-sm">
-                                    <field name="major_classification_id" class="fw-semibold"/>
+                                <list editable="bottom" class="receiving-lines-premium" decoration-success="qty_accepted > 0" decoration-danger="qty_rejected > 0">
+                                    <field name="major_classification_id" class="fw-semibold" placeholder="Select major class..."/>
                                     <field name="sub_classification_id"
                                            domain="[('major_classification_id', '=', major_classification_id), ('active', '=', True)]"
                                            context="{'default_major_classification_id': major_classification_id}"
-                                           class="fw-semibold text-muted"/>
-                                    <field name="description"/>
-                                    <field name="qty_expected" class="text-end fw-bold font-monospace text-primary"/>
-                                    <field name="qty_received" class="text-end fw-bold font-monospace text-info"/>
-                                    <field name="qty_accepted" class="text-end fw-bold font-monospace text-success"/>
-                                    <field name="qty_rejected" class="text-end fw-bold font-monospace text-danger"/>
-                                    <field name="unit_price" class="text-end font-monospace"/>
-                                    <field name="total_price" class="text-end fw-bold font-monospace text-primary"/>
+                                           class="fw-semibold text-muted" placeholder="Select sub class..."/>
+                                    <field name="description" placeholder="Item description..."/>
+                                    <field name="qty_expected" class="text-end fw-bold font-monospace" style="color: #D4AF37;"/>
+                                    <field name="qty_received" class="text-end fw-bold font-monospace" style="color: #3B82F6;"/>
+                                    <field name="qty_accepted" class="text-end fw-bold font-monospace" style="color: #10B981;"/>
+                                    <field name="qty_rejected" class="text-end fw-bold font-monospace" style="color: #EF4444;"/>
+                                    <field name="unit_price" class="text-end font-monospace" widget="monetary"/>
+                                    <field name="total_price" class="text-end fw-bold font-monospace" style="color: #D4AF37;" sum="Total" widget="monetary"/>
                                     <field name="generated_item_count" string="Generated" optional="hide"/>
-                                    <field name="rejection_reason" optional="hide"/>
+                                    <field name="rejection_reason" optional="hide" placeholder="Reason for rejection..."/>
                                     <field name="auto_generate_items" column_invisible="1"/>
                                 </list>
                             </field>
                         </page>
-                        <page string="Inspection Notes" name="inspection"
+                        <page string="📝 Inspection Notes" name="inspection"
                               invisible="state == 'draft'">
-                            <div class="p-3">
-                                <label for="inspection_notes" class="fw-semibold text-muted mb-2 d-block">Quality Audit &amp; Inspection Observations</label>
+                            <div class="p-4" style="background: rgba(59,130,246,0.03); border-radius: 12px; border: 1px solid rgba(59,130,246,0.1);">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <i class="fa fa-clipboard" style="color: #3B82F6; font-size: 18px;"/>
+                                    <label for="inspection_notes" class="mb-0" style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 600;">Quality Audit &amp; Inspection Observations</label>
+                                </div>
                                 <field name="inspection_notes"
                                        placeholder="Record detailed structural, physical, or quantity check observations..."
                                        readonly="state not in ('inspecting',)"
-                                       class="w-100 border p-3 rounded" style="min-height: 100px;"/>
+                                       class="w-100" style="min-height: 120px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; color: white;"/>
                             </div>
                         </page>
-                        <page string="Additional Notes" name="notes">
-                            <div class="p-3">
-                                <label for="note" class="fw-semibold text-muted mb-2 d-block">Internal Comments / Logistics Notes</label>
+                        <page string="💬 Additional Notes" name="notes">
+                            <div class="p-4" style="background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <i class="fa fa-comment-o" style="color: #D4AF37; font-size: 18px;"/>
+                                    <label for="note" class="mb-0" style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 600;">Internal Comments / Logistics Notes</label>
+                                </div>
                                 <field name="note"
                                        placeholder="Add any administrative remarks or supplier communication logs..."
-                                       class="w-100 border p-3 rounded" style="min-height: 100px;"/>
+                                       class="w-100" style="min-height: 120px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; color: white;"/>
                             </div>
                         </page>
                     </notebook>
@@ -213,25 +283,41 @@
         <field name="model">mesob.inventory.receiving</field>
         <field name="arch" type="xml">
             <search string="Receiving Orders">
-                <field name="name"/>
-                <field name="supplier_id"/>
+                <field name="name" filter_domain="[('name', 'ilike', self)]" string="Document #"/>
+                <field name="supplier_id" filter_domain="[('supplier_id', 'ilike', self)]" string="Supplier"/>
                 <field name="received_by_id"/>
-                <filter string="Draft" name="filter_draft"
+                
+                <separator/>
+                
+                <filter string="📝 Draft" name="filter_draft"
                         domain="[('state', '=', 'draft')]"/>
-                <filter string="Received" name="filter_received"
+                <filter string="📦 Received" name="filter_received"
                         domain="[('state', '=', 'received')]"/>
-                <filter string="Under Inspection" name="filter_inspecting"
+                <filter string="🔍 Under Inspection" name="filter_inspecting"
                         domain="[('state', '=', 'inspecting')]"/>
-                <filter string="Accepted" name="filter_accepted"
+                <filter string="✅ Accepted" name="filter_accepted"
                         domain="[('state', '=', 'accepted')]"/>
-                <filter string="Rejected" name="filter_rejected"
+                <filter string="❌ Rejected" name="filter_rejected"
                         domain="[('state', '=', 'rejected')]"/>
-                <filter string="From Supplier" name="filter_supplier"
+                
+                <separator/>
+                
+                <filter string="🚚 From Supplier" name="filter_supplier"
                         domain="[('source_type', '=', 'supplier')]"/>
-                <filter string="Dept Return" name="filter_dept_return"
+                <filter string="🔄 Dept Return" name="filter_dept_return"
                         domain="[('source_type', '=', 'dept_return')]"/>
-                <filter string="My Receivings" name="filter_mine"
+                
+                <separator/>
+                
+                <filter string="👤 My Receivings" name="filter_mine"
                         domain="[('received_by_id', '=', uid)]"/>
+                        
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="group_by_state" context="{'group_by': 'state'}"/>
+                    <filter string="Source Type" name="group_by_source" context="{'group_by': 'source_type'}"/>
+                    <filter string="Supplier" name="group_by_supplier" context="{'group_by': 'supplier_id'}"/>
+                    <filter string="Received Date" name="group_by_date" context="{'group_by': 'received_date:month'}"/>
+                </group>
             </search>
         </field>
     </record>
@@ -243,14 +329,22 @@
         <field name="view_mode">kanban,list,form</field>
         <field name="context">{'search_default_filter_mine': 1}</field>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Create a new receiving order
-            </p>
-            <p>
-                Record goods arriving from suppliers or department
-                returns. Each order goes through inspection before acceptance
-                (Model 19) or rejection (DSR).
-            </p>
+            <div class="text-center" style="padding: 40px; max-width: 600px; margin: 0 auto;">
+                <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.7;">
+                    <i class="fa fa-inbox" style="color: #D4AF37;"/>
+                </div>
+                <h3 style="color: #D4AF37; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.5px;">
+                    No Receiving Orders Yet
+                </h3>
+                <p style="color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.6; margin-bottom: 24px;">
+                    Record goods arriving from suppliers or department returns.
+                    <br/>
+                    Each order goes through inspection before acceptance (Model 19) or rejection (DSR).
+                </p>
+                <a type="action" class="btn btn-primary" style="background: linear-gradient(135deg, #D4AF37, #C59B27); border: none; padding: 12px 28px; border-radius: 8px; font-weight: 600; box-shadow: 0 4px 12px rgba(212,175,55,0.3);">
+                    <i class="fa fa-plus-circle me-2"/>Create Your First Receiving Order
+                </a>
+            </div>
         </field>
     </record>
 </odoo>

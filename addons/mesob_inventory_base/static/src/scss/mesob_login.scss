@@ -164,12 +164,10 @@ body {
     
     &:hover {
         background: linear-gradient(135deg, darken($navy, 5%) 0%, darken($header-blue, 5%) 100%);
-        transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(33, 61, 141, 0.3);
     }
     
     &:active {
-        transform: translateY(0);
     }
 }
 

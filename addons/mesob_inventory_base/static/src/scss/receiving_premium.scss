@@ -1,0 +1,259 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   PREMIUM RECEIVING ORDERS UI ENHANCEMENTS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+// Premium Receiving Lines Table
+.receiving-lines-premium {
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+    
+    thead {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(212, 175, 55, 0.08)) !important;
+        
+        th {
+            color: #D4AF37 !important;
+            font-weight: 700 !important;
+            font-size: 11px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.8px !important;
+            padding: 14px 12px !important;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3) !important;
+        }
+    }
+    
+    tbody {
+        tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+            transition: all 0.2s ease !important;
+            
+            &:hover {
+                background: rgba(212, 175, 55, 0.05) !important;
+            }
+            
+            td {
+                padding: 12px !important;
+                color: rgba(255, 255, 255, 0.9) !important;
+                vertical-align: middle !important;
+                
+                input, select, textarea {
+                    background: rgba(0, 0, 0, 0.3) !important;
+                    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                    border-radius: 6px !important;
+                    color: white !important;
+                    padding: 8px 12px !important;
+                    
+                    &:focus {
+                        border-color: #D4AF37 !important;
+                        box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2) !important;
+                        outline: none !important;
+                    }
+                }
+                
+                .o_field_monetary,
+                .o_field_float {
+                    font-family: 'JetBrains Mono', monospace !important;
+                    font-weight: 600 !important;
+                }
+            }
+        }
+        
+        // Decorations for success/danger rows
+        tr.text-success td {
+            background: rgba(16, 185, 129, 0.08) !important;
+            border-left: 3px solid #10B981 !important;
+        }
+        
+        tr.text-danger td {
+            background: rgba(239, 68, 68, 0.08) !important;
+            border-left: 3px solid #EF4444 !important;
+        }
+    }
+    
+    tfoot {
+        background: rgba(212, 175, 55, 0.1) !important;
+        border-top: 2px solid rgba(212, 175, 55, 0.3) !important;
+        
+        td {
+            color: #D4AF37 !important;
+            font-weight: 700 !important;
+            padding: 14px 12px !important;
+            font-size: 13px !important;
+        }
+    }
+}
+
+// Enhanced Smart Buttons
+.oe_stat_button {
+    transition: all 0.2s ease !important;
+    
+    &:hover {
+        background: rgba(212, 175, 55, 0.1) !important;
+        border-color: rgba(212, 175, 55, 0.5) !important;
+    }
+    
+    .o_stat_info {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 4px !important;
+    }
+}
+
+// Premium Group Boxes
+.o_group {
+    .o_inner_group {
+        > tbody > tr > td {
+            padding: 8px 12px !important;
+            
+            &.o_td_label {
+                width: auto !important;
+                min-width: 140px !important;
+                
+                label {
+                    margin-bottom: 0 !important;
+                }
+            }
+        }
+    }
+}
+
+// Notebook Tabs Enhancement
+.nav-tabs {
+    border-bottom: 2px solid rgba(212, 175, 55, 0.2) !important;
+    
+    .nav-link {
+        color: rgba(255, 255, 255, 0.6) !important;
+        border: none !important;
+        padding: 12px 20px !important;
+        font-weight: 600 !important;
+        font-size: 13px !important;
+        transition: all 0.2s ease !important;
+        position: relative !important;
+        
+        &::after {
+            content: '' !important;
+            position: absolute !important;
+            bottom: -2px !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: 2px !important;
+            background: #D4AF37 !important;
+            transform: scaleX(0) !important;
+            transition: transform 0.2s ease !important;
+        }
+        
+        &:hover {
+            color: rgba(255, 255, 255, 0.9) !important;
+            background: rgba(212, 175, 55, 0.05) !important;
+        }
+        
+        &.active {
+            color: #D4AF37 !important;
+            background: transparent !important;
+            
+            &::after {
+                transform: scaleX(1) !important;
+            }
+        }
+    }
+}
+
+// Status Bar Enhancement
+.o_statusbar_status {
+    .o_arrow_button {
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        background: rgba(255, 255, 255, 0.03) !important;
+        color: rgba(255, 255, 255, 0.6) !important;
+        padding: 8px 20px !important;
+        transition: all 0.2s ease !important;
+        
+        &.btn-primary {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0.2)) !important;
+            color: #D4AF37 !important;
+            border-color: rgba(212, 175, 55, 0.4) !important;
+            font-weight: 600 !important;
+        }
+        
+        &:hover:not(.disabled) {
+            background: rgba(212, 175, 55, 0.1) !important;
+            border-color: rgba(212, 175, 55, 0.3) !important;
+            color: #D4AF37 !important;
+        }
+    }
+}
+
+// Badge Enhancements
+.badge {
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    letter-spacing: 0.3px !important;
+    
+    &.bg-primary, &.badge-primary {
+        background: linear-gradient(135deg, #3B82F6, #2563EB) !important;
+    }
+    
+    &.bg-success, &.badge-success {
+        background: linear-gradient(135deg, #10B981, #059669) !important;
+    }
+    
+    &.bg-warning, &.badge-warning {
+        background: linear-gradient(135deg, #F59E0B, #D97706) !important;
+    }
+    
+    &.bg-danger, &.badge-danger {
+        background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+    }
+    
+    &.bg-info, &.badge-info {
+        background: linear-gradient(135deg, #06B6D4, #0891B2) !important;
+    }
+}
+
+// Form Header Buttons
+.btn-primary {
+    background: linear-gradient(135deg, #D4AF37, #C59B27) !important;
+    border: none !important;
+    color: #0B1B3D !important;
+    font-weight: 600 !important;
+    padding: 10px 24px !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+    
+    &:hover:not(:disabled) {
+        background: linear-gradient(135deg, #ECC844, #D4AF37) !important;
+        box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3) !important;
+    }
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #10B981, #059669) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 10px 24px !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+    
+    &:hover:not(:disabled) {
+        background: linear-gradient(135deg, #34D399, #10B981) !important;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+    }
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 10px 24px !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+    
+    &:hover:not(:disabled) {
+        background: linear-gradient(135deg, #F87171, #EF4444) !important;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
+    }
+}
