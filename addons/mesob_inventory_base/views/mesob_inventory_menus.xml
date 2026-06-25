@@ -167,20 +167,11 @@
               groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
               sequence="40"/>
 
-    <!-- Purchase Orders for Storekeepers (simplified view) -->
-    <menuitem id="menu_mesob_procurement_order_storekeeper"
-              name="Purchase Orders"
-              parent="menu_mesob_procurement"
-              action="action_mesob_procurement_order_storekeeper"
-              groups="mesob_inventory_base.group_mesob_storekeeper"
-              sequence="5"/>
-
-    <!-- Purchase Orders for PAO/Procurement Officers (full view) -->
     <menuitem id="menu_mesob_procurement_order"
               name="Purchase Orders"
               parent="menu_mesob_procurement"
               action="action_mesob_procurement_order"
-              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
+              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper"
               sequence="5"/>
 
     <menuitem id="menu_mesob_procurement_payment"
