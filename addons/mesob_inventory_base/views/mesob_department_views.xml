@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ── List View ──────────────────────────────────────────────── -->
+    <record id="view_mesob_department_tree" model="ir.ui.view">
+        <field name="name">mesob.department.tree</field>
+        <field name="model">mesob.department</field>
+        <field name="arch" type="xml">
+            <list string="Departments" default_order="name">
+                <field name="name" class="fw-bold"/>
+                <field name="code" optional="show"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Form View ──────────────────────────────────────────────── -->
+    <record id="view_mesob_department_form" model="ir.ui.view">
+        <field name="name">mesob.department.form</field>
+        <field name="model">mesob.department</field>
+        <field name="arch" type="xml">
+            <form string="Department">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    </div>
+                    
+                    <div class="oe_title mb-4">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="e.g., Ministry of Transport and Logistics" class="fw-bold"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="code" placeholder="e.g., MTL"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="Additional information about this department..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Search View ────────────────────────────────────────────── -->
+    <record id="view_mesob_department_search" model="ir.ui.view">
+        <field name="name">mesob.department.search</field>
+        <field name="model">mesob.department</field>
+        <field name="arch" type="xml">
+            <search string="Departments">
+                <field name="name"/>
+                <field name="code"/>
+                <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="filter_archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Action ─────────────────────────────────────────────────── -->
+    <record id="action_mesob_department" model="ir.actions.act_window">
+        <field name="name">Departments</field>
+        <field name="res_model">mesob.department</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first department
+            </p>
+            <p>
+                Departments are used throughout the system for requisitions,
+                receiving, gate passes, and more. Configure your organization's
+                departments here for easy management.
+            </p>
+        </field>
+    </record>
+</odoo>

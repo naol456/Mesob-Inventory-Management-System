@@ -256,33 +256,11 @@ class MesobProcurementNeed(models.Model):
     _name = "mesob.procurement.need"
     _description = "Departmental Need Request"
 
-    department = fields.Selection(
-        [
-            ("ministry_transport_logistics", "Ministry of Transport and Logistics"),
-            ("commercial_bank_ethiopia", "Commercial Bank of Ethiopia"),
-            ("ethio_telecom", "Ethio telecom"),
-            ("education_training_authority", "Education and Training Authority"),
-            ("ethiopian_environmental_protection", "Ethiopian Environmental Protection Authority"),
-            ("ethiopian_food_drug_authority", "Ethiopian Food and Drug Authority"),
-            ("ethiopian_agricultural_authority", "Ethiopian Agricultural Authority"),
-            ("ethiopian_construction_authority", "Ethiopian Construction Authority"),
-            ("ministry_health", "Ministry of Health"),
-            ("ethiopian_customs_commission", "Ethiopian Customs Commission"),
-            ("ministry_justice", "Ministry of Justice"),
-            ("ministry_trade_regional_integration", "Ministry of Trade and Regional Integration"),
-            ("ministry_tourism", "Ministry of Tourism"),
-            ("ethiopian_postal_service", "Ethiopian Postal Service Enterprise"),
-            ("ethiopian_investment_commission", "Ethiopian Investment Commission"),
-            ("educational_assessment_examination", "Educational Assessment and Examination Service"),
-            ("documents_authentication_registration", "Documents Authentication and Registration Service"),
-            ("ministry_revenues", "Ministry of Revenues"),
-            ("ministry_foreign_affairs", "Ministry of Foreign Affairs"),
-            ("ministry_labor_skills", "Ministry of Labor and Skills"),
-            ("immigration_citizenship_service", "Immigration and Citizenship Service"),
-            ("national_id_program", "National ID Program"),
-        ],
+    department_id = fields.Many2one(
+        "mesob.department",
         string="Requesting Department",
         required=True,
+        domain="[('active', '=', True)]",
     )
     item_id = fields.Many2one(
         "mesob.inventory.item",

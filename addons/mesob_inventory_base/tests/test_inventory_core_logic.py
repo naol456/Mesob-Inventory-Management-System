@@ -53,9 +53,14 @@ class TestMesobInventoryCoreLogic(TransactionCase):
     def test_01_document_sequence_generation(self):
         """FR-SEQ-001: Ensure sequences generate sequential formatted IDs upon record creation."""
         # 1. Test Requisition (Model 20)
+        # Get or create a test department
+        dept = self.env['mesob.department'].search([('code', '=', 'MTL')], limit=1)
+        if not dept:
+            dept = self.env['mesob.department'].create({'name': 'Test Department', 'code': 'TEST'})
+        
         req = self.requisition_model.create({
             "issue_mode": "imprest",
-            "department": "ministry_transport_logistics",
+            "department_id": dept.id,
             "requested_by_id": self.env.user.id,
         })
         self.assertTrue(req.name)
