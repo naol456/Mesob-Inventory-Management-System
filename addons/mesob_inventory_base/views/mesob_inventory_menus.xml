@@ -136,49 +136,57 @@
     <menuitem id="menu_mesob_procurement"
               name="Procurement"
               parent="menu_mesob_inventory_root"
-              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
+              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper"
               sequence="18"/>
 
     <menuitem id="menu_mesob_procurement_plan"
               name="Annual Plans (APP)"
               parent="menu_mesob_procurement"
               action="action_mesob_procurement_plan"
+              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
               sequence="10"/>
 
     <menuitem id="menu_mesob_procurement_need"
               name="Needs Collection"
               parent="menu_mesob_procurement"
               action="action_mesob_procurement_need"
+              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
               sequence="20"/>
 
     <menuitem id="menu_mesob_procurement_tender"
               name="Bidding &amp; Tenders"
               parent="menu_mesob_procurement"
               action="action_mesob_procurement_tender"
+              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
               sequence="30"/>
 
     <menuitem id="menu_mesob_procurement_contract"
               name="Contracts"
               parent="menu_mesob_procurement"
               action="action_mesob_procurement_contract"
+              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
               sequence="40"/>
 
+    <!-- Purchase Orders (single menu for all roles) -->
     <menuitem id="menu_mesob_procurement_order"
               name="Purchase Orders"
               parent="menu_mesob_procurement"
               action="action_mesob_procurement_order"
+              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper"
               sequence="5"/>
 
     <menuitem id="menu_mesob_procurement_payment"
               name="Payment Certificates"
               parent="menu_mesob_procurement"
               action="action_mesob_procurement_payment"
+              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
               sequence="50"/>
 
     <menuitem id="menu_mesob_procurement_complaint"
               name="Complaints &amp; Appeals"
               parent="menu_mesob_procurement"
               action="action_mesob_procurement_complaint"
+              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
               sequence="60"/>
 
     <!-- ── Master Data ────────────────────────────────────────────── -->
