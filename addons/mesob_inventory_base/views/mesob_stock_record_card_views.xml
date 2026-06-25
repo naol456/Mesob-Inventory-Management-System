@@ -35,12 +35,10 @@
                 <field name="reference"/>
                 <field name="transaction_type"/>
                 <field name="source_document"/>
-                <separator/>
                 <filter string="Receipt" name="filter_receipt" domain="[('transaction_type','=','receipt')]"/>
                 <filter string="Issue" name="filter_issue" domain="[('transaction_type','=','issue')]"/>
                 <filter string="Adjustment" name="filter_adjustment" domain="[('transaction_type','=','adjustment')]"/>
                 <filter string="Transfer" name="filter_transfer" domain="[('transaction_type','=','transfer')]"/>
-                <separator/>
                 <group expand="0" string="Group By">
                     <filter string="Transaction Type" name="group_transaction_type" context="{'group_by':'transaction_type'}"/>
                     <filter string="Item" name="group_item" context="{'group_by':'item_id'}"/>
@@ -387,14 +385,11 @@
                 <field name="item_id"/>
                 <field name="classification_id"/>
                 <field name="valuation_method"/>
-                <separator/>
                 <filter string="Active" name="filter_active" domain="[('active','=',True)]"/>
                 <filter string="Inactive" name="filter_inactive" domain="[('active','=',False)]"/>
-                <separator/>
                 <filter string="FIFO" name="filter_fifo" domain="[('valuation_method','=','fifo')]"/>
                 <filter string="Average" name="filter_average" domain="[('valuation_method','=','average')]"/>
                 <filter string="Standard" name="filter_standard" domain="[('valuation_method','=','standard')]"/>
-                <separator/>
                 <group expand="0" string="Group By">
                     <filter string="Valuation Method" name="group_method" context="{'group_by':'valuation_method'}"/>
                     <filter string="Classification" name="group_classification" context="{'group_by':'classification_id'}"/>

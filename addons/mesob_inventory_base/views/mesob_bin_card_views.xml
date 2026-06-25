@@ -40,12 +40,10 @@
                 <field name="location"/>
                 <field name="reference"/>
                 <field name="transaction_type"/>
-                <separator/>
                 <filter string="Receipt" name="filter_receipt" domain="[('transaction_type','=','receipt')]"/>
                 <filter string="Issue" name="filter_issue" domain="[('transaction_type','=','issue')]"/>
                 <filter string="Adjustment" name="filter_adjustment" domain="[('transaction_type','=','adjustment')]"/>
                 <filter string="Transfer" name="filter_transfer" domain="[('transaction_type','=','transfer')]"/>
-                <separator/>
                 <group expand="0" string="Group By">
                     <filter string="Transaction Type" name="group_transaction_type" context="{'group_by':'transaction_type'}"/>
                     <filter string="Location" name="group_location" context="{'group_by':'location'}"/>
