@@ -813,6 +813,14 @@ class MesobProcurementOrder(models.Model):
             rec.state = "approved"
         return True
 
+    def action_send_to_storekeeper(self):
+        """Send approved PO to storekeeper for receiving preparation."""
+        for rec in self:
+            if rec.state != "approved":
+                raise UserError("Only approved Purchase Orders can be sent to storekeeper.")
+            rec.state = "sent"
+        return True
+
 
 class MesobProcurementOrderLine(models.Model):
     """Line item in Purchase Order - FR-PROC-026."""
