@@ -49,8 +49,9 @@ class MesobInventoryIssueVoucher(models.Model):
         readonly=True,
     )
 
-    requesting_department = fields.Selection(
-        related="requisition_id.department",
+    requesting_department_id = fields.Many2one(
+        "mesob.department",
+        related="requisition_id.department_id",
         string="Requesting Department",
         store=True,
         readonly=True,
