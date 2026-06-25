@@ -262,15 +262,15 @@
         <field name="model">mesob.procurement.order</field>
         <field name="priority">1</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="receiving_status" create="0" edit="0" delete="0" class="o_kanban_mobile">
+            <kanban default_group_by="receiving_status" create="0" edit="0" delete="0" class="o_kanban_mobile" open="0">
                 <field name="id"/>
                 <field name="name"/>
                 <field name="receiving_status"/>
                 <templates>
                     <t t-name="card">
-                        <div class="card shadow-sm border-0 rounded p-4 mb-3 bg-white text-center" style="min-height: 80px; cursor: default;">
+                        <div class="card shadow-sm border-0 rounded p-4 mb-3 bg-white text-center" style="min-height: 80px; cursor: text; pointer-events: none;">
                             <div class="d-flex justify-content-center align-items-center">
-                                <span class="badge bg-primary text-white font-monospace" style="font-size: 1.5rem; padding: 12px 20px;">
+                                <span class="badge bg-primary text-white font-monospace" style="font-size: 1.5rem; padding: 12px 20px; user-select: text;">
                                     <t t-esc="record.name.value"/>
                                 </span>
                             </div>
