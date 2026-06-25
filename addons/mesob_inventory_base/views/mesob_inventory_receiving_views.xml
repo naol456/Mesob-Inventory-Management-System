@@ -173,26 +173,26 @@
                         <div class="row">
                             <div class="col-6">
                                 <div class="o_field_container_premium">
-                                    <label class="o_form_label_premium">Source Type</label>
+                                    <label for="source_type" class="o_form_label_premium">Source Type</label>
                                     <field name="source_type" readonly="state != 'draft'" widget="radio" options="{'horizontal': true}"/>
                                 </div>
                                 <div class="o_field_container_premium">
-                                    <label class="o_form_label_premium">Supplier</label>
+                                    <label for="supplier_id" class="o_form_label_premium">Supplier</label>
                                     <field name="supplier_id" readonly="state != 'draft'" placeholder="Select supplier or source..."/>
                                 </div>
                                 <div class="o_field_container_premium">
-                                    <label class="o_form_label_premium">PO / Packing Slip Reference</label>
+                                    <label for="purchase_order_ref" class="o_form_label_premium">PO / Packing Slip Reference</label>
                                     <field name="purchase_order_ref" readonly="state != 'draft'" class="font-monospace" placeholder="PO-XXXX-YYYY"/>
                                 </div>
                                 <field name="is_no_payment" invisible="source_type != 'dept_return'" readonly="state != 'draft'"/>
                             </div>
                             <div class="col-6">
                                 <div class="o_field_container_premium">
-                                    <label class="o_form_label_premium">Received Date</label>
+                                    <label for="received_date" class="o_form_label_premium">Received Date</label>
                                     <field name="received_date" readonly="state != 'draft'" class="font-monospace"/>
                                 </div>
                                 <div class="o_field_container_premium">
-                                    <label class="o_form_label_premium">Received By</label>
+                                    <label for="received_by_id" class="o_form_label_premium">Received By</label>
                                     <field name="received_by_id" readonly="state != 'draft'"/>
                                 </div>
                             </div>
@@ -208,19 +208,19 @@
                         <div class="row">
                             <div class="col-4">
                                 <div class="o_field_container_premium">
-                                    <label class="o_form_label_premium">Inspection Type</label>
+                                    <label for="inspection_type" class="o_form_label_premium">Inspection Type</label>
                                     <field name="inspection_type" readonly="state not in ('received', 'inspecting')" widget="radio" options="{'horizontal': true}"/>
                                 </div>
                             </div>
                             <div class="col-4">
                                 <div class="o_field_container_premium">
-                                    <label class="o_form_label_premium">Inspector</label>
+                                    <label for="inspector_id" class="o_form_label_premium">Inspector</label>
                                     <field name="inspector_id" readonly="state not in ('received', 'inspecting')"/>
                                 </div>
                             </div>
                             <div class="col-4">
                                 <div class="o_field_container_premium">
-                                    <label class="o_form_label_premium">Inspection Date</label>
+                                    <label for="inspection_date" class="o_form_label_premium">Inspection Date</label>
                                     <field name="inspection_date" readonly="1" class="font-monospace"/>
                                 </div>
                             </div>
