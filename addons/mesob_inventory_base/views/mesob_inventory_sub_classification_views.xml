@@ -138,6 +138,10 @@
                                            decoration-success="issue_status == 'issued'"
                                            decoration-warning="issue_status == 'not_issued'"/>
                                     <field name="current_holder" string="Current Holder"/>
+                                    <button name="action_view_holder_details" type="object" 
+                                            string="📋" title="View Holder Details" 
+                                            class="btn-link" 
+                                            invisible="not current_holder"/>
                                 </list>
                             </field>
                         </page>
@@ -246,6 +250,10 @@
                                            decoration-success="issue_status == 'issued'"
                                            decoration-warning="issue_status == 'not_issued'"/>
                                     <field name="current_holder" string="Current Holder"/>
+                                    <button name="action_view_holder_details" type="object" 
+                                            string="📋" title="View Holder Details" 
+                                            class="btn-link" 
+                                            invisible="not current_holder"/>
                                 </list>
                             </field>
                         </page>

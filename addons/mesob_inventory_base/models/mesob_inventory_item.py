@@ -415,3 +415,74 @@ class MesobInventoryItem(models.Model):
                     rec.current_holder = ""
             else:
                 rec.current_holder = ""
+
+    def action_view_holder_details(self):
+        """Open popup showing detailed requisition and classification information for current holder"""
+        self.ensure_one()
+        
+        # Find the latest issue voucher line for this item
+        line = self.env['mesob.inventory.issue.voucher.line'].search([
+            ('item_id', '=', self.id),
+            ('voucher_id.state', 'in', ['issued', 'received'])
+        ], order='id desc', limit=1)
+        
+        if not line or not line.voucher_id or not line.voucher_id.requisition_id:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('No Requisition Found'),
+                    'message': _('This item has not been issued via a requisition yet.'),
+                    'type': 'warning',
+                    'sticky': False,
+                }
+            }
+        
+        requisition = line.voucher_id.requisition_id
+        
+        # Build the message content
+        message = f"""
+        <div style="font-family: monospace; padding: 20px;">
+            <h3 style="color: #0066cc; margin-bottom: 15px;">🧾 Requisition Details</h3>
+            
+            <div style="margin-bottom: 20px;">
+                <strong>Requested By:</strong> {requisition.requested_by_id.name if requisition.requested_by_id else 'N/A'}<br/>
+                <strong>Department:</strong> {requisition.department_id.name if requisition.department_id else 'N/A'}
+            </div>
+            
+            <h4 style="color: #0066cc; margin-top: 20px; margin-bottom: 10px;">📦 Classification Details</h4>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="background-color: #f0f0f0;">
+                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Major Classification</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">[{self.classification_id.code}] {self.classification_id.name}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Sub Classification</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">[{self.sub_classification_id.code}] {self.sub_classification_id.name}</td>
+                </tr>
+                <tr style="background-color: #f0f0f0;">
+                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Major Code</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{self.major_code}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Sub Code</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{self.sub_code}</td>
+                </tr>
+                <tr style="background-color: #f0f0f0;">
+                    <td style="padding: 8px; border: 1px solid #ddd;"><strong>Specific Code</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{self.specific_code}</td>
+                </tr>
+            </table>
+        </div>
+        """
+        
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Item Holder Information'),
+                'message': message,
+                'type': 'info',
+                'sticky': True,
+            }
+        }
