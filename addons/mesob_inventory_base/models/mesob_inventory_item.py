@@ -399,8 +399,8 @@ class MesobInventoryItem(models.Model):
                 voucher = line.voucher_id
                 requisition = voucher.requisition_id
                 if requisition:
-                    if requisition.department:
-                        rec.current_holder = f"🏢 {requisition.department}"
+                    if requisition.department_id:
+                        rec.current_holder = f"🏢 {requisition.department_id.name}"
                     elif requisition.requested_by_id:
                         user = requisition.requested_by_id
                         name = user.name or ""
