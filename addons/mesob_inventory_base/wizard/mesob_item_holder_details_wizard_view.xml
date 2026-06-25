@@ -8,6 +8,7 @@
                 <sheet>
                     <group>
                         <group string="🧾 Requisition Details" class="glass-card p-3 rounded border">
+                            <field name="item_id" string="Item" options="{'no_open': True, 'no_create': True}" readonly="1"/>
                             <field name="requested_by" string="Requested By"/>
                             <field name="department" string="Department"/>
                         </group>
