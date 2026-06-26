@@ -333,14 +333,9 @@
             <search string="Search Assets">
                 <field name="item_code"/>
                 <field name="item_name"/>
-                <field name="current_holder"/>
-                <field name="current_location"/>
-                <field name="using_department_id"/>
                 <field name="major_classification_id"/>
                 <field name="sub_classification_id"/>
                 
-                <filter string="Under Warranty" name="filter_under_warranty" 
-                        domain="[('is_under_warranty', '=', True)]"/>
                 <filter string="Excellent Condition" name="filter_excellent" 
                         domain="[('condition', '=', 'excellent')]"/>
                 <filter string="Good Condition" name="filter_good" 
@@ -353,10 +348,6 @@
                         domain="[('is_surplus', '=', True)]"/>
                 <filter string="Scheduled for Disposal" name="filter_disposal" 
                         domain="[('scheduled_for_disposal', '=', True)]"/>
-                <filter string="In Stock" name="filter_in_stock" 
-                        domain="[('current_holder', '=', 'In Stock')]"/>
-                <filter string="Issued/Assigned" name="filter_issued" 
-                        domain="[('current_holder', '!=', 'In Stock')]"/>
                 <filter string="Controlled Material" name="filter_controlled" 
                         domain="[('is_controlled', '=', True)]"/>
                 
@@ -365,10 +356,6 @@
                             context="{'group_by': 'major_classification_id'}"/>
                     <filter string="Sub Classification" name="group_sub_class" 
                             context="{'group_by': 'sub_classification_id'}"/>
-                    <filter string="Department" name="group_department" 
-                            context="{'group_by': 'using_department_id'}"/>
-                    <filter string="Location" name="group_location" 
-                            context="{'group_by': 'current_location'}"/>
                     <filter string="Condition" name="group_condition" 
                             context="{'group_by': 'condition'}"/>
                     <filter string="Maintenance Status" name="group_maintenance" 
