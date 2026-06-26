@@ -1,0 +1,608 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   PREMIUM STOCK RECORDS & VALUATION UI ENHANCEMENTS
+   Navy Blue (#0B1B3D) Backgrounds + Golden (#D4AF37) Text
+   ═══════════════════════════════════════════════════════════════════════ */
+
+// Smart Button Enhancements for Stock Records
+.oe_stat_button {
+    i.fa-cubes {
+        color: #D4AF37 !important; // Golden icon
+        font-size: 24px !important;
+    }
+    
+    .o_stat_info {
+        .o_stat_value {
+            color: #D4AF37 !important; // Golden value
+            font-weight: 700 !important;
+            font-size: 24px !important;
+        }
+    }
+}
+
+// FIFO Layers Table Premium Styling - Navy Blue BG
+.fifo-layers-table {
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    background: #0B1B3D !important; // Solid navy blue
+    border: 1px solid rgba(212, 175, 55, 0.3) !important; // Golden border
+    
+    thead {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.1)) !important; // Golden gradient header
+        
+        th {
+            color: #D4AF37 !important; // Golden headers
+            font-weight: 700 !important;
+            font-size: 11px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.8px !important;
+            padding: 14px 12px !important;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.4) !important; // Golden divider
+        }
+    }
+    
+    tbody {
+        tr {
+            background: #0B1B3D !important; // Navy blue rows
+            border-bottom: 1px solid rgba(212, 175, 55, 0.15) !important; // Subtle golden divider
+            transition: all 0.2s ease !important;
+            
+            &:hover {
+                background: rgba(212, 175, 55, 0.08) !important; // Golden hover
+            }
+            
+            td {
+                padding: 12px !important;
+                color: rgba(255, 255, 255, 0.9) !important; // White text
+                
+                &.o_data_cell {
+                    font-family: 'JetBrains Mono', monospace !important;
+                }
+            }
+        }
+        
+        // Exhausted layer styling
+        tr:has(.o_field_boolean_toggle input:checked) {
+            opacity: 0.5 !important;
+            background: rgba(239, 68, 68, 0.05) !important;
+            
+            td {
+                text-decoration: line-through !important;
+            }
+        }
+    }
+}
+
+// Valuation Configuration Cards - Navy Blue BG + Golden Accents
+.valuation-config-card {
+    background: #0B1B3D !important; // Solid navy blue
+    border: 1px solid rgba(212, 175, 55, 0.3) !important; // Golden border
+    border-radius: 12px !important;
+    padding: 20px !important;
+    transition: all 0.2s ease !important;
+    
+    &:hover {
+        background: rgba(11, 27, 61, 0.9) !important;
+        border-color: rgba(212, 175, 55, 0.5) !important; // Brighter golden border on hover
+        box-shadow: 0 4px 20px rgba(212, 175, 55, 0.2) !important; // Golden glow
+    }
+    
+    .config-title {
+        color: #D4AF37 !important; // Golden title
+        font-weight: 700 !important;
+        font-size: 16px !important;
+        margin-bottom: 12px !important;
+    }
+    
+    .config-method {
+        display: inline-block !important;
+        padding: 4px 12px !important;
+        background: linear-gradient(135deg, #D4AF37, #C59B27) !important; // Golden gradient
+        color: #0B1B3D !important; // Navy text on golden background
+        border-radius: 6px !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+    }
+}
+
+// Stock Quantity Indicators
+.stock-quantity-indicator {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 12px 16px !important;
+    border-radius: 8px !important;
+    
+    &.qty-in {
+        background: rgba(16, 185, 129, 0.1) !important;
+        border-left: 4px solid #10B981 !important;
+        
+        .qty-value {
+            color: #10B981 !important;
+            font-weight: 700 !important;
+            font-size: 20px !important;
+            font-family: 'JetBrains Mono', monospace !important;
+        }
+    }
+    
+    &.qty-out {
+        background: rgba(239, 68, 68, 0.1) !important;
+        border-left: 4px solid #EF4444 !important;
+        
+        .qty-value {
+            color: #EF4444 !important;
+            font-weight: 700 !important;
+            font-size: 20px !important;
+            font-family: 'JetBrains Mono', monospace !important;
+        }
+    }
+    
+    &.qty-balance {
+        background: rgba(59, 130, 246, 0.1) !important;
+        border-left: 4px solid #3B82F6 !important;
+        
+        .qty-value {
+            color: #3B82F6 !important;
+            font-weight: 700 !important;
+            font-size: 22px !important;
+            font-family: 'JetBrains Mono', monospace !important;
+        }
+    }
+}
+
+// Financial Value Display - Navy Blue BG with Golden Emphasis
+.financial-value-display {
+    background: #0B1B3D !important; // Solid navy blue
+    border: 2px solid rgba(212, 175, 55, 0.4) !important; // Golden border
+    border-radius: 10px !important;
+    padding: 16px !important;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.15) !important; // Golden glow
+    
+    .value-label {
+        color: rgba(212, 175, 55, 0.8) !important; // Muted golden label
+        font-size: 11px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.8px !important;
+        font-weight: 600 !important;
+        margin-bottom: 8px !important;
+    }
+    
+    .value-amount {
+        color: #D4AF37 !important; // Bright golden amount
+        font-size: 24px !important;
+        font-weight: 700 !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        text-shadow: 0 2px 8px rgba(212, 175, 55, 0.3) !important; // Golden glow
+    }
+    
+    .value-currency {
+        color: rgba(212, 175, 55, 0.6) !important; // Muted golden currency
+        font-size: 14px !important;
+        margin-left: 4px !important;
+    }
+}
+
+// Transaction Type Badges - Golden Gradient System
+.transaction-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 6px 14px !important;
+    border-radius: 6px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    
+    &.badge-receipt {
+        background: linear-gradient(135deg, #D4AF37, #ECC844) !important; // Golden gradient for receipt
+        color: #0B1B3D !important; // Navy text
+        box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3) !important;
+    }
+    
+    &.badge-issue {
+        background: linear-gradient(135deg, #C59B27, #B28816) !important; // Darker golden for issue
+        color: #FFFFFF !important; // White text
+        box-shadow: 0 2px 8px rgba(197, 155, 39, 0.3) !important;
+    }
+    
+    &.badge-adjustment {
+        background: linear-gradient(135deg, #ECC844, #F9E060) !important; // Lighter golden for adjustment
+        color: #0B1B3D !important; // Navy text
+        box-shadow: 0 2px 8px rgba(236, 200, 68, 0.3) !important;
+    }
+    
+    &.badge-transfer {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0.2)) !important; // Transparent golden for transfer
+        color: #D4AF37 !important; // Golden text
+        border: 1px solid rgba(212, 175, 55, 0.5) !important;
+    }
+}
+
+// List View Row Decorations - Navy Blue Base with Golden Accents
+.o_list_table {
+    background: #0B1B3D !important; // Navy blue table background
+    
+    tr {
+        background: #0B1B3D !important;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.1) !important; // Subtle golden dividers
+        
+        &.table-info {
+            background: rgba(212, 175, 55, 0.08) !important; // Golden tint for info
+            border-left: 3px solid rgba(212, 175, 55, 0.5) !important;
+        }
+        
+        &.table-warning {
+            background: rgba(236, 200, 68, 0.08) !important; // Lighter golden for warning
+            border-left: 3px solid #ECC844 !important;
+        }
+        
+        &.table-success {
+            background: rgba(212, 175, 55, 0.12) !important; // Stronger golden for success
+            border-left: 3px solid #D4AF37 !important;
+        }
+        
+        &.table-danger {
+            background: rgba(197, 155, 39, 0.08) !important; // Darker golden for danger
+            border-left: 3px solid #C59B27 !important;
+        }
+        
+        &:hover {
+            background: rgba(212, 175, 55, 0.05) !important; // Subtle golden hover
+        }
+    }
+}
+
+// Balance Scale Icon - Golden Color
+.balance-icon {
+    color: #D4AF37 !important; // Golden balance icon
+    font-size: 18px !important;
+    filter: drop-shadow(0 2px 6px rgba(212, 175, 55, 0.4)) !important; // Golden glow
+}
+
+// Cost Layer Exhausted Toggle - Golden Theme
+.o_field_boolean_toggle {
+    input:checked + .o_toggle_button {
+        background: linear-gradient(135deg, #C59B27, #B28816) !important; // Darker golden for exhausted
+        border-color: #C59B27 !important;
+    }
+    
+    input:not(:checked) + .o_toggle_button {
+        background: linear-gradient(135deg, #D4AF37, #ECC844) !important; // Bright golden for active
+        border-color: #D4AF37 !important;
+    }
+}
+
+// Average Cost Badge - Golden Accent
+.avg-cost-badge {
+    display: inline-block !important;
+    padding: 4px 10px !important;
+    background: rgba(212, 175, 55, 0.15) !important; // Golden tint background
+    border: 1px solid rgba(212, 175, 55, 0.4) !important; // Golden border
+    border-radius: 6px !important;
+    color: #D4AF37 !important; // Golden text
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+
+// Unit Cost Display - Golden Text
+.unit-cost-display {
+    color: #D4AF37 !important; // Golden unit cost
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    text-shadow: 0 1px 4px rgba(212, 175, 55, 0.3) !important; // Subtle golden glow
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Bin Card List View Premium Enhancements
+// ═══════════════════════════════════════════════════════════════
+
+.o_list_view {
+    .o_data_row {
+        // Date field
+        td[name="date"] {
+            font-family: 'Courier New', monospace;
+        }
+        
+        // Major and Sub Classification - Semibold
+        td[name="major_classification_id"],
+        td[name="sub_classification_id"] {
+            font-weight: 600;
+        }
+        
+        // Location field - Gold monospace
+        td[name="location"] {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            color: #D4AF37 !important;
+            letter-spacing: 0.5px;
+        }
+        
+        // Reference field - Monospace styling
+        td[name="reference"] {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.85);
+        }
+        
+        // Quantity Received - Green emphasis
+        td[name="quantity_received"] {
+            color: #10B981 !important;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            text-align: right;
+        }
+        
+        // Quantity Distributed - Red emphasis
+        td[name="quantity_distributed"] {
+            color: #EF4444 !important;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            text-align: right;
+        }
+        
+        // Balance - Blue emphasis
+        td[name="balance"] {
+            color: #3B82F6 !important;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            text-align: right;
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Stock Record Card List View Premium Enhancements
+// ═══════════════════════════════════════════════════════════════
+
+.o_list_view {
+    .o_data_row {
+        // Date field styling
+        td[name="date"] {
+            font-family: 'Courier New', monospace;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        // Item ID - semibold blue
+        td[name="item_id"] {
+            font-weight: 600;
+            color: #3B82F6 !important;
+        }
+        
+        // Reference and source document - monospace
+        td[name="reference"],
+        td[name="source_document"] {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.85);
+        }
+        
+        // Quantity In - Green emphasis
+        td[name="quantity_in"] {
+            color: #10B981 !important;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            text-align: right;
+        }
+        
+        // Quantity Out - Red emphasis
+        td[name="quantity_out"] {
+            color: #EF4444 !important;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            text-align: right;
+        }
+        
+        // Quantity Balance - Blue emphasis
+        td[name="quantity_balance"] {
+            color: #3B82F6 !important;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            text-align: right;
+        }
+        
+        // Unit Cost - Green
+        td[name="unit_cost"] {
+            color: #10B981 !important;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            text-align: right;
+        }
+        
+        // Balance Value - Gold emphasis
+        td[name="balance_value"] {
+            color: #D4AF37 !important;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            text-align: right;
+        }
+        
+        // Average Cost - Purple emphasis
+        td[name="average_cost"] {
+            color: #A78BFA !important;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            text-align: right;
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Valuation Config List View Premium Enhancements
+// ═══════════════════════════════════════════════════════════════
+
+.o_list_view {
+    .o_data_row {
+        // Configuration Name - Bold emphasis
+        td[name="name"] {
+            font-weight: 700;
+            color: #3B82F6 !important;
+        }
+        
+        // Item and Classification - Muted semibold
+        td[name="item_id"],
+        td[name="classification_id"] {
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        // Valuation Method - Semibold
+        td[name="valuation_method"] {
+            font-weight: 600;
+            color: #D4AF37 !important;
+        }
+        
+        // Standard Cost - Monospace gold
+        td[name="standard_cost"] {
+            font-family: 'Courier New', monospace;
+            color: #D4AF37 !important;
+            text-align: right;
+            font-size: 14px;
+        }
+    }
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// Form Body Navy Blue Background
+// ═══════════════════════════════════════════════════════════════
+
+// Apply navy blue background to form sheets in stock records
+.o_form_view {
+    .o_form_sheet_bg {
+        background: #0B1B3D !important; // Solid navy blue
+        padding: 20px !important; // Add padding around the form
+    }
+    
+    .o_form_sheet {
+        background: #0B1B3D !important; // Solid navy blue
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+        border: 1px solid rgba(212, 175, 55, 0.2) !important; // Subtle golden border
+        border-radius: 12px !important;
+        padding: 30px !important;
+        margin: 20px !important; // Gap from edges
+        
+        // Add golden separator after the corporate header
+        .mesob_corporate_header {
+            margin-bottom: 0px !important; // Remove bottom margin from header
+            
+            // Add golden divider after header
+            &::after {
+                content: '' !important;
+                display: block !important;
+                height: 3px !important;
+                background: linear-gradient(90deg, transparent, #D4AF37, #ECC844, #D4AF37, transparent) !important;
+                margin-top: 20px !important;
+                margin-bottom: 25px !important;
+                border-radius: 2px !important;
+                box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4) !important; // Golden glow
+            }
+        }
+    }
+    
+    // Style all group containers with navy blue
+    .o_group {
+        background: #0B1B3D !important;
+        
+        .o_inner_group {
+            background: #0B1B3D !important;
+        }
+    }
+    
+    // Glass card groups should have slightly lighter navy with golden border
+    .glass-card {
+        background: rgba(11, 27, 61, 0.95) !important; // Slightly transparent navy
+        border: 1px solid rgba(212, 175, 55, 0.25) !important; // Golden border
+        backdrop-filter: blur(10px) !important;
+        
+        &:hover {
+            border-color: rgba(212, 175, 55, 0.4) !important; // Brighter golden on hover
+        }
+    }
+    
+    // Notebook tabs styling
+    .o_notebook {
+        background: #0B1B3D !important;
+        margin-top: 20px !important; // Gap before notebook
+        
+        .nav-tabs {
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3) !important; // Golden divider
+            
+            .nav-link {
+                color: rgba(212, 175, 55, 0.7) !important; // Muted golden
+                background: transparent !important;
+                border: none !important;
+                
+                &:hover {
+                    color: #D4AF37 !important; // Bright golden
+                    background: rgba(212, 175, 55, 0.1) !important;
+                }
+                
+                &.active {
+                    color: #D4AF37 !important; // Golden active tab
+                    background: rgba(212, 175, 55, 0.15) !important;
+                    border-bottom: 3px solid #D4AF37 !important;
+                    font-weight: 700 !important;
+                }
+            }
+        }
+        
+        .tab-content {
+            background: #0B1B3D !important;
+            padding: 20px !important;
+        }
+    }
+    
+    // Input fields styling
+    .o_field_widget {
+        input, select, textarea {
+            background: rgba(11, 27, 61, 0.6) !important; // Dark navy input background
+            border: 1px solid rgba(212, 175, 55, 0.3) !important; // Golden border
+            color: #FFFFFF !important; // White text
+            
+            &:focus {
+                background: rgba(11, 27, 61, 0.8) !important;
+                border-color: #D4AF37 !important; // Bright golden focus
+                box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2) !important; // Golden glow
+            }
+            
+            &::placeholder {
+                color: rgba(212, 175, 55, 0.5) !important; // Golden placeholder
+            }
+        }
+    }
+    
+    // Labels styling
+    .o_form_label {
+        color: rgba(212, 175, 55, 0.85) !important; // Golden labels
+        font-weight: 600 !important;
+    }
+    
+    // Required fields indicator
+    .o_required_modifier {
+        .o_form_label::after {
+            color: #D4AF37 !important; // Golden asterisk
+        }
+    }
+}
+
+// Apply to bin card and stock record card specifically
+.o_form_view[data-model="mesob.bin.card"],
+.o_form_view[data-model="mesob.stock.record.card"],
+.o_form_view[data-model="mesob.stock.valuation.config"] {
+    background: #0B1B3D !important;
+    
+    .o_content {
+        background: #0B1B3D !important;
+    }
+}
