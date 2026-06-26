@@ -280,7 +280,7 @@
 .mesob_asset_dashboard_list {
     
     .o_list_table {
-        background: #FFFFFF;
+        background: linear-gradient(135deg, #0B1B3D 0%, #1a2942 100%);
     }
     
     thead {
@@ -303,55 +303,58 @@
     }
     
     tbody tr {
-        background: #FFFFFF;
-        border-bottom: 1px solid rgba(11, 27, 61, 0.08);
+        background: rgba(11, 27, 61, 0.8);
+        border-bottom: 1px solid rgba(212, 175, 55, 0.2);
         transition: all 0.2s ease;
         
         &:hover {
-            background: linear-gradient(90deg, rgba(212, 175, 55, 0.08) 0%, rgba(212, 175, 55, 0.02) 100%);
-            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.15);
+            background: linear-gradient(90deg, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.1) 100%);
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
         }
         
         &.o_data_row.o_row_decoration_success {
-            background: linear-gradient(90deg, rgba(92, 214, 133, 0.1) 0%, rgba(92, 214, 133, 0.02) 100%);
+            background: linear-gradient(90deg, rgba(92, 214, 133, 0.2) 0%, rgba(11, 27, 61, 0.8) 100%);
             border-left: 4px solid #5CD685;
         }
         
         &.o_data_row.o_row_decoration_info {
-            background: linear-gradient(90deg, rgba(77, 163, 255, 0.1) 0%, rgba(77, 163, 255, 0.02) 100%);
+            background: linear-gradient(90deg, rgba(77, 163, 255, 0.2) 0%, rgba(11, 27, 61, 0.8) 100%);
             border-left: 4px solid #4DA3FF;
         }
         
         &.o_data_row.o_row_decoration_warning {
-            background: linear-gradient(90deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 193, 7, 0.02) 100%);
+            background: linear-gradient(90deg, rgba(255, 193, 7, 0.2) 0%, rgba(11, 27, 61, 0.8) 100%);
             border-left: 4px solid #FFC107;
         }
         
         &.o_data_row.o_row_decoration_danger {
-            background: linear-gradient(90deg, rgba(244, 106, 124, 0.1) 0%, rgba(244, 106, 124, 0.02) 100%);
+            background: linear-gradient(90deg, rgba(244, 106, 124, 0.2) 0%, rgba(11, 27, 61, 0.8) 100%);
             border-left: 4px solid #F46A7C;
         }
         
         td {
-            color: #0B1B3D;
+            color: #D4AF37;
             padding: 12px 10px;
             vertical-align: middle;
             font-size: 13px;
+            font-weight: 600;
         }
     }
     
     .o_data_cell {
-        font-weight: 500;
+        font-weight: 600;
+        color: #F4E5C3;
         
         &.o_list_number {
             text-align: right;
-            font-weight: 600;
+            font-weight: 700;
+            color: #D4AF37;
         }
         
         &.o_list_char[name="item_code"],
         &.o_list_char[name="item_name"] {
             font-weight: 700;
-            color: #0B1B3D;
+            color: #FFD700;
         }
     }
     
@@ -365,33 +368,33 @@
         letter-spacing: 0.5px;
         
         &.o_field_decoration_success {
-            background: rgba(92, 214, 133, 0.2);
-            color: #28A745;
-            border: 1px solid rgba(92, 214, 133, 0.5);
+            background: rgba(92, 214, 133, 0.3);
+            color: #5CD685;
+            border: 1px solid rgba(92, 214, 133, 0.6);
         }
         
         &.o_field_decoration_info {
-            background: rgba(77, 163, 255, 0.2);
-            color: #007BFF;
-            border: 1px solid rgba(77, 163, 255, 0.5);
+            background: rgba(77, 163, 255, 0.3);
+            color: #4DA3FF;
+            border: 1px solid rgba(77, 163, 255, 0.6);
         }
         
         &.o_field_decoration_warning {
-            background: rgba(255, 193, 7, 0.2);
-            color: #E6A500;
-            border: 1px solid rgba(255, 193, 7, 0.5);
+            background: rgba(255, 193, 7, 0.3);
+            color: #FFC107;
+            border: 1px solid rgba(255, 193, 7, 0.6);
         }
         
         &.o_field_decoration_danger {
-            background: rgba(244, 106, 124, 0.2);
-            color: #DC3545;
-            border: 1px solid rgba(244, 106, 124, 0.5);
+            background: rgba(244, 106, 124, 0.3);
+            color: #F46A7C;
+            border: 1px solid rgba(244, 106, 124, 0.6);
         }
     }
     
     /* Monetary Fields */
     .o_field_monetary {
-        color: #28A745;
+        color: #5CD685;
         font-weight: 700;
         font-size: 14px;
     }
@@ -413,7 +416,7 @@
         background: linear-gradient(135deg, #0B1B3D 0%, #152847 100%);
         
         td {
-            color: #D4AF37;
+            color: #FFD700;
             font-weight: 700;
             padding: 12px 10px;
             border-top: 3px solid #D4AF37;

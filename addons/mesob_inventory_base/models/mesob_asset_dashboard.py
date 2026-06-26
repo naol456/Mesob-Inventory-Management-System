@@ -48,10 +48,10 @@ class MesobAssetRegister(models.Model):
     ], compute='_compute_asset_state', store=True)
     
     # Quantities
-    quantity_total = fields.Float(compute='_compute_quantities', digits='Product Unit of Measure')
-    quantity_in_stock = fields.Float(compute='_compute_quantities', digits='Product Unit of Measure')
-    quantity_issued = fields.Float(compute='_compute_quantities', digits='Product Unit of Measure')
-    quantity_available = fields.Float(compute='_compute_quantities', digits='Product Unit of Measure')
+    quantity_total = fields.Float(compute='_compute_quantities', store=True, digits='Product Unit of Measure')
+    quantity_in_stock = fields.Float(compute='_compute_quantities', store=True, digits='Product Unit of Measure')
+    quantity_issued = fields.Float(compute='_compute_quantities', store=True, digits='Product Unit of Measure')
+    quantity_available = fields.Float(compute='_compute_quantities', store=True, digits='Product Unit of Measure')
     
     # Custody (with photo)
     current_holder_id = fields.Many2one('res.users', compute='_compute_custody', store=True)
@@ -66,8 +66,8 @@ class MesobAssetRegister(models.Model):
     using_department_id = fields.Many2one('mesob.department', compute='_compute_custody', store=True)
     
     # Financial
-    unit_cost = fields.Monetary(compute='_compute_valuation', currency_field='currency_id')
-    total_value = fields.Monetary(compute='_compute_valuation', currency_field='currency_id')
+    unit_cost = fields.Monetary(compute='_compute_valuation', store=True, currency_field='currency_id')
+    total_value = fields.Monetary(compute='_compute_valuation', store=True, currency_field='currency_id')
     currency_id = fields.Many2one('res.currency', default=lambda self: self.env.company.currency_id)
     
     # Lifecycle
@@ -254,4 +254,12 @@ class MesobAssetRegister(models.Model):
             'state_counts': state_counts,
             'department_counts': dept_counts,
             'main_store_count': main_store_count,
+        }
+    
+    def action_open_asset_map(self):
+        """Open the asset location map dashboard"""
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'mesob_asset_location_map',
+            'name': 'Asset Location Map',
         }

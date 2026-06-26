@@ -1,6 +1,6 @@
 {
     "name": "Mesob Inventory Management System",
-    "version": "19.0.1.6.0",
+    "version": "19.0.1.6.9",
     "category": "Inventory/Inventory",
     "summary": "FDRE Mesob Center - Complete inventory management system with "
                "classifications (4401–4418), requisitions, receiving, inspection, "
@@ -98,9 +98,12 @@
             "mesob_inventory_base/static/src/scss/procurement_premium.scss",
             "mesob_inventory_base/static/src/scss/asset_dashboard_premium.scss",
             "mesob_inventory_base/static/src/scss/asset_map_dashboard.scss",
+            "mesob_inventory_base/static/src/scss/asset_location_map.scss",
             "mesob_inventory_base/static/src/js/navbar_sidebar.js",
             "mesob_inventory_base/static/src/js/analytics_menu.js",
+            "mesob_inventory_base/static/src/js/asset_location_map.js",
             "mesob_inventory_base/static/src/xml/apps_sidebar.xml",
+            "mesob_inventory_base/static/src/xml/asset_location_map_template.xml",
         ],
         "web.assets_frontend": [
             "mesob_inventory_base/static/src/scss/mesob_login.scss",

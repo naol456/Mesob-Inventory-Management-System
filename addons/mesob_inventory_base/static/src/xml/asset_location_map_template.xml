@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    
+    <t t-name="mesob_inventory_base.AssetLocationMapTemplate">
+        <div class="mesob_asset_location_map">
+            <div class="map_header">
+                <h1 class="map_title">
+                    <i class="fa fa-map-marker-alt"/> Asset Location Overview
+                </h1>
+                <p class="map_subtitle">Real-time asset distribution across your organization</p>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="summary_cards">
+                <div class="stat_card total" t-on-click="() => this.openLocation('all')">
+                    <i class="fa fa-cubes"/>
+                    <div class="stat_info">
+                        <span class="stat_value" t-if="!state.loading">
+                            <t t-esc="state.total_assets"/>
+                        </span>
+                        <span class="stat_value" t-else="">--</span>
+                        <span class="stat_label">Total Assets</span>
+                    </div>
+                </div>
+
+                <div class="stat_card in_stock" t-on-click="() => this.openLocation('in_stock')">
+                    <i class="fa fa-check-circle"/>
+                    <div class="stat_info">
+                        <span class="stat_value" t-if="!state.loading">
+                            <t t-esc="state.state_counts.in_stock || 0"/>
+                        </span>
+                        <span class="stat_value" t-else="">--</span>
+                        <span class="stat_label">In Stock</span>
+                    </div>
+                </div>
+
+                <div class="stat_card issued" t-on-click="() => this.openLocation('issued')">
+                    <i class="fa fa-hand-holding"/>
+                    <div class="stat_info">
+                        <span class="stat_value" t-if="!state.loading">
+                            <t t-esc="state.state_counts.issued || 0"/>
+                        </span>
+                        <span class="stat_value" t-else="">--</span>
+                        <span class="stat_label">Issued</span>
+                    </div>
+                </div>
+
+                <div class="stat_card idle" t-on-click="() => this.openLocation('idle')">
+                    <i class="fa fa-clock"/>
+                    <div class="stat_info">
+                        <span class="stat_value" t-if="!state.loading">
+                            <t t-esc="state.state_counts.idle || 0"/>
+                        </span>
+                        <span class="stat_value" t-else="">--</span>
+                        <span class="stat_label">Idle (180+ days)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location Grid -->
+            <div class="location_grid">
+                <!-- Main Store -->
+                <div class="location_card main_store" t-on-click="() => this.openLocation('main_store')">
+                    <div class="card_header">
+                        <i class="fa fa-warehouse fa-2x"/>
+                        <h3>Main Store</h3>
+                    </div>
+                    <div class="card_body">
+                        <div class="asset_count" t-if="!state.loading">
+                            <span class="count_number"><t t-esc="state.main_store"/></span>
+                            <span class="count_label">Assets Available</span>
+                        </div>
+                        <div class="asset_count" t-else="">
+                            <span class="count_number">--</span>
+                            <span class="count_label">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="card_footer">
+                        <span>Click to view details</span>
+                        <i class="fa fa-arrow-right"/>
+                    </div>
+                </div>
+
+                <!-- Departments -->
+                <t t-foreach="['Finance', 'HR', 'IT', 'Operations']" t-as="dept" t-key="dept">
+                    <div class="location_card department" t-att-class="dept.toLowerCase()" 
+                         t-on-click="() => this.openDepartment(dept)">
+                        <div class="card_header">
+                            <i t-if="dept === 'Finance'" class="fa fa-money-bill-wave fa-2x"/>
+                            <i t-elif="dept === 'HR'" class="fa fa-users fa-2x"/>
+                            <i t-elif="dept === 'IT'" class="fa fa-laptop fa-2x"/>
+                            <i t-else="" class="fa fa-cogs fa-2x"/>
+                            <h3><t t-esc="dept"/></h3>
+                        </div>
+                        <div class="card_body">
+                            <div class="asset_count" t-if="!state.loading">
+                                <span class="count_number"><t t-esc="getDeptCount(dept)"/></span>
+                                <span class="count_label">Assets Assigned</span>
+                            </div>
+                            <div class="asset_count" t-else="">
+                                <span class="count_number">--</span>
+                                <span class="count_label">Loading...</span>
+                            </div>
+                        </div>
+                        <div class="card_footer">
+                            <span>Click to view details</span>
+                            <i class="fa fa-arrow-right"/>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+    
+</templates>
