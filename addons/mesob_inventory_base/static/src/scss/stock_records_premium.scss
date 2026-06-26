@@ -471,3 +471,118 @@
         }
     }
 }
+
+
+// ═══════════════════════════════════════════════════════════════
+// Form Body Navy Blue Background
+// ═══════════════════════════════════════════════════════════════
+
+// Apply navy blue background to form sheets in stock records
+.o_form_view {
+    .o_form_sheet_bg {
+        background: #0B1B3D !important; // Solid navy blue
+    }
+    
+    .o_form_sheet {
+        background: #0B1B3D !important; // Solid navy blue
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+        border: 1px solid rgba(212, 175, 55, 0.2) !important; // Subtle golden border
+        border-radius: 12px !important;
+        padding: 30px !important;
+    }
+    
+    // Style all group containers with navy blue
+    .o_group {
+        background: #0B1B3D !important;
+        
+        .o_inner_group {
+            background: #0B1B3D !important;
+        }
+    }
+    
+    // Glass card groups should have slightly lighter navy with golden border
+    .glass-card {
+        background: rgba(11, 27, 61, 0.95) !important; // Slightly transparent navy
+        border: 1px solid rgba(212, 175, 55, 0.25) !important; // Golden border
+        backdrop-filter: blur(10px) !important;
+        
+        &:hover {
+            border-color: rgba(212, 175, 55, 0.4) !important; // Brighter golden on hover
+        }
+    }
+    
+    // Notebook tabs styling
+    .o_notebook {
+        background: #0B1B3D !important;
+        
+        .nav-tabs {
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3) !important; // Golden divider
+            
+            .nav-link {
+                color: rgba(212, 175, 55, 0.7) !important; // Muted golden
+                background: transparent !important;
+                border: none !important;
+                
+                &:hover {
+                    color: #D4AF37 !important; // Bright golden
+                    background: rgba(212, 175, 55, 0.1) !important;
+                }
+                
+                &.active {
+                    color: #D4AF37 !important; // Golden active tab
+                    background: rgba(212, 175, 55, 0.15) !important;
+                    border-bottom: 3px solid #D4AF37 !important;
+                    font-weight: 700 !important;
+                }
+            }
+        }
+        
+        .tab-content {
+            background: #0B1B3D !important;
+            padding: 20px !important;
+        }
+    }
+    
+    // Input fields styling
+    .o_field_widget {
+        input, select, textarea {
+            background: rgba(11, 27, 61, 0.6) !important; // Dark navy input background
+            border: 1px solid rgba(212, 175, 55, 0.3) !important; // Golden border
+            color: #FFFFFF !important; // White text
+            
+            &:focus {
+                background: rgba(11, 27, 61, 0.8) !important;
+                border-color: #D4AF37 !important; // Bright golden focus
+                box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2) !important; // Golden glow
+            }
+            
+            &::placeholder {
+                color: rgba(212, 175, 55, 0.5) !important; // Golden placeholder
+            }
+        }
+    }
+    
+    // Labels styling
+    .o_form_label {
+        color: rgba(212, 175, 55, 0.85) !important; // Golden labels
+        font-weight: 600 !important;
+    }
+    
+    // Required fields indicator
+    .o_required_modifier {
+        .o_form_label::after {
+            color: #D4AF37 !important; // Golden asterisk
+        }
+    }
+}
+
+// Apply to bin card and stock record card specifically
+.o_form_view[data-model="mesob.bin.card"],
+.o_form_view[data-model="mesob.stock.record.card"],
+.o_form_view[data-model="mesob.stock.valuation.config"] {
+    background: #0B1B3D !important;
+    
+    .o_content {
+        background: #0B1B3D !important;
+    }
+}
