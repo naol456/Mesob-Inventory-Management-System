@@ -299,17 +299,4 @@ action = model.action_sync_from_items()
         </field>
     </record>
     
-    <!-- MENU ITEM -->
-    <menuitem id="menu_mesob_asset_dashboard"
-              name="Asset Register"
-              parent="menu_mesob_inventory_stock_control"
-              action="action_mesob_asset_dashboard"
-              sequence="5"/>
-    
-    <menuitem id="menu_mesob_asset_executive_dashboard"
-              name="Executive Dashboard"
-              parent="menu_mesob_inventory_stock_control"
-              action="action_mesob_asset_executive_dashboard"
-              sequence="4"/>
-    
 </odoo>
