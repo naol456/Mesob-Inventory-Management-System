@@ -211,6 +211,12 @@
               action="action_mesob_asset_dashboard"
               sequence="5"/>
 
+    <menuitem id="menu_mesob_asset_map"
+              name="Asset Location Map"
+              parent="menu_mesob_inventory_stock_control"
+              action="action_mesob_asset_location_map_client"
+              sequence="6"/>
+
     <menuitem id="menu_mesob_stock_reorder_alerts"
               name="Reorder Alerts"
               parent="menu_mesob_inventory_stock_control"
