@@ -301,6 +301,16 @@ class MesobInventoryReceiving(models.Model):
                 )
             if not rec.inspector_id:
                 raise UserError("Please assign an inspector before starting.")
+            
+            # If current user is an inspector, verify they are the assigned inspector
+            current_user = self.env.user
+            is_inspector = current_user.has_group("mesob_inventory_base.group_mesob_inspector")
+            if is_inspector and rec.inspector_id != current_user:
+                raise UserError(
+                    f"You can only inspect orders assigned to you. "
+                    f"This order is assigned to {rec.inspector_id.name}."
+                )
+            
             rec.inspection_date = fields.Date.today()
             rec.state = "inspecting"
         return True
@@ -310,11 +320,22 @@ class MesobInventoryReceiving(models.Model):
 
         Supports partial acceptance — if some lines also have rejected
         quantities, a DSR is generated simultaneously.
+        
+        Only the assigned inspector can complete the inspection.
         """
         for rec in self:
             if rec.state != "inspecting":
                 raise UserError(
                     "Only orders under inspection can be accepted."
+                )
+            
+            # Verify the current user is the assigned inspector
+            current_user = self.env.user
+            is_inspector = current_user.has_group("mesob_inventory_base.group_mesob_inspector")
+            if is_inspector and rec.inspector_id != current_user:
+                raise UserError(
+                    f"Only the assigned inspector can complete this inspection. "
+                    f"This order is assigned to {rec.inspector_id.name}."
                 )
             
             # Auto-fill qty_received from qty_accepted if not set

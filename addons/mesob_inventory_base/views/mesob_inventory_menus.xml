@@ -14,6 +14,14 @@
               groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_inspector"
               sequence="5"/>
 
+    <!-- Inspector Dashboard Menu -->
+    <menuitem id="menu_inspector_dashboard"
+              name="My Inspections"
+              parent="menu_mesob_inventory_operations"
+              action="action_inspector_dashboard"
+              groups="mesob_inventory_base.group_mesob_inspector"
+              sequence="4"/>
+
     <!-- ONE menu for requisitions - create button hidden by get_view() method in model -->
     <menuitem id="menu_mesob_inventory_requisitions" 
               name="Requisitions (Model 20)"
