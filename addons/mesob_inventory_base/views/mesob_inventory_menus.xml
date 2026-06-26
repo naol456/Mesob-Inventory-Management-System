@@ -198,6 +198,24 @@
               groups="mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao"
               sequence="17"/>
 
+    <menuitem id="menu_mesob_asset_executive_dashboard"
+              name="Executive Dashboard"
+              parent="menu_mesob_inventory_stock_control"
+              action="action_mesob_asset_executive_dashboard"
+              sequence="4"/>
+
+    <menuitem id="menu_mesob_asset_dashboard"
+              name="Asset Register"
+              parent="menu_mesob_inventory_stock_control"
+              action="action_mesob_asset_dashboard"
+              sequence="5"/>
+
+    <menuitem id="menu_mesob_asset_map"
+              name="Asset Location Map"
+              parent="menu_mesob_inventory_stock_control"
+              action="action_mesob_asset_location_map_client"
+              sequence="6"/>
+
     <menuitem id="menu_mesob_stock_reorder_alerts"
               name="Reorder Alerts"
               parent="menu_mesob_inventory_stock_control"
