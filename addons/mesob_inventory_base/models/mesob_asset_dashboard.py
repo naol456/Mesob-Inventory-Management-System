@@ -154,8 +154,12 @@ class MesobAssetRegister(models.Model):
             first_receipt = self.env['mesob.inventory.receiving.line'].search([
                 ('sub_classification_id', '=', rec.sub_classification_id.id if rec.sub_classification_id else False),
                 ('receiving_id.state', '=', 'accepted')
-            ], order='receiving_id.received_date asc', limit=1)
-            rec.first_received_date = first_receipt.receiving_id.received_date if first_receipt else False
+            ], order='id asc', limit=1)
+            if first_receipt and first_receipt.receiving_id:
+                rec.first_received_date = first_receipt.receiving_id.received_date
+            else:
+                rec.first_received_date = False
+            
             last_stock = self.env['mesob.stock.record.card'].search([
                 ('item_id', '=', rec.item_id.id)
             ], order='date desc', limit=1)
