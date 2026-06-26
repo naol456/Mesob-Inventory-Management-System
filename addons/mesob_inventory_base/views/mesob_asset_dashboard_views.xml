@@ -413,7 +413,3 @@ action = model.action_sync_from_items()
               sequence="4"/>
     
 </odoo>
-              action="action_mesob_asset_dashboard"
-              sequence="5"/>
-    
-</odoo>
