@@ -266,14 +266,16 @@
                 <field name="id"/>
                 <field name="name"/>
                 <field name="receiving_status"/>
+                <field name="supplier_id"/>
                 <templates>
                     <t t-name="card">
-                        <!-- Removed oe_kanban_global_click to prevent opening form -->
-                        <div class="card shadow-sm border-0 rounded p-4 mb-3 bg-white text-center" style="min-height: 80px;">
-                            <div class="d-flex justify-content-center align-items-center">
-                                <span class="badge bg-primary text-white font-monospace" style="font-size: 1.5rem; padding: 12px 20px; user-select: all; cursor: text;">
-                                    <t t-esc="record.name.value"/>
-                                </span>
+                        <div style="background: rgba(11,27,61,0.95); backdrop-filter: blur(10px); border: 2px solid rgba(212,175,55,0.4); border-radius: 12px; padding: 32px; margin-bottom: 16px; text-align: center; box-shadow: 0 6px 20px rgba(0,0,0,0.25); cursor: default;">
+                            <div style="color: rgba(212,175,55,0.7); font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 12px;">Purchase Order Reference</div>
+                            <div class="font-monospace" style="background: linear-gradient(135deg, #D4AF37, #ECC844); color: #0B1B3D; font-size: 24px; font-weight: 800; padding: 16px 28px; border-radius: 8px; box-shadow: 0 4px 15px rgba(212,175,55,0.4); letter-spacing: 1px; user-select: all;">
+                                <t t-esc="record.name.value"/>
+                            </div>
+                            <div style="color: rgba(255,255,255,0.7); font-size: 13px; margin-top: 16px; font-weight: 500;">
+                                <t t-esc="record.supplier_id.value"/>
                             </div>
                         </div>
                     </t>
@@ -297,47 +299,83 @@
                 <field name="inspection_type"/>
                 <field name="receiving_status"/>
                 <field name="state"/>
+                <field name="contract_id"/>
                 <templates>
                     <t t-name="card">
-                        <div t-attf-class="oe_kanban_global_click card shadow-sm border-0 rounded p-3 mb-3 bg-white" style="min-height: 120px;">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="badge bg-primary text-white font-monospace fs-6 px-2 py-1">
-                                    <t t-esc="record.name.value"/>
-                                </span>
+                        <div t-attf-class="oe_kanban_global_click" 
+                             style="background: rgba(11,27,61,0.95); backdrop-filter: blur(10px); border: 1px solid rgba(212,175,55,0.25); border-radius: 12px; padding: 24px; margin-bottom: 16px; min-height: 180px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                            
+                            <!-- Header Row: PO Number + Status Badge -->
+                            <div class="d-flex justify-content-between align-items-start mb-3 pb-3" style="border-bottom: 1px solid rgba(212,175,55,0.2);">
+                                <div>
+                                    <div style="color: rgba(212,175,55,0.7); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 6px;">Purchase Order</div>
+                                    <span class="fw-bold font-monospace" style="color: #D4AF37; font-size: 18px; letter-spacing: 0.5px;">
+                                        <t t-esc="record.name.value"/>
+                                    </span>
+                                </div>
                                 <t t-if="record.state.raw_value == 'approved'">
-                                    <span class="badge bg-success text-white px-2 py-1 small">
-                                        <i class="fa fa-check-circle me-1"/>Approved
+                                    <span class="badge" style="background: linear-gradient(135deg, #D4AF37, #C59B27); color: #FFFFFF; padding: 6px 12px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
+                                        <i class="fa fa-check-circle me-1"/>APPROVED
                                     </span>
                                 </t>
                                 <t t-elif="record.state.raw_value == 'pending'">
-                                    <span class="badge bg-warning text-white px-2 py-1 small">
-                                        <i class="fa fa-clock-o me-1"/>Pending
+                                    <span class="badge" style="background: linear-gradient(135deg, #ECC844, #F9E060); color: #0B1B3D; padding: 6px 12px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
+                                        <i class="fa fa-clock-o me-1"/>PENDING
                                     </span>
                                 </t>
                                 <t t-elif="record.state.raw_value == 'sent'">
-                                    <span class="badge bg-info text-white px-2 py-1 small">
-                                        <i class="fa fa-paper-plane me-1"/>Sent
+                                    <span class="badge" style="background: rgba(212,175,55,0.3); color: #D4AF37; padding: 6px 12px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; border: 1px solid rgba(212,175,55,0.5);">
+                                        <i class="fa fa-paper-plane me-1"/>SENT
                                     </span>
                                 </t>
                                 <t t-else="">
-                                    <span class="badge bg-secondary text-white px-2 py-1 small">
-                                        <i class="fa fa-file-o me-1"/>Draft
+                                    <span class="badge" style="background: rgba(212,175,55,0.15); color: rgba(212,175,55,0.8); padding: 6px 12px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; border: 1px solid rgba(212,175,55,0.3);">
+                                        <i class="fa fa-file-o me-1"/>DRAFT
                                     </span>
                                 </t>
                             </div>
-                            <h4 class="o_kanban_record_title fw-bold text-dark fs-5 mb-1 mt-1">
-                                <t t-esc="record.supplier_id.value"/>
-                            </h4>
-                            <div class="text-muted small mb-2">
-                                <i class="fa fa-sitemap me-1"/> <t t-esc="record.plan_lot_id.value"/>
+
+                            <!-- Supplier Name -->
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="fa fa-building" style="color: rgba(212,175,55,0.6); font-size: 12px;"/>
+                                    <span style="color: rgba(212,175,55,0.7); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Supplier</span>
+                                </div>
+                                <div class="fw-bold" style="color: #FFFFFF; font-size: 15px; line-height: 1.3;">
+                                    <t t-esc="record.supplier_id.value"/>
+                                </div>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
-                                <span class="text-muted small">
-                                    <i class="fa fa-search me-1"/> <t t-esc="record.inspection_type.value"/>
-                                </span>
-                                <span class="text-muted small font-monospace">
-                                    <i class="fa fa-calendar me-1"/> <t t-esc="record.date_order.value"/>
-                                </span>
+
+                            <!-- Information Grid -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <i class="fa fa-sitemap" style="color: rgba(212,175,55,0.6); font-size: 11px;"/>
+                                        <span style="color: rgba(212,175,55,0.6); font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;">Plan/Lot</span>
+                                    </div>
+                                    <div style="color: rgba(255,255,255,0.85); font-size: 12px; font-weight: 500;">
+                                        <t t-esc="record.plan_lot_id.value or 'N/A'"/>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <i class="fa fa-calendar-o" style="color: rgba(212,175,55,0.6); font-size: 11px;"/>
+                                        <span style="color: rgba(212,175,55,0.6); font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;">Order Date</span>
+                                    </div>
+                                    <div class="font-monospace" style="color: rgba(255,255,255,0.85); font-size: 12px; font-weight: 500;">
+                                        <t t-esc="record.date_order.value"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Footer: Inspection Type -->
+                            <div class="pt-3" style="border-top: 1px solid rgba(212,175,55,0.15);">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa fa-search" style="color: rgba(212,175,55,0.6); font-size: 12px;"/>
+                                    <span style="color: rgba(212,175,55,0.7); font-size: 11px; font-weight: 500;">
+                                        <t t-esc="record.inspection_type.value"/>
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </t>
