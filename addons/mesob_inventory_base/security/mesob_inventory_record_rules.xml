@@ -132,6 +132,18 @@
         <field name="perm_unlink">0</field>
     </record>
 
+    <!-- Inspector: can see only receiving orders in received/inspecting state, can write but not create/delete -->
+    <record id="rule_receiving_inspector" model="ir.rule">
+        <field name="name">Inspector: Received/Inspecting Orders Only</field>
+        <field name="model_id" ref="model_mesob_inventory_receiving"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_inspector')])]"/>
+        <field name="domain_force">[('state', 'in', ['received', 'inspecting'])]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
     <!-- ══════════════════════════════════════════════════════════════
          Model 19 (Receipt) Record Rules
          ══════════════════════════════════════════════════════════════ -->

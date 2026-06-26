@@ -87,6 +87,7 @@ class MesobInventoryReceiving(models.Model):
     inspector_id = fields.Many2one(
         "res.users",
         string="Inspector",
+        domain=lambda self: self._get_inspector_domain(),
         help="Person assigned to inspect the goods.",
     )
     inspection_date = fields.Date(
@@ -168,6 +169,36 @@ class MesobInventoryReceiving(models.Model):
             )
 
     # ── Onchange ───────────────────────────────────────────────────
+    
+    def _get_inspector_domain(self):
+        """Get domain to filter inspector users."""
+        inspector_group = self.env.ref('mesob_inventory_base.group_mesob_inspector', raise_if_not_found=False)
+        if not inspector_group:
+            # If group doesn't exist, return domain that matches no users
+            return [('id', '=', False)]
+            
+        # Query through the many2many relationship from the group side
+        self.env.cr.execute("""
+            SELECT uid 
+            FROM res_groups_users_rel 
+            WHERE gid = %s
+        """, (inspector_group.id,))
+        
+        inspector_user_ids = [row[0] for row in self.env.cr.fetchall()]
+        
+        # Filter out portal users
+        if inspector_user_ids:
+            inspector_users = self.env['res.users'].browse(inspector_user_ids).filtered(
+                lambda u: not u.share
+            )
+            inspector_user_ids = inspector_users.ids
+        
+        if inspector_user_ids:
+            return [('id', 'in', inspector_user_ids)]
+        
+        # If no inspectors found, return domain that matches no users
+        return [('id', '=', False)]
+    
     @api.onchange("source_type")
     def _onchange_source_type(self):
         """Auto-set no-payment flag and clear/reset fields based on source type.
