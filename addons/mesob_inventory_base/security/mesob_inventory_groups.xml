@@ -82,4 +82,18 @@
         <field name="privilege_id" ref="privilege_mesob_inventory"/>
         <field name="implied_ids" eval="[(4, ref('mesob_inventory_base.group_mesob_inventory_user'))]"/>
     </record>
+
+    <!-- INSPECTOR — inspects incoming goods at receiving -->
+    <record id="group_mesob_inspector" model="res.groups">
+        <field name="name">Inspector</field>
+        <field name="privilege_id" ref="privilege_mesob_inventory"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- CENTER MANAGER — high-level analytics and business intelligence -->
+    <record id="group_mesob_center_manager" model="res.groups">
+        <field name="name">Center Manager</field>
+        <field name="privilege_id" ref="privilege_mesob_inventory"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
 </odoo>

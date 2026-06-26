@@ -115,15 +115,15 @@
                             string="Start Inspection"
                             class="btn-primary"
                             invisible="state != 'received'"
-                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                            groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_inspector"/>
                     <button name="action_accept" type="object" string="Accept"
                             class="btn-success"
                             invisible="state != 'inspecting'"
-                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                            groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_inspector"/>
                     <button name="action_reject" type="object" string="Reject"
                             class="btn-danger"
                             invisible="state != 'inspecting'"
-                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                            groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_inspector"/>
                     <button name="action_done" type="object" string="Finalize"
                             class="btn-primary"
                             invisible="state not in ('accepted', 'rejected')"
@@ -199,33 +199,15 @@
                         </div>
                     </div>
 
-                    <!-- Inspection Section -->
-                    <div class="o_receiving_section_premium o_inspection_section_premium mb-4" invisible="state == 'draft'">
-                        <div class="o_section_header_premium o_section_header_inspection">
-                            <i class="fa fa-search me-2"/>
-                            <span>RECEIVING DETAILS</span>
-                        </div>
-                        <div class="row">
-                            <div class="col-4">
-                                <div class="o_field_container_premium">
-                                    <label for="inspection_type" class="o_form_label_premium">Inspection Type</label>
-                                    <field name="inspection_type" readonly="state not in ('received', 'inspecting')" widget="radio" options="{'horizontal': true}"/>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="o_field_container_premium">
-                                    <label for="inspector_id" class="o_form_label_premium">Inspector</label>
-                                    <field name="inspector_id" readonly="state not in ('received', 'inspecting')"/>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="o_field_container_premium">
-                                    <label for="inspection_date" class="o_form_label_premium">Inspection Date</label>
-                                    <field name="inspection_date" readonly="1" class="font-monospace"/>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <group invisible="state == 'draft'" class="mb-4">
+                        <group string="Quality Assurance Inspection" col="1" class="glass-card p-3 rounded shadow-sm border">
+                            <field name="inspection_type" readonly="state not in ('received', 'inspecting')" class="mb-2"/>
+                            <field name="inspector_id" readonly="state not in ('received', 'inspecting')" class="mb-2" 
+                                   options="{'no_create': True, 'no_create_edit': True}"
+                                   groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_inspector"/>
+                            <field name="inspection_date" readonly="1" class="mb-2 font-monospace"/>
+                        </group>
+                    </group>
 
                     <!-- Tabs Section -->
                     <notebook class="o_notebook_premium">
@@ -262,7 +244,9 @@
                                 </div>
                                 <field name="inspection_notes"
                                        placeholder="Record detailed structural, physical, or quantity check observations..."
-                                       readonly="state not in ('inspecting',)"/>
+                                       readonly="state not in ('inspecting',)"
+                                       class="w-100 border p-3 rounded" style="min-height: 100px;"
+                                       groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_inspector"/>
                             </div>
                         </page>
                         <page string="Additional Notes" name="notes">
@@ -339,4 +323,24 @@
             </div>
         </field>
     </record>
+
+    <!-- ── Inspector Dashboard Action ────────────────────────────────── -->
+    <record id="action_inspector_dashboard" model="ir.actions.act_window">
+        <field name="name">My Inspections</field>
+        <field name="res_model">mesob.inventory.receiving</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('inspector_id', '=', uid), ('state', 'in', ['received', 'inspecting'])]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No pending inspections
+            </p>
+            <p>
+                You will see orders here when a storekeeper assigns you as the inspector.
+                You can then inspect the items, fill in accepted and rejected quantities,
+                and complete the inspection.
+            </p>
+        </field>
+    </record>
+
 </odoo>
