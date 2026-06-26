@@ -11,7 +11,7 @@
         <field name="view_mode">kanban,list,pivot,graph</field>
         <field name="domain">[]</field>
         <field name="context">{
-            'group_by': ['major_classification_id', 'current_status']
+            'group_by': ['classification_id', 'stock_status']
         }</field>
     </record>
 
