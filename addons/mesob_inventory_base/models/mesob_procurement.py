@@ -693,6 +693,16 @@ class MesobProcurementOrder(models.Model):
         "order_id",
         string="Purchase Order Lines",
     )
+    receiving_status = fields.Selection(
+        [
+            ("new", "New PO"),
+            ("received", "Received PO"),
+        ],
+        string="Receiving Status",
+        compute="_compute_receiving_status",
+        store=True,
+        help="Track whether this PO has been referenced in receiving orders.",
+    )
     state = fields.Selection(
         [
             ("draft", "Draft"),
@@ -710,6 +720,56 @@ class MesobProcurementOrder(models.Model):
         tracking=True,
     )
 
+    @api.model
+    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None, **read_kwargs):
+        """Override to filter POs for storekeepers - only show sent POs."""
+        domain = domain or []
+        user = self.env.user
+        is_storekeeper = user.has_group("mesob_inventory_base.group_mesob_storekeeper")
+        is_pao = user.has_group("mesob_inventory_base.group_mesob_pao")
+        is_procurement = user.has_group("mesob_inventory_base.group_mesob_procurement")
+        
+        # Storekeepers only see sent/partially_received POs (unless they're also PAO/Procurement)
+        if is_storekeeper and not (is_pao or is_procurement):
+            domain = domain + [('state', 'in', ['sent', 'partially_received'])]
+        
+        return super().search_read(domain, fields, offset, limit, order, **read_kwargs)
+    
+    @api.model
+    def get_view(self, view_id=None, view_type="form", **options):
+        """Override to show simplified kanban for storekeepers."""
+        result = super().get_view(view_id, view_type, **options)
+        
+        if view_type == "kanban":
+            user = self.env.user
+            is_storekeeper = user.has_group("mesob_inventory_base.group_mesob_storekeeper")
+            is_pao = user.has_group("mesob_inventory_base.group_mesob_pao")
+            is_procurement = user.has_group("mesob_inventory_base.group_mesob_procurement")
+            
+            # Storekeepers get simplified view (unless they're also PAO/Procurement)
+            if is_storekeeper and not (is_pao or is_procurement):
+                simplified_view = self.env.ref("mesob_inventory_base.view_mesob_procurement_order_kanban_storekeeper", raise_if_not_found=False)
+                if simplified_view:
+                    result = super().get_view(simplified_view.id, view_type, **options)
+        
+        return result
+    
+    @api.depends("name")
+    def _compute_receiving_status(self):
+        """Compute whether this PO has been referenced in any receiving orders."""
+        for rec in self:
+            if not rec.name or rec.name == "New":
+                rec.receiving_status = "new"
+                continue
+            
+            # Check if this PO reference exists in any receiving order
+            receiving_count = self.env["mesob.inventory.receiving"].search_count([
+                ("purchase_order_ref", "=", rec.name),
+                ("state", "in", ("received", "inspecting", "accepted", "done"))
+            ])
+            
+            rec.receiving_status = "received" if receiving_count > 0 else "new"
+    
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -744,6 +804,14 @@ class MesobProcurementOrder(models.Model):
                     raise UserError(f"Approval Blocked: Stock item code '{line.item_id.item_code}' is currently flagged as surplus in the Disposal system! (BR-PROC-008)")
 
             rec.state = "approved"
+        return True
+
+    def action_send_to_storekeeper(self):
+        """Send approved PO to storekeeper for receiving preparation."""
+        for rec in self:
+            if rec.state != "approved":
+                raise UserError("Only approved Purchase Orders can be sent to storekeeper.")
+            rec.state = "sent"
         return True
 
 

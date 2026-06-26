@@ -125,7 +125,7 @@
 
                     <notebook>
                         <page string="📋 Individual Items" name="items_list" invisible="not is_fixed_asset">
-                            <field name="item_ids" readonly="1">
+                            <field name="item_ids" readonly="1" context="{'form_view_ref': 'mesob_inventory_base.view_mesob_inventory_item_form_simple'}">
                                 <list string="Items">
                                     <field name="name" string="Item Name"/>
                                     <field name="item_code" string="Item Code"/>
@@ -190,7 +190,7 @@
                         <group string="Classification">
                             <field name="major_classification_id" options="{'no_create': True}"/>
                             <field name="code"/>
-                            <field name="name"/>
+                            <field name="name" string="Name and Specification"/>
                         </group>
                         <group string="Status">
                             <field name="is_fixed_asset"/>
@@ -237,7 +237,7 @@
 
                     <notebook>
                         <page string="📋 Individual Items" name="items_list" invisible="not is_fixed_asset">
-                            <field name="item_ids" readonly="1">
+                            <field name="item_ids" readonly="1" context="{'form_view_ref': 'mesob_inventory_base.view_mesob_inventory_item_form_simple'}">
                                 <list string="Items">
                                     <field name="name" string="Item Name"/>
                                     <field name="item_code" string="Item Code"/>
