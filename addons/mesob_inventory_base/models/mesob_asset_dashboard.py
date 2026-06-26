@@ -93,7 +93,7 @@ class MesobAssetRegister(models.Model):
                 ('item_id', '=', rec.item_id.id),
                 ('voucher_id.state', 'in', ['issued', 'received'])
             ])
-            rec.quantity_issued = sum(issued_lines.mapped('quantity'))
+            rec.quantity_issued = sum(issued_lines.mapped('quantity_issued'))
             rec.quantity_available = rec.quantity_in_stock - rec.quantity_issued
     
     @api.depends('item_id', 'quantity_issued', 'days_since_last_movement')
