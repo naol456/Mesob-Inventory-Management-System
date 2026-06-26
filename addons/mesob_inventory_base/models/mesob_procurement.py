@@ -197,6 +197,13 @@ class MesobProcurementPlanLot(models.Model):
 
     _name = "mesob.procurement.plan.lot"
     _description = "Procurement Lot"
+    _sql_constraints = [
+        (
+            "unique_lot_name_per_plan",
+            "UNIQUE(plan_id, name)",
+            "Lot name must be unique within the same Annual Procurement Plan. Please use a different lot name.",
+        )
+    ]
 
     plan_id = fields.Many2one(
         "mesob.procurement.plan",
@@ -248,6 +255,17 @@ class MesobProcurementPlanLot(models.Model):
         "lot_id",
         string="Consolidated Needs",
     )
+
+    def name_get(self):
+        """Customize display name to include plan reference."""
+        result = []
+        for rec in self:
+            if rec.plan_id and rec.plan_id.fiscal_year:
+                display_name = f"{rec.name} ({rec.plan_id.fiscal_year})"
+            else:
+                display_name = rec.name
+            result.append((rec.id, display_name))
+        return result
 
 
 class MesobProcurementNeed(models.Model):
