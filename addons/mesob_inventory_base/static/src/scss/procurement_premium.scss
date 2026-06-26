@@ -1,0 +1,373 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   PREMIUM PROCUREMENT & PURCHASE ORDERS UI ENHANCEMENTS
+   Navy Blue (#0B1B3D) Backgrounds + Golden (#D4AF37) Text
+   ═══════════════════════════════════════════════════════════════════════ */
+
+// ═══════════════════════════════════════════════════════════════
+// Purchase Order Kanban Cards - Navy Blue with Golden Accents
+// ═══════════════════════════════════════════════════════════════
+
+.o_kanban_view {
+    // Purchase Order kanban cards
+    &[data-model="mesob.procurement.order"] {
+        .oe_kanban_global_click {
+            background: #0B1B3D !important; // Navy blue card
+            border: 1px solid rgba(212, 175, 55, 0.3) !important; // Golden border
+            border-radius: 12px !important;
+            padding: 20px !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+            
+            &:hover {
+                border-color: rgba(212, 175, 55, 0.6) !important; // Brighter golden on hover
+                box-shadow: 0 6px 25px rgba(212, 175, 55, 0.2) !important; // Golden glow
+                transform: translateY(-2px) !important;
+            }
+            
+            // PO Number badge
+            .badge.bg-primary {
+                background: linear-gradient(135deg, #D4AF37, #ECC844) !important; // Golden gradient
+                color: #0B1B3D !important; // Navy text
+                font-family: 'JetBrains Mono', monospace !important;
+                font-size: 1.1rem !important;
+                padding: 8px 16px !important;
+                border-radius: 8px !important;
+                box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3) !important;
+            }
+            
+            // State badges
+            .badge.bg-success {
+                background: linear-gradient(135deg, #D4AF37, #C59B27) !important;
+                color: #FFFFFF !important;
+            }
+            
+            .badge.bg-warning {
+                background: linear-gradient(135deg, #ECC844, #F9E060) !important;
+                color: #0B1B3D !important;
+            }
+            
+            .badge.bg-info {
+                background: linear-gradient(135deg, rgba(212, 175, 55, 0.4), rgba(212, 175, 55, 0.3)) !important;
+                color: #D4AF37 !important;
+                border: 1px solid rgba(212, 175, 55, 0.5) !important;
+            }
+            
+            .badge.bg-secondary {
+                background: rgba(212, 175, 55, 0.15) !important;
+                color: rgba(212, 175, 55, 0.8) !important;
+                border: 1px solid rgba(212, 175, 55, 0.3) !important;
+            }
+            
+            // Card title (supplier)
+            .o_kanban_record_title {
+                color: #D4AF37 !important; // Golden supplier name
+                font-weight: 700 !important;
+                font-size: 1.1rem !important;
+                letter-spacing: -0.01em !important;
+            }
+            
+            // Muted text
+            .text-muted {
+                color: rgba(212, 175, 55, 0.7) !important; // Golden muted text
+            }
+            
+            // Icons
+            i.fa {
+                color: #D4AF37 !important; // Golden icons
+            }
+            
+            // Border top
+            .border-top {
+                border-top-color: rgba(212, 175, 55, 0.2) !important; // Golden divider
+            }
+        }
+        
+        // Storekeeper simplified card
+        .card.bg-white {
+            background: #0B1B3D !important; // Navy blue
+            border: 2px solid rgba(212, 175, 55, 0.4) !important; // Golden border
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+            
+            .badge.bg-primary {
+                background: linear-gradient(135deg, #D4AF37, #ECC844) !important;
+                color: #0B1B3D !important;
+                font-size: 1.8rem !important;
+                padding: 16px 28px !important;
+                box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4) !important;
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Purchase Order List View - Navy Blue with Golden Highlights
+// ═══════════════════════════════════════════════════════════════
+
+.o_list_view {
+    .o_data_row {
+        // PO name/number - Golden
+        td[name="name"] {
+            font-family: 'JetBrains Mono', monospace !important;
+            font-weight: 700 !important;
+            color: #D4AF37 !important;
+            font-size: 14px !important;
+        }
+        
+        // Supplier name - Emphasized
+        td[name="supplier_id"] {
+            font-weight: 600 !important;
+            color: rgba(212, 175, 55, 0.9) !important;
+        }
+        
+        // Plan/Lot reference
+        td[name="plan_lot_id"] {
+            color: rgba(212, 175, 55, 0.75) !important;
+            font-size: 13px !important;
+        }
+        
+        // Date - Monospace
+        td[name="date_order"] {
+            font-family: 'JetBrains Mono', monospace !important;
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+        
+        // Inspection type
+        td[name="inspection_type"] {
+            color: rgba(212, 175, 55, 0.7) !important;
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Form Body Navy Blue Background for Procurement
+// ═══════════════════════════════════════════════════════════════
+
+.o_form_view[data-model="mesob.procurement.order"],
+.o_form_view[data-model="mesob.procurement.plan"],
+.o_form_view[data-model="mesob.procurement.need"],
+.o_form_view[data-model="mesob.procurement.tender"],
+.o_form_view[data-model="mesob.procurement.contract"],
+.o_form_view[data-model="mesob.procurement.payment.certificate"],
+.o_form_view[data-model="mesob.procurement.complaint"] {
+    background: #0B1B3D !important;
+    
+    .o_content {
+        background: #0B1B3D !important;
+    }
+    
+    .o_form_sheet_bg {
+        background: #0B1B3D !important;
+        padding: 20px !important;
+    }
+    
+    .o_form_sheet {
+        background: #0B1B3D !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+        border: 1px solid rgba(212, 175, 55, 0.2) !important;
+        border-radius: 12px !important;
+        padding: 30px !important;
+        margin: 20px !important;
+        
+        // Golden separator after header
+        .mesob_corporate_header::after {
+            content: '' !important;
+            display: block !important;
+            height: 3px !important;
+            background: linear-gradient(90deg, transparent, #D4AF37, #ECC844, #D4AF37, transparent) !important;
+            margin-top: 20px !important;
+            margin-bottom: 25px !important;
+            border-radius: 2px !important;
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4) !important;
+        }
+    }
+    
+    // Groups and containers
+    .o_group {
+        background: #0B1B3D !important;
+        
+        .o_inner_group {
+            background: #0B1B3D !important;
+        }
+    }
+    
+    // Notebook styling
+    .o_notebook {
+        background: #0B1B3D !important;
+        margin-top: 20px !important;
+        
+        .nav-tabs {
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3) !important;
+            
+            .nav-link {
+                color: rgba(212, 175, 55, 0.7) !important;
+                background: transparent !important;
+                border: none !important;
+                
+                &:hover {
+                    color: #D4AF37 !important;
+                    background: rgba(212, 175, 55, 0.1) !important;
+                }
+                
+                &.active {
+                    color: #D4AF37 !important;
+                    background: rgba(212, 175, 55, 0.15) !important;
+                    border-bottom: 3px solid #D4AF37 !important;
+                    font-weight: 700 !important;
+                }
+            }
+        }
+        
+        .tab-content {
+            background: #0B1B3D !important;
+            padding: 20px !important;
+        }
+    }
+    
+    // Input fields
+    .o_field_widget {
+        input, select, textarea {
+            background: rgba(11, 27, 61, 0.6) !important;
+            border: 1px solid rgba(212, 175, 55, 0.3) !important;
+            color: #FFFFFF !important;
+            
+            &:focus {
+                background: rgba(11, 27, 61, 0.8) !important;
+                border-color: #D4AF37 !important;
+                box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2) !important;
+            }
+            
+            &::placeholder {
+                color: rgba(212, 175, 55, 0.5) !important;
+            }
+        }
+    }
+    
+    // Labels
+    .o_form_label {
+        color: rgba(212, 175, 55, 0.85) !important;
+        font-weight: 600 !important;
+    }
+    
+    // Group string headers
+    .o_horizontal_separator {
+        color: #D4AF37 !important;
+        font-weight: 700 !important;
+        border-bottom: 2px solid rgba(212, 175, 55, 0.3) !important;
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Order Lines Table - Navy Blue with Golden Accents
+// ═══════════════════════════════════════════════════════════════
+
+.o_field_one2many {
+    .o_list_table {
+        background: #0B1B3D !important;
+        border: 1px solid rgba(212, 175, 55, 0.2) !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        
+        thead {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.1)) !important;
+            
+            th {
+                color: #D4AF37 !important;
+                font-weight: 700 !important;
+                font-size: 11px !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.8px !important;
+                border-bottom: 2px solid rgba(212, 175, 55, 0.3) !important;
+            }
+        }
+        
+        tbody {
+            tr {
+                background: #0B1B3D !important;
+                border-bottom: 1px solid rgba(212, 175, 55, 0.1) !important;
+                
+                &:hover {
+                    background: rgba(212, 175, 55, 0.05) !important;
+                }
+                
+                td {
+                    color: rgba(255, 255, 255, 0.9) !important;
+                    
+                    // Quantity and price fields
+                    &[name="quantity"],
+                    &[name="price_unit"],
+                    &[name="price_subtotal"] {
+                        font-family: 'JetBrains Mono', monospace !important;
+                        font-weight: 600 !important;
+                    }
+                    
+                    // Subtotal - Golden emphasis
+                    &[name="price_subtotal"] {
+                        color: #D4AF37 !important;
+                        font-weight: 700 !important;
+                    }
+                }
+            }
+        }
+        
+        tfoot {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(212, 175, 55, 0.1)) !important;
+            
+            td {
+                color: #D4AF37 !important;
+                font-weight: 700 !important;
+                font-family: 'JetBrains Mono', monospace !important;
+                border-top: 2px solid rgba(212, 175, 55, 0.4) !important;
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Status Bar - Golden Theme
+// ═══════════════════════════════════════════════════════════════
+
+.o_form_statusbar {
+    background: rgba(11, 27, 61, 0.6) !important;
+    border-bottom: 2px solid rgba(212, 175, 55, 0.3) !important;
+    
+    .o_statusbar_status {
+        .o_arrow_button {
+            color: rgba(212, 175, 55, 0.6) !important;
+            
+            &.btn-primary,
+            &.o_arrow_button_current {
+                background: linear-gradient(135deg, #D4AF37, #C59B27) !important;
+                color: #0B1B3D !important;
+                font-weight: 700 !important;
+                
+                &::before {
+                    border-left-color: #D4AF37 !important;
+                }
+                
+                &::after {
+                    border-left-color: #C59B27 !important;
+                }
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Chatter - Navy Blue Background
+// ═══════════════════════════════════════════════════════════════
+
+.o-mail-Chatter {
+    background: rgba(11, 27, 61, 0.4) !important;
+    border: 1px solid rgba(212, 175, 55, 0.2) !important;
+    border-radius: 12px !important;
+    
+    .o-mail-Message {
+        background: rgba(11, 27, 61, 0.6) !important;
+        border: 1px solid rgba(212, 175, 55, 0.15) !important;
+        
+        &:hover {
+            background: rgba(11, 27, 61, 0.8) !important;
+            border-color: rgba(212, 175, 55, 0.25) !important;
+        }
+    }
+}

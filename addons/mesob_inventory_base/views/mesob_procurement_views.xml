@@ -363,6 +363,20 @@
             </list>
         </field>
     </record>
+    
+    <!-- Purchase Order Search View -->
+    <record id="view_mesob_procurement_order_search" model="ir.ui.view">
+        <field name="name">mesob.procurement.order.search</field>
+        <field name="model">mesob.procurement.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="supplier_id"/>
+                <field name="plan_lot_id"/>
+                <field name="contract_id"/>
+            </search>
+        </field>
+    </record>
 
     <record id="view_mesob_procurement_order_form" model="ir.ui.view">
         <field name="name">mesob.procurement.order.form</field>
@@ -389,28 +403,56 @@
                             <div class="mesob_header_title">Purchase Order (PO)</div>
                         </div>
                     </div>
-                    <group>
-                        <group>
-                            <field name="supplier_id" readonly="state != 'draft'"/>
-                            <field name="plan_lot_id" readonly="state != 'draft'"/>
-                            <field name="contract_id" readonly="state != 'draft'"/>
+                    
+                    <!-- Premium Form Body with Icon-Label Combinations -->
+                    <group class="mb-4" col="2">
+                        <group string="Supplier &amp; Contract Details" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(11,27,61,0.95); border: 1px solid rgba(212,175,55,0.25) !important; border-radius: 12px;">
+                            <label for="supplier_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(212,175,55,0.85); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-building" style="color: #D4AF37;"/>Supplier
+                            </label>
+                            <field name="supplier_id" readonly="state != 'draft'" class="mb-3" options="{'no_open': True, 'no_create': True}"/>
+                            
+                            <label for="plan_lot_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(212,175,55,0.85); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-sitemap" style="color: #D4AF37;"/>Plan/Lot Reference
+                            </label>
+                            <field name="plan_lot_id" readonly="state != 'draft'" class="mb-3" options="{'no_open': True, 'no_create': True}"/>
+                            
+                            <label for="contract_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(212,175,55,0.85); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-file-text" style="color: #D4AF37;"/>Contract
+                            </label>
+                            <field name="contract_id" readonly="state != 'draft'" class="mb-2" options="{'no_open': True, 'no_create': True}"/>
                         </group>
-                        <group>
-                            <field name="date_order" readonly="state != 'draft'"/>
-                            <field name="inspection_type" readonly="state != 'draft'"/>
+                        
+                        <group string="Order &amp; Inspection Details" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(11,27,61,0.95); border: 1px solid rgba(212,175,55,0.25) !important; border-radius: 12px;">
+                            <label for="date_order" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(212,175,55,0.85); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-calendar-check-o" style="color: #D4AF37;"/>Order Date
+                            </label>
+                            <field name="date_order" readonly="state != 'draft'" class="mb-3 font-monospace"/>
+                            
+                            <label for="inspection_type" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(212,175,55,0.85); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-search" style="color: #D4AF37;"/>Inspection Type
+                            </label>
+                            <field name="inspection_type" readonly="state != 'draft'" class="mb-2"/>
                         </group>
                     </group>
-                    <notebook>
+                    
+                    <notebook class="mt-4">
                         <page string="Order Lines" name="lines">
-                            <field name="line_ids" readonly="state != 'draft'">
-                                <list editable="bottom">
-                                    <field name="major_classification_id"/>
-                                    <field name="sub_classification_id" domain="[('major_classification_id', '=', major_classification_id)]"/>
-                                    <field name="quantity"/>
-                                    <field name="price_unit"/>
-                                    <field name="price_subtotal" readonly="1"/>
-                                </list>
-                            </field>
+                            <div class="p-3">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <i class="fa fa-list-alt" style="color: #D4AF37; font-size: 18px;"/>
+                                    <label for="line_ids" class="mb-0" style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 600;">Purchase Order Items</label>
+                                </div>
+                                <field name="line_ids" readonly="state != 'draft'">
+                                    <list editable="bottom">
+                                        <field name="major_classification_id"/>
+                                        <field name="sub_classification_id" domain="[('major_classification_id', '=', major_classification_id)]"/>
+                                        <field name="quantity"/>
+                                        <field name="price_unit"/>
+                                        <field name="price_subtotal" readonly="1" sum="Total Amount"/>
+                                    </list>
+                                </field>
+                            </div>
                         </page>
                     </notebook>
                 </sheet>
