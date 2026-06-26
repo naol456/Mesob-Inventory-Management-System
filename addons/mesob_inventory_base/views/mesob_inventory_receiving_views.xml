@@ -91,15 +91,15 @@
                             string="Start Inspection"
                             class="btn-primary"
                             invisible="state != 'received'"
-                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                            groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_inspector"/>
                     <button name="action_accept" type="object" string="Accept"
                             class="btn-success"
                             invisible="state != 'inspecting'"
-                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                            groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_inspector"/>
                     <button name="action_reject" type="object" string="Reject"
                             class="btn-danger"
                             invisible="state != 'inspecting'"
-                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                            groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_inspector"/>
                     <button name="action_done" type="object" string="Finalize"
                             class="btn-primary"
                             invisible="state not in ('accepted', 'rejected')"
@@ -152,7 +152,9 @@
                     <group invisible="state == 'draft'" class="mb-4">
                         <group string="Quality Assurance Inspection" col="1" class="glass-card p-3 rounded shadow-sm border">
                             <field name="inspection_type" readonly="state not in ('received', 'inspecting')" class="mb-2"/>
-                            <field name="inspector_id" readonly="state not in ('received', 'inspecting')" class="mb-2"/>
+                            <field name="inspector_id" readonly="state not in ('received', 'inspecting')" class="mb-2" 
+                                   options="{'no_create': True, 'no_create_edit': True}"
+                                   groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_inspector"/>
                             <field name="inspection_date" readonly="1" class="mb-2 font-monospace"/>
                         </group>
                     </group>
@@ -186,7 +188,8 @@
                                 <field name="inspection_notes"
                                        placeholder="Record detailed structural, physical, or quantity check observations..."
                                        readonly="state not in ('inspecting',)"
-                                       class="w-100 border p-3 rounded" style="min-height: 100px;"/>
+                                       class="w-100 border p-3 rounded" style="min-height: 100px;"
+                                       groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_inspector"/>
                             </div>
                         </page>
                         <page string="Additional Notes" name="notes">
