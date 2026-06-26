@@ -271,20 +271,6 @@
             <search>
                 <field name="item_code"/>
                 <field name="item_name"/>
-                <filter string="Surplus Material" name="filter_surplus" 
-                        domain="[('is_surplus', '=', True)]"/>
-                <filter string="Scheduled for Disposal" name="filter_disposal" 
-                        domain="[('scheduled_for_disposal', '=', True)]"/>
-                <filter string="Controlled Material" name="filter_controlled" 
-                        domain="[('is_controlled', '=', True)]"/>
-                <group string="Group By">
-                    <filter string="Major Classification" name="group_major_class" 
-                            context="{'group_by': 'major_classification_id'}"/>
-                    <filter string="Sub Classification" name="group_sub_class" 
-                            context="{'group_by': 'sub_classification_id'}"/>
-                    <filter string="Condition" name="group_condition" 
-                            context="{'group_by': 'condition'}"/>
-                </group>
             </search>
         </field>
     </record>
@@ -294,7 +280,6 @@
         <field name="name">Asset Management Dashboard</field>
         <field name="res_model">mesob.asset.dashboard</field>
         <field name="view_mode">kanban,list,form</field>
-        <field name="context">{'search_default_group_major_class': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Asset Management Dashboard
