@@ -49,8 +49,9 @@ class MesobInventoryIssueVoucher(models.Model):
         readonly=True,
     )
 
-    requesting_department = fields.Selection(
-        related="requisition_id.department",
+    requesting_department_id = fields.Many2one(
+        "mesob.department",
+        related="requisition_id.department_id",
         string="Requesting Department",
         store=True,
         readonly=True,
@@ -214,10 +215,8 @@ class MesobInventoryIssueVoucher(models.Model):
     @api.depends("line_ids.quantity_issued", "line_ids.item_id", "assigned_to_id")
     def _compute_display_name(self):
         for rec in self:
-            if rec.name and rec.assigned_to_id:
-                rec.display_name = f"{rec.name} - {rec.assigned_to_id.name}"
-            elif rec.name and rec.requesting_department:
-                rec.display_name = f"{rec.name} - {rec.requesting_department}"
+            if rec.name and rec.requesting_department_id:
+                rec.display_name = f"{rec.name} - {rec.requesting_department_id.name}"
             else:
                 rec.display_name = rec.name or "New Issue Voucher"
 

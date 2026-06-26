@@ -8,7 +8,7 @@
         <field name="model">mesob.inventory.requisition</field>
         <field name="arch" type="xml">
             <graph string="Requisition Budget Analysis" type="bar" sample="1">
-                <field name="department" type="row"/>
+                <field name="department_id" type="row"/>
                 <field name="state" type="col"/>
             </graph>
         </field>

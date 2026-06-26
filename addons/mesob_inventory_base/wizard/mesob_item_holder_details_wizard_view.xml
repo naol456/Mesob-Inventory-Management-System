@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_mesob_item_holder_details_wizard_form" model="ir.ui.view">
+        <field name="name">mesob.item.holder.details.wizard.form</field>
+        <field name="model">mesob.item.holder.details.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Item Holder Information">
+                <sheet>
+                    <group>
+                        <group string="🧾 Requisition Details" class="glass-card p-3 rounded border">
+                            <field name="requested_by" string="Requested By"/>
+                            <field name="department" string="Department"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group string="📦 Classification Details" class="glass-card p-3 rounded border mt-3" col="2">
+                            <field name="major_classification" colspan="2"/>
+                            <field name="sub_classification" colspan="2"/>
+                            <separator string="Code Breakdown" colspan="2"/>
+                            <field name="major_code"/>
+                            <field name="sub_code"/>
+                            <field name="specific_code"/>
+                            <field name="full_item_code" colspan="2" class="fw-bold font-monospace text-primary"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button string="Close" class="btn-primary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

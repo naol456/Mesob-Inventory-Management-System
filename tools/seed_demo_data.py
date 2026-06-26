@@ -103,9 +103,11 @@ card_paper = env['mesob.stock.record.card'].create({
 card_paper.action_create_fifo_layers()
 
 # 6. Create beautiful, realistic department requisitions
+# Get a department by code
+dept_transport = env['mesob.department'].search([('code', '=', 'MTL')], limit=1)
 req_it = env['mesob.inventory.requisition'].create({
     'issue_mode': 'imprest',
-    'department': 'ministry_transport_logistics',
+    'department_id': dept_transport.id if dept_transport else False,
     'requested_by_id': env.user.id,
 })
 env['mesob.inventory.requisition.line'].create({

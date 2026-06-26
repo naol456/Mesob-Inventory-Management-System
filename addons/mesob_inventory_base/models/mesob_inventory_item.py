@@ -1,6 +1,6 @@
 import re
 
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
 
@@ -370,8 +370,10 @@ class MesobInventoryItem(models.Model):
                     ])
                     if not existing_need:
                         # Auto-create draft need request
+                        # Get default department (first available)
+                        default_dept = self.env['mesob.department'].search([], limit=1)
                         self.env['mesob.procurement.need'].create({
-                            'department': 'ministry_transport_logistics', # default department fallback
+                            'department_id': default_dept.id if default_dept else False,
                             'item_id': item.id,
                             'quantity': max(1.0, item.reorder_level - current),
                             'estimated_unit_price': 100.0, # default estimate
@@ -398,21 +400,61 @@ class MesobInventoryItem(models.Model):
             if line:
                 voucher = line.voucher_id
                 requisition = voucher.requisition_id
-                if requisition:
-                    # PRIORITY: Show user first, then department as fallback
-                    if requisition.requested_by_id:
-                        user = requisition.requested_by_id
-                        name = user.name or ""
-                        parts = name.split()
-                        initials = "".join([p[0].upper() for p in parts if p])[:2]
-                        dept = dict(requisition._fields['department'].selection).get(requisition.department, '')
-                        rec.current_holder = f"👤 {initials} {name} ({dept})"
-                    elif requisition.department:
-                        dept = dict(requisition._fields['department'].selection).get(requisition.department, requisition.department)
-                        rec.current_holder = f"🏢 {dept}"
-                    else:
-                        rec.current_holder = ""
+                if requisition and requisition.requested_by_id:
+                    # Always show the user who requested (not department)
+                    user = requisition.requested_by_id
+                    name = user.name or ""
+                    parts = name.split()
+                    initials = "".join([p[0].upper() for p in parts if p])[:2]
+                    rec.current_holder = f"👤 {initials} {name}"
                 else:
                     rec.current_holder = ""
             else:
                 rec.current_holder = ""
+
+    def action_view_holder_details(self):
+        """Open wizard showing detailed requisition and classification information for current holder"""
+        self.ensure_one()
+        
+        # Find the latest issue voucher line for this item
+        line = self.env['mesob.inventory.issue.voucher.line'].search([
+            ('item_id', '=', self.id),
+            ('voucher_id.state', 'in', ['issued', 'received'])
+        ], order='id desc', limit=1)
+        
+        if not line or not line.voucher_id or not line.voucher_id.requisition_id:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('No Requisition Found'),
+                    'message': _('This item has not been issued via a requisition yet.'),
+                    'type': 'warning',
+                    'sticky': False,
+                }
+            }
+        
+        requisition = line.voucher_id.requisition_id
+        
+        # Create wizard record with data
+        wizard = self.env['mesob.item.holder.details.wizard'].create({
+            'item_id': self.id,
+            'requested_by': requisition.requested_by_id.name if requisition.requested_by_id else 'N/A',
+            'department': requisition.department_id.name if requisition.department_id else 'N/A',
+            'major_classification': f"[{self.classification_id.code}] {self.classification_id.name}",
+            'sub_classification': f"[{self.sub_classification_id.code}] {self.sub_classification_id.name}",
+            'major_code': self.major_code or '',
+            'sub_code': self.sub_code or '',
+            'specific_code': self.specific_code or '',
+            'full_item_code': self.item_code or '',
+        })
+        
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Item Holder Information'),
+            'res_model': 'mesob.item.holder.details.wizard',
+            'view_mode': 'form',
+            'res_id': wizard.id,
+            'target': 'new',
+            'context': self.env.context,
+        }

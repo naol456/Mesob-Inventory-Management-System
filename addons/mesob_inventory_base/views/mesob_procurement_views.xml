@@ -63,7 +63,7 @@
         <field name="model">mesob.procurement.need</field>
         <field name="arch" type="xml">
             <list string="Department Needs Requests">
-                <field name="department"/>
+                <field name="department_id"/>
                 <field name="major_classification_id"/>
                 <field name="sub_classification_id"/>
                 <field name="item_code"/>
@@ -103,7 +103,7 @@
                     </div>
                     <group>
                         <group>
-                            <field name="department" readonly="state == 'locked'"/>
+                            <field name="department_id" readonly="state == 'locked'"/>
                             <field name="major_classification_id" readonly="state == 'locked'"/>
                             <field name="sub_classification_id" readonly="state == 'locked'" domain="[('major_classification_id', '=', major_classification_id)]"/>
                             <field name="item_code"/>
@@ -256,6 +256,96 @@
     </record>
 
     <!-- ==================== PURCHASE ORDERS ==================== -->
+    <!-- Simplified Kanban for Storekeepers (read-only, PO reference only) -->
+    <record id="view_mesob_procurement_order_kanban_storekeeper" model="ir.ui.view">
+        <field name="name">mesob.procurement.order.kanban.storekeeper</field>
+        <field name="model">mesob.procurement.order</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="receiving_status" create="0" edit="0" delete="0" class="o_kanban_mobile">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="receiving_status"/>
+                <templates>
+                    <t t-name="card">
+                        <!-- Removed oe_kanban_global_click to prevent opening form -->
+                        <div class="card shadow-sm border-0 rounded p-4 mb-3 bg-white text-center" style="min-height: 80px;">
+                            <div class="d-flex justify-content-center align-items-center">
+                                <span class="badge bg-primary text-white font-monospace" style="font-size: 1.5rem; padding: 12px 20px; user-select: all; cursor: text;">
+                                    <t t-esc="record.name.value"/>
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Full Kanban for PAO/Procurement Officers -->
+    <record id="view_mesob_procurement_order_kanban" model="ir.ui.view">
+        <field name="name">mesob.procurement.order.kanban</field>
+        <field name="model">mesob.procurement.order</field>
+        <field name="priority">10</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="receiving_status" drag_drop="false" class="o_kanban_mobile">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="supplier_id"/>
+                <field name="date_order"/>
+                <field name="plan_lot_id"/>
+                <field name="inspection_type"/>
+                <field name="receiving_status"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click card shadow-sm border-0 rounded p-3 mb-3 bg-white" style="min-height: 120px;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-primary text-white font-monospace fs-6 px-2 py-1">
+                                    <t t-esc="record.name.value"/>
+                                </span>
+                                <t t-if="record.state.raw_value == 'approved'">
+                                    <span class="badge bg-success text-white px-2 py-1 small">
+                                        <i class="fa fa-check-circle me-1"/>Approved
+                                    </span>
+                                </t>
+                                <t t-elif="record.state.raw_value == 'pending'">
+                                    <span class="badge bg-warning text-white px-2 py-1 small">
+                                        <i class="fa fa-clock-o me-1"/>Pending
+                                    </span>
+                                </t>
+                                <t t-elif="record.state.raw_value == 'sent'">
+                                    <span class="badge bg-info text-white px-2 py-1 small">
+                                        <i class="fa fa-paper-plane me-1"/>Sent
+                                    </span>
+                                </t>
+                                <t t-else="">
+                                    <span class="badge bg-secondary text-white px-2 py-1 small">
+                                        <i class="fa fa-file-o me-1"/>Draft
+                                    </span>
+                                </t>
+                            </div>
+                            <h4 class="o_kanban_record_title fw-bold text-dark fs-5 mb-1 mt-1">
+                                <t t-esc="record.supplier_id.value"/>
+                            </h4>
+                            <div class="text-muted small mb-2">
+                                <i class="fa fa-sitemap me-1"/> <t t-esc="record.plan_lot_id.value"/>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                                <span class="text-muted small">
+                                    <i class="fa fa-search me-1"/> <t t-esc="record.inspection_type.value"/>
+                                </span>
+                                <span class="text-muted small font-monospace">
+                                    <i class="fa fa-calendar me-1"/> <t t-esc="record.date_order.value"/>
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <record id="view_mesob_procurement_order_tree" model="ir.ui.view">
         <field name="name">mesob.procurement.order.tree</field>
         <field name="model">mesob.procurement.order</field>
@@ -266,6 +356,9 @@
                 <field name="plan_lot_id"/>
                 <field name="date_order"/>
                 <field name="inspection_type"/>
+                <field name="receiving_status" widget="badge" 
+                       decoration-info="receiving_status == 'new'" 
+                       decoration-success="receiving_status == 'received'"/>
                 <field name="state" widget="badge"/>
             </list>
         </field>
@@ -279,6 +372,7 @@
                 <header>
                     <button name="action_submit" string="Submit PO" type="object" class="oe_highlight" invisible="state != 'draft'"/>
                     <button name="action_approve" string="Approve PO" type="object" class="oe_highlight" invisible="state != 'pending'" groups="mesob_inventory_base.group_mesob_pao"/>
+                    <button name="action_send_to_storekeeper" string="Send to Storekeeper" type="object" class="oe_highlight" invisible="state != 'approved'" groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,pending,approved,sent,partially_received,fully_received,closed"/>
                 </header>
                 <sheet>
@@ -466,10 +560,13 @@
         <field name="view_mode">list,form</field>
     </record>
 
+    <!-- Action for Purchase Orders (automatically adapts based on user role) -->
     <record id="action_mesob_procurement_order" model="ir.actions.act_window">
         <field name="name">Purchase Orders</field>
         <field name="res_model">mesob.procurement.order</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
     </record>
 
     <record id="action_mesob_procurement_payment" model="ir.actions.act_window">
