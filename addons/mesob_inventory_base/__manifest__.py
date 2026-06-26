@@ -66,9 +66,11 @@
         "views/mesob_stock_record_card_views.xml",
         "views/mesob_stock_reorder_alert_views.xml",
         "views/mesob_procurement_views.xml",
+        "views/mesob_supplier_views.xml",
         "views/mesob_stock_taking_handover_views.xml",
         "views/mesob_storage_security_views.xml",
         "views/mesob_inventory_dashboard_views.xml",
+        "views/mesob_analytics_dashboard_views.xml",
         "views/mesob_asset_dashboard_views.xml",
         "views/mesob_asset_map_dashboard.xml",
         # Login customization

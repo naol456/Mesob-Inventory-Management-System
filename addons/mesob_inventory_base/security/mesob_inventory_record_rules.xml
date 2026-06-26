@@ -440,4 +440,44 @@
         <field name="perm_unlink">0</field>
     </record>
 
+    <!-- ══════════════════════════════════════════════════════════════
+         Purchase Order (Procurement) Record Rules
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- PAO: Full access to all Purchase Orders -->
+    <record id="rule_procurement_order_pao" model="ir.rule">
+        <field name="name">PAO: Full access to Purchase Orders</field>
+        <field name="model_id" ref="model_mesob_procurement_order"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Procurement Officer: Full access to all Purchase Orders -->
+    <record id="rule_procurement_order_procurement" model="ir.rule">
+        <field name="name">Procurement Officer: Full access to Purchase Orders</field>
+        <field name="model_id" ref="model_mesob_procurement_order"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_procurement')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Storekeeper: Can only see POs that have been sent to them (state = sent or later) -->
+    <record id="rule_procurement_order_storekeeper" model="ir.rule">
+        <field name="name">Storekeeper: Only Sent Purchase Orders</field>
+        <field name="model_id" ref="model_mesob_procurement_order"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_storekeeper')])]"/>
+        <field name="domain_force">[('state', 'in', ['sent', 'partially_received', 'fully_received', 'closed'])]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
 </odoo>

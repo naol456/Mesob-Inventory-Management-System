@@ -7,6 +7,11 @@ class ResPartner(models.Model):
 
     _inherit = "res.partner"
 
+    is_supplier = fields.Boolean(
+        string="Is Supplier",
+        default=False,
+        help="Check this box to mark this partner as a supplier/vendor.",
+    )
     legal_registration_number = fields.Char(
         string="Legal Registration No.",
         help="Federal/Regional trade license registration number.",

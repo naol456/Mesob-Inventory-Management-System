@@ -226,6 +226,13 @@
               groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
               sequence="20"/>
 
+    <menuitem id="menu_mesob_supplier_registration"
+              name="Supplier Registration"
+              parent="menu_mesob_procurement"
+              action="action_mesob_supplier_registration"
+              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
+              sequence="25"/>
+
     <menuitem id="menu_mesob_procurement_tender"
               name="Bidding &amp; Tenders"
               parent="menu_mesob_procurement"
