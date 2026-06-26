@@ -1,69 +1,20 @@
 /** @odoo-module **/
 
-import { patch } from "@web/core/utils/patch";
-import { NavBar } from "@web/webclient/navbar/navbar";
-
 /**
- * Analytics & BI Menu - Multi-Column Layout Enhancement
- * Patches the NavBar component to apply grid layout to Analytics submenu items
+ * Analytics & BI Menu - Horizontal Top Bar Layout
+ * Ensures Analytics menu items appear as horizontal tabs in the navigation bar
  */
 
-patch(NavBar.prototype, {
-    /**
-     * Apply multi-column grid layout to Analytics & BI submenu
-     */
-    setup() {
-        super.setup(...arguments);
-        
-        // Wait for DOM to be ready
-        this.env.bus.addEventListener("DOM_UPDATED", () => {
-            this._applyAnalyticsMenuGridLayout();
-        });
-    },
-    
-    /**
-     * Apply grid layout to Analytics & BI submenu items
-     */
-    _applyAnalyticsMenuGridLayout() {
-        // Find the Analytics & BI menu and its submenu container
-        const analyticsMenus = document.querySelectorAll('[data-menu-xmlid*="menu_analytics"], [data-section="analytics"]');
-        
-        analyticsMenus.forEach(menu => {
-            const dropdown = menu.querySelector('.dropdown-menu');
-            if (dropdown && !dropdown.classList.contains('analytics-grid-applied')) {
-                // Apply grid layout class
-                dropdown.classList.add('analytics-grid-layout', 'analytics-grid-applied');
-                
-                // Count items to determine optimal columns
-                const items = dropdown.querySelectorAll('.dropdown-item, .o-dropdown-item');
-                const itemCount = items.length;
-                
-                // Set grid columns based on item count
-                if (itemCount >= 6) {
-                    dropdown.classList.add('grid-cols-3');
-                } else if (itemCount >= 4) {
-                    dropdown.classList.add('grid-cols-2');
-                }
-                
-                // Add hover effect enhancement
-                items.forEach(item => {
-                    if (!item.classList.contains('analytics-item-enhanced')) {
-                        item.classList.add('analytics-menu-item', 'analytics-item-enhanced');
-                    }
-                });
-            }
-        });
-    },
-});
-
-// Alternative approach: Direct DOM manipulation after page load
 document.addEventListener('DOMContentLoaded', function() {
+    // Apply horizontal layout to Analytics menu items
+    applyHorizontalAnalyticsLayout();
+    
     // Use MutationObserver to catch dynamically loaded menus
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             mutation.addedNodes.forEach((node) => {
                 if (node.nodeType === 1) { // Element node
-                    applyAnalyticsGridLayout(node);
+                    applyHorizontalAnalyticsLayout();
                 }
             });
         });
@@ -74,96 +25,113 @@ document.addEventListener('DOMContentLoaded', function() {
         childList: true,
         subtree: true
     });
-    
-    // Initial application
-    applyAnalyticsGridLayout(document.body);
 });
 
 /**
- * Apply grid layout to analytics menu items
- * @param {Element} container - Container element to search within
+ * Apply horizontal layout styling to analytics menu items
  */
-function applyAnalyticsGridLayout(container) {
-    // Target Analytics & BI submenu specifically
+function applyHorizontalAnalyticsLayout() {
+    // Target Analytics & BI menu items in the navbar
     const selectors = [
-        '[data-menu-xmlid="mesob_inventory_base.menu_mesob_analytics_bi"]',
-        '.o_menu_sections [data-section*="analytic"]',
-        '#menu_mesob_analytics_bi',
+        '[data-menu-xmlid*="menu_analytics_"]',
+        '.o_menu_sections button[data-menu-xmlid*="menu_analytics"]',
+        '.o_menu_sections a[data-menu-xmlid*="menu_analytics"]',
     ];
     
     selectors.forEach(selector => {
-        const menus = container.querySelectorAll ? container.querySelectorAll(selector) : [];
+        const menuItems = document.querySelectorAll(selector);
         
-        menus.forEach(menu => {
-            // Find dropdown menu
-            let dropdown = menu.querySelector('.dropdown-menu');
-            if (!dropdown && menu.classList.contains('dropdown-menu')) {
-                dropdown = menu;
-            }
-            
-            if (dropdown && !dropdown.classList.contains('analytics-grid-applied')) {
-                // Apply grid classes
-                dropdown.classList.add('analytics-grid-layout', 'analytics-grid-applied');
+        menuItems.forEach(item => {
+            if (!item.classList.contains('analytics-horizontal-styled')) {
+                // Apply horizontal tab styling
+                item.style.display = 'inline-flex';
+                item.style.alignItems = 'center';
+                item.style.padding = '8px 16px';
+                item.style.margin = '0 2px';
+                item.style.borderRadius = '6px';
+                item.style.transition = 'all 0.25s ease';
+                item.style.whiteSpace = 'nowrap';
+                item.classList.add('analytics-horizontal-styled', 'analytics-menu-tab');
                 
-                // Get all menu items
-                const items = dropdown.querySelectorAll('.dropdown-item, .o-dropdown-item, a[role="menuitem"]');
+                // Add hover effects
+                item.addEventListener('mouseenter', function() {
+                    this.style.background = 'rgba(212, 175, 55, 0.25)';
+                    this.style.borderColor = 'rgba(212, 175, 55, 0.4)';
+                    this.style.transform = 'translateY(-1px)';
+                });
                 
-                if (items.length > 0) {
-                    // Determine column count
-                    const cols = items.length >= 6 ? 3 : items.length >= 4 ? 2 : 1;
-                    dropdown.style.display = 'grid';
-                    dropdown.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-                    dropdown.style.gap = '12px';
-                    dropdown.style.padding = '16px';
-                    dropdown.style.minWidth = cols > 1 ? '650px' : '280px';
-                    
-                    // Style individual items
-                    items.forEach(item => {
-                        if (!item.classList.contains('analytics-item-styled')) {
-                            item.style.padding = '14px 18px';
-                            item.style.borderRadius = '8px';
-                            item.style.background = 'rgba(212, 175, 55, 0.1)';
-                            item.style.border = '1px solid rgba(212, 175, 55, 0.3)';
-                            item.style.transition = 'all 0.25s ease';
-                            item.classList.add('analytics-item-styled');
-                            
-                            // Add hover effect
-                            item.addEventListener('mouseenter', function() {
-                                this.style.background = 'rgba(212, 175, 55, 0.25)';
-                                this.style.transform = 'translateY(-2px)';
-                                this.style.boxShadow = '0 4px 8px rgba(212, 175, 55, 0.2)';
-                            });
-                            
-                            item.addEventListener('mouseleave', function() {
-                                this.style.background = 'rgba(212, 175, 55, 0.1)';
-                                this.style.transform = 'translateY(0)';
-                                this.style.boxShadow = 'none';
-                            });
-                        }
+                item.addEventListener('mouseleave', function() {
+                    if (!this.classList.contains('active')) {
+                        this.style.background = 'transparent';
+                        this.style.transform = 'translateY(0)';
+                    }
+                });
+                
+                // Mark active state
+                item.addEventListener('click', function() {
+                    // Remove active from siblings
+                    const siblings = document.querySelectorAll('.analytics-menu-tab');
+                    siblings.forEach(sibling => {
+                        sibling.classList.remove('active');
+                        sibling.style.background = 'transparent';
+                        sibling.style.fontWeight = '500';
                     });
-                }
+                    
+                    // Add active to clicked item
+                    this.classList.add('active');
+                    this.style.background = 'rgba(212, 175, 55, 0.35)';
+                    this.style.fontWeight = '600';
+                });
             }
         });
     });
+    
+    // Ensure menu sections container is horizontal
+    const menuSections = document.querySelector('.o_menu_sections');
+    if (menuSections && menuSections.querySelector('[data-menu-xmlid*="menu_analytics_"]')) {
+        if (!menuSections.classList.contains('analytics-horizontal-container')) {
+            menuSections.style.display = 'flex';
+            menuSections.style.flexWrap = 'wrap';
+            menuSections.style.alignItems = 'center';
+            menuSections.style.gap = '4px';
+            menuSections.classList.add('analytics-horizontal-container');
+        }
+    }
 }
 
-// Handle responsive resizing
+// Handle responsive behavior
 window.addEventListener('resize', debounce(function() {
-    const analyticsMenus = document.querySelectorAll('.analytics-grid-layout');
-    analyticsMenus.forEach(dropdown => {
-        const items = dropdown.querySelectorAll('.dropdown-item, .o-dropdown-item, a[role="menuitem"]');
-        const width = window.innerWidth;
+    const width = window.innerWidth;
+    const menuItems = document.querySelectorAll('.analytics-menu-tab');
+    
+    if (width < 768) {
+        // Mobile: Stack vertically
+        menuItems.forEach(item => {
+            item.style.display = 'flex';
+            item.style.width = '100%';
+            item.style.justifyContent = 'flex-start';
+            item.style.padding = '10px 14px';
+        });
         
-        let cols = 1;
-        if (width > 1024 && items.length >= 6) {
-            cols = 3;
-        } else if (width > 768 && items.length >= 4) {
-            cols = 2;
+        const menuSections = document.querySelector('.o_menu_sections');
+        if (menuSections) {
+            menuSections.style.flexDirection = 'column';
+            menuSections.style.alignItems = 'stretch';
         }
+    } else {
+        // Desktop/Tablet: Horizontal
+        menuItems.forEach(item => {
+            item.style.display = 'inline-flex';
+            item.style.width = 'auto';
+            item.style.padding = width < 992 ? '6px 10px' : '8px 16px';
+        });
         
-        dropdown.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-        dropdown.style.minWidth = cols > 1 ? (cols === 3 ? '650px' : '450px') : '280px';
-    });
+        const menuSections = document.querySelector('.o_menu_sections');
+        if (menuSections) {
+            menuSections.style.flexDirection = 'row';
+            menuSections.style.alignItems = 'center';
+        }
+    }
 }, 250));
 
 /**
