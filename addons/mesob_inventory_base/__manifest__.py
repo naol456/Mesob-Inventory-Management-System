@@ -1,6 +1,6 @@
 {
     "name": "Mesob Inventory Management System",
-    "version": "19.0.1.5.0",
+    "version": "19.0.1.6.0",
     "category": "Inventory/Inventory",
     "summary": "FDRE Mesob Center - Complete inventory management system with "
                "classifications (4401–4418), requisitions, receiving, inspection, "
@@ -28,7 +28,7 @@
         Federal Democratic Republic of Ethiopia
     """,
     "author": "FDRE Mesob Center",
-    "website": "https://id.gov.et",
+    "website": "https://mesobcenter.et",
     "license": "LGPL-3",
     "depends": ["stock", "mail"],
     "data": [
@@ -70,7 +70,8 @@
         "views/mesob_stock_taking_handover_views.xml",
         "views/mesob_storage_security_views.xml",
         "views/mesob_inventory_dashboard_views.xml",
-        "views/mesob_analytics_dashboard_views.xml",
+        "views/mesob_asset_dashboard_views.xml",
+        "views/mesob_asset_map_dashboard.xml",
         # Login customization
         "views/mesob_login_template.xml",
         # Menus
@@ -96,6 +97,8 @@
             "mesob_inventory_base/static/src/scss/analytics_menu.scss",
             "mesob_inventory_base/static/src/scss/stock_records_premium.scss",
             "mesob_inventory_base/static/src/scss/procurement_premium.scss",
+            "mesob_inventory_base/static/src/scss/asset_dashboard_premium.scss",
+            "mesob_inventory_base/static/src/scss/asset_map_dashboard.scss",
             "mesob_inventory_base/static/src/js/navbar_sidebar.js",
             "mesob_inventory_base/static/src/js/analytics_menu.js",
             "mesob_inventory_base/static/src/xml/apps_sidebar.xml",
