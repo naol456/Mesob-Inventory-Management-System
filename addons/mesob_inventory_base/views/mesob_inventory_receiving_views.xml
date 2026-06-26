@@ -323,4 +323,24 @@
             </div>
         </field>
     </record>
+
+    <!-- ── Inspector Dashboard Action ────────────────────────────────── -->
+    <record id="action_inspector_dashboard" model="ir.actions.act_window">
+        <field name="name">My Inspections</field>
+        <field name="res_model">mesob.inventory.receiving</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('inspector_id', '=', uid), ('state', 'in', ['received', 'inspecting'])]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No pending inspections
+            </p>
+            <p>
+                You will see orders here when a storekeeper assigns you as the inspector.
+                You can then inspect the items, fill in accepted and rejected quantities,
+                and complete the inspection.
+            </p>
+        </field>
+    </record>
+
 </odoo>
