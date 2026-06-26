@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- ── Analytics & BI (Center Manager) ────────────────────────── -->
+    <!-- ── Analytics & BI (Center Manager) - COMMENTED OUT - Actions not created yet ────────────────────────── -->
+    <!--
     <menuitem id="menu_mesob_analytics_bi"
               name="Analytics &amp; BI"
               parent="menu_mesob_inventory_root"
               groups="mesob_inventory_base.group_mesob_center_manager"
               sequence="5"/>
 
-    <!-- Analytics submenu items displayed as top-level tabs -->
     <menuitem id="menu_analytics_inventory_overview"
               name="Inventory Overview"
               parent="menu_mesob_analytics_bi"
@@ -58,11 +58,12 @@
               sequence="70"/>
 
     <menuitem id="menu_analytics_stock_valuation"
-              name="Stock Valuation Report"
+              name="Stock Valuation"
               parent="menu_mesob_analytics_bi"
               action="action_analytics_stock_valuation"
               groups="mesob_inventory_base.group_mesob_center_manager"
               sequence="80"/>
+    -->
 
     <!-- ── Operations ─────────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_operations"
