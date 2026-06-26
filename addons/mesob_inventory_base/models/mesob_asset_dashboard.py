@@ -131,7 +131,7 @@ class MesobAssetRegister(models.Model):
                 ('voucher_id.state', 'in', ['issued', 'received'])
             ], order='id desc', limit=1)
             if issue_line and issue_line.voucher_id:
-                rec.current_location = issue_line.voucher_id.location or 'Issued to User'
+                rec.current_location = 'Issued to User'
             else:
                 bin_card = self.env['mesob.bin.card'].search([
                     ('sub_classification_id', '=', rec.sub_classification_id.id)
