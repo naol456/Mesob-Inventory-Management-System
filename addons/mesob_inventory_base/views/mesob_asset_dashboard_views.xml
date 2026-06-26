@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- ASSET MANAGEMENT DASHBOARD - KANBAN VIEW -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    
+    <record id="view_mesob_asset_dashboard_kanban" model="ir.ui.view">
+        <field name="name">mesob.asset.dashboard.kanban</field>
+        <field name="model">mesob.asset.dashboard</field>
+        <field name="arch" type="xml">
+            <kanban class="mesob_asset_dashboard_kanban" default_group_by="major_classification_id">
+                <field name="id"/>
+                <field name="item_code"/>
+                <field name="item_name"/>
+                <field name="major_classification_id"/>
+                <field name="sub_classification_id"/>
+                <field name="current_location"/>
+                <field name="current_holder"/>
+                <field name="using_department_id"/>
+                <field name="condition"/>
+                <field name="quantity_on_hand"/>
+                <field name="quantity_available"/>
+                <field name="is_under_warranty"/>
+                <field name="is_surplus"/>
+                <field name="scheduled_for_disposal"/>
+                <field name="maintenance_status"/>
+                
+                <templates>
+                    <t t-name="card" class="mesob_asset_card">
+                        <div class="oe_kanban_global_click o_kanban_record_has_image_fill">
+                            
+                            <div class="mesob_asset_header">
+                                <div class="mesob_asset_code">
+                                    <i class="fa fa-barcode me-1"/>
+                                    <strong><field name="item_code"/></strong>
+                                </div>
+                                <div class="mesob_asset_badges">
+                                    <span t-if="record.is_under_warranty.raw_value" 
+                                          class="badge badge-warranty">
+                                        <i class="fa fa-shield-alt me-1"/>Warranty
+                                    </span>
+                                    <span t-if="record.is_surplus.raw_value" 
+                                          class="badge badge-surplus">
+                                        <i class="fa fa-exclamation-triangle me-1"/>Surplus
+                                    </span>
+                                    <span t-if="record.scheduled_for_disposal.raw_value" 
+                                          class="badge badge-disposal">
+                                        <i class="fa fa-trash me-1"/>Disposal
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="mesob_asset_name">
+                                <field name="item_name"/>
+                            </div>
+                            
+                            <div class="mesob_asset_info_grid">
+                                <div class="info_item">
+                                    <i class="fa fa-layer-group text-muted"/>
+                                    <span class="label">Classification</span>
+                                    <span class="value"><field name="sub_classification_id"/></span>
+                                </div>
+                                
+                                <div class="info_item">
+                                    <i class="fa fa-map-marker-alt text-muted"/>
+                                    <span class="label">Location</span>
+                                    <span class="value"><field name="current_location"/></span>
+                                </div>
+                                
+                                <div class="info_item">
+                                    <i class="fa fa-user text-muted"/>
+                                    <span class="label">Holder</span>
+                                    <span class="value"><field name="current_holder"/></span>
+                                </div>
+                                
+                                <div class="info_item">
+                                    <i class="fa fa-building text-muted"/>
+                                    <span class="label">Department</span>
+                                    <span class="value">
+                                        <field name="using_department_id" widget="many2one"/>
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="mesob_asset_status_row">
+                                <div class="status_item">
+                                    <span class="label">Condition</span>
+                                    <span t-attf-class="badge condition-#{record.condition.raw_value}">
+                                        <field name="condition"/>
+                                    </span>
+                                </div>
+                                
+                                <div class="status_item">
+                                    <span class="label">Maintenance</span>
+                                    <span t-attf-class="badge maintenance-#{record.maintenance_status.raw_value}">
+                                        <field name="maintenance_status"/>
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="mesob_asset_stock">
+                                <div class="stock_metric">
+                                    <i class="fa fa-boxes me-1"/>
+                                    <span class="metric_label">On Hand:</span>
+                                    <span class="metric_value"><field name="quantity_on_hand"/></span>
+                                </div>
+                                <div class="stock_metric">
+                                    <i class="fa fa-check-circle me-1"/>
+                                    <span class="metric_label">Available:</span>
+                                    <span class="metric_value"><field name="quantity_available"/></span>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- ASSET MANAGEMENT DASHBOARD - LIST VIEW -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    
+    <record id="view_mesob_asset_dashboard_tree" model="ir.ui.view">
+        <field name="name">mesob.asset.dashboard.tree</field>
+        <field name="model">mesob.asset.dashboard</field>
+        <field name="arch" type="xml">
+            <list string="Asset Management Dashboard" class="mesob_asset_dashboard_list">
+                <field name="item_code" string="Asset Code"/>
+                <field name="item_name" string="Asset Name"/>
+                <field name="major_classification_id" string="Major Class"/>
+                <field name="sub_classification_id" string="Sub Class"/>
+                <field name="current_location" string="Location"/>
+                <field name="current_holder" string="Current Holder"/>
+                <field name="using_department_id" string="Department"/>
+                <field name="condition" string="Condition"/>
+                <field name="quantity_on_hand" string="On Hand"/>
+                <field name="quantity_available" string="Available"/>
+                <field name="is_under_warranty" string="Warranty" widget="boolean"/>
+                <field name="maintenance_status" string="Maintenance"/>
+                <field name="purchase_date" string="Purchase Date"/>
+                <field name="is_surplus" string="Surplus" widget="boolean"/>
+                <field name="scheduled_for_disposal" string="For Disposal" widget="boolean"/>
+            </list>
+        </field>
+    </record>
+    
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- ASSET MANAGEMENT DASHBOARD - FORM VIEW -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    
+    <record id="view_mesob_asset_dashboard_form" model="ir.ui.view">
+        <field name="name">mesob.asset.dashboard.form</field>
+        <field name="model">mesob.asset.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Asset Details" class="mesob_asset_dashboard_form">
+                <header>
+                    <button name="action_view_full_history" type="object" 
+                            string="View Full History" 
+                            icon="fa-history"
+                            class="btn-primary"/>
+                    <button name="action_view_transfers" type="object" 
+                            string="View Transfers" 
+                            icon="fa-exchange-alt"
+                            class="btn-secondary"/>
+                    <button name="action_schedule_maintenance" type="object" 
+                            string="Schedule Maintenance" 
+                            icon="fa-tools"
+                            class="btn-warning"/>
+                </header>
+                
+                <sheet>
+                    
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" 
+                                name="action_view_full_history" icon="fa-list">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Transaction</span>
+                                <span class="o_stat_text">History</span>
+                            </div>
+                        </button>
+                        <button class="oe_stat_button" type="object" 
+                                name="action_view_transfers" icon="fa-truck">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value"><field name="transfer_count"/></span>
+                                <span class="o_stat_text">Transfers</span>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <widget name="web_ribbon" title="Under Warranty" 
+                            bg_color="text-bg-success" 
+                            invisible="not is_under_warranty"/>
+                    <widget name="web_ribbon" title="Scheduled for Disposal" 
+                            bg_color="text-bg-danger" 
+                            invisible="not scheduled_for_disposal"/>
+                    <widget name="web_ribbon" title="Surplus Material" 
+                            bg_color="text-bg-warning" 
+                            invisible="not is_surplus"/>
+                    
+                    <div class="mesob_form_divider"/>
+                    
+                    <group>
+                        <group string="Asset Identification">
+                            <field name="item_id" options="{'no_create': True}"/>
+                            <field name="item_code"/>
+                            <field name="item_name"/>
+                            <field name="item_name_am"/>
+                            <field name="description"/>
+                        </group>
+                        
+                        <group string="Classification">
+                            <field name="major_classification_id"/>
+                            <field name="sub_classification_id"/>
+                            <field name="is_controlled"/>
+                            <field name="is_surplus"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        
+                        <page string="Current Status" name="current_status">
+                            <group>
+                                <group string="Location &amp; Custody">
+                                    <field name="current_location"/>
+                                    <field name="current_holder"/>
+                                    <field name="holder_full_name"/>
+                                    <field name="holder_email" widget="email"/>
+                                    <field name="holder_phone" widget="phone"/>
+                                    <field name="using_department_id"/>
+                                </group>
+                                
+                                <group string="Stock Status">
+                                    <field name="quantity_on_hand"/>
+                                    <field name="quantity_issued"/>
+                                    <field name="quantity_available"/>
+                                    <field name="condition"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Ownership &amp; Approval" name="ownership">
+                            <group>
+                                <group string="Ownership">
+                                    <field name="owning_organization"/>
+                                </group>
+                                
+                                <group string="Assignment Approval">
+                                    <field name="approved_by"/>
+                                    <field name="approval_date"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Purchase Details" name="purchase">
+                            <group>
+                                <group string="Acquisition Information">
+                                    <field name="purchase_date"/>
+                                    <field name="supplier_id"/>
+                                    <field name="purchase_order_ref"/>
+                                </group>
+                                
+                                <group string="Financial">
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="unit_cost"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Warranty &amp; Maintenance" name="warranty">
+                            <group>
+                                <group string="Warranty Status">
+                                    <field name="warranty_start_date"/>
+                                    <field name="warranty_end_date"/>
+                                    <field name="is_under_warranty"/>
+                                    <field name="days_until_warranty_expires" 
+                                           invisible="not is_under_warranty"/>
+                                </group>
+                                
+                                <group string="Maintenance">
+                                    <field name="maintenance_status"/>
+                                    <field name="last_maintenance_date"/>
+                                    <field name="next_maintenance_date"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Transfer History" name="transfers">
+                            <group>
+                                <group string="Movement History">
+                                    <field name="transfer_count"/>
+                                    <field name="last_transfer_date"/>
+                                    <field name="previous_location"/>
+                                    <field name="previous_holder"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Disposal" name="disposal">
+                            <group>
+                                <group string="Disposal Status">
+                                    <field name="scheduled_for_disposal"/>
+                                    <field name="disposal_date" 
+                                           invisible="not scheduled_for_disposal"/>
+                                    <field name="disposal_reason" 
+                                           invisible="not scheduled_for_disposal"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                    </notebook>
+                    
+                </sheet>
+                
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- ASSET MANAGEMENT DASHBOARD - SEARCH VIEW -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    
+    <record id="view_mesob_asset_dashboard_search" model="ir.ui.view">
+        <field name="name">mesob.asset.dashboard.search</field>
+        <field name="model">mesob.asset.dashboard</field>
+        <field name="arch" type="xml">
+            <search string="Search Assets">
+                <field name="item_code"/>
+                <field name="item_name"/>
+                <field name="current_holder"/>
+                <field name="current_location"/>
+                <field name="using_department_id"/>
+                <field name="major_classification_id"/>
+                <field name="sub_classification_id"/>
+                
+                <filter string="Under Warranty" name="filter_under_warranty" 
+                        domain="[('is_under_warranty', '=', True)]"/>
+                <filter string="Excellent Condition" name="filter_excellent" 
+                        domain="[('condition', '=', 'excellent')]"/>
+                <filter string="Good Condition" name="filter_good" 
+                        domain="[('condition', '=', 'good')]"/>
+                <filter string="Poor Condition" name="filter_poor" 
+                        domain="[('condition', 'in', ['poor', 'damaged'])]"/>
+                <filter string="Under Repair" name="filter_repair" 
+                        domain="[('condition', '=', 'under_repair')]"/>
+                <filter string="Surplus Material" name="filter_surplus" 
+                        domain="[('is_surplus', '=', True)]"/>
+                <filter string="Scheduled for Disposal" name="filter_disposal" 
+                        domain="[('scheduled_for_disposal', '=', True)]"/>
+                <filter string="In Stock" name="filter_in_stock" 
+                        domain="[('current_holder', '=', 'In Stock')]"/>
+                <filter string="Issued/Assigned" name="filter_issued" 
+                        domain="[('current_holder', '!=', 'In Stock')]"/>
+                <filter string="Controlled Material" name="filter_controlled" 
+                        domain="[('is_controlled', '=', True)]"/>
+                
+                <group expand="0" string="Group By">
+                    <filter string="Major Classification" name="group_major_class" 
+                            context="{'group_by': 'major_classification_id'}"/>
+                    <filter string="Sub Classification" name="group_sub_class" 
+                            context="{'group_by': 'sub_classification_id'}"/>
+                    <filter string="Department" name="group_department" 
+                            context="{'group_by': 'using_department_id'}"/>
+                    <filter string="Location" name="group_location" 
+                            context="{'group_by': 'current_location'}"/>
+                    <filter string="Condition" name="group_condition" 
+                            context="{'group_by': 'condition'}"/>
+                    <filter string="Maintenance Status" name="group_maintenance" 
+                            context="{'group_by': 'maintenance_status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- ASSET MANAGEMENT DASHBOARD - ACTION -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    
+    <record id="action_mesob_asset_dashboard" model="ir.actions.act_window">
+        <field name="name">Asset Management Dashboard</field>
+        <field name="res_model">mesob.asset.dashboard</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_group_major_class': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Asset Management Dashboard
+            </p>
+            <p>
+                Comprehensive view of all inventory assets with their complete information including
+                location, custody, condition, maintenance, warranty, and transfer history.
+            </p>
+        </field>
+    </record>
+    
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- MENU ITEM -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    
+    <menuitem id="menu_mesob_asset_dashboard"
+              name="Asset Management"
+              parent="menu_mesob_inventory_stock_control"
+              action="action_mesob_asset_dashboard"
+              sequence="10"/>
+    
+</odoo>

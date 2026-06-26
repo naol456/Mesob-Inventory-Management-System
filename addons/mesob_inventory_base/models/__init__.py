@@ -22,3 +22,4 @@ from . import mesob_procurement
 from . import mesob_stock_taking
 from . import mesob_stock_handover
 from . import mesob_storage_security
+from . import mesob_asset_dashboard

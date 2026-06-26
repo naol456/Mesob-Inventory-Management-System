@@ -1,0 +1,567 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   ASSET MANAGEMENT DASHBOARD - PREMIUM STYLING
+   Professional Navy Blue & Golden Theme
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   KANBAN VIEW STYLING
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.mesob_asset_dashboard_kanban {
+    
+    .o_kanban_record {
+        background: linear-gradient(135deg, #0B1B3D 0%, #152847 100%);
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        color: #D4AF37;
+        position: relative;
+        overflow: hidden;
+        
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #D4AF37 0%, #F4E5C3 50%, #D4AF37 100%);
+        }
+        
+        &:hover {
+            border-color: rgba(212, 175, 55, 0.4);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15);
+        }
+    }
+    
+    /* Asset Card Header */
+    .mesob_asset_header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    
+    .mesob_asset_code {
+        font-size: 14px;
+        font-weight: 600;
+        color: #D4AF37;
+        display: flex;
+        align-items: center;
+        
+        i {
+            color: #D4AF37;
+            font-size: 16px;
+        }
+        
+        strong {
+            color: #F4E5C3;
+        }
+    }
+    
+    .mesob_asset_badges {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        
+        .badge {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            
+            i {
+                font-size: 10px;
+            }
+        }
+        
+        .badge-warranty {
+            background: rgba(40, 167, 69, 0.2);
+            color: #5CD685;
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+        
+        .badge-surplus {
+            background: rgba(255, 193, 7, 0.2);
+            color: #FFC107;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+        
+        .badge-disposal {
+            background: rgba(220, 53, 69, 0.2);
+            color: #F46A7C;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+    }
+    
+    /* Asset Name */
+    .mesob_asset_name {
+        font-size: 16px;
+        font-weight: 700;
+        color: #F4E5C3;
+        margin-bottom: 16px;
+        line-height: 1.4;
+    }
+    
+    /* Info Grid */
+    .mesob_asset_info_grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    
+    .info_item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        
+        i {
+            font-size: 14px;
+            color: #D4AF37;
+            margin-bottom: 2px;
+        }
+        
+        .label {
+            font-size: 11px;
+            color: rgba(212, 175, 55, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        
+        .value {
+            font-size: 13px;
+            color: #F4E5C3;
+            font-weight: 500;
+        }
+    }
+    
+    /* Status Row */
+    .mesob_asset_status_row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 14px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(212, 175, 55, 0.15);
+    }
+    
+    .status_item {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1;
+        
+        .label {
+            font-size: 11px;
+            color: rgba(212, 175, 55, 0.7);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        
+        .badge {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        /* Condition Badges */
+        .condition-excellent {
+            background: rgba(40, 167, 69, 0.2);
+            color: #5CD685;
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+        
+        .condition-good {
+            background: rgba(40, 167, 69, 0.15);
+            color: #4DB66E;
+            border: 1px solid rgba(40, 167, 69, 0.25);
+        }
+        
+        .condition-fair {
+            background: rgba(255, 193, 7, 0.2);
+            color: #FFC107;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+        
+        .condition-poor {
+            background: rgba(255, 152, 0, 0.2);
+            color: #FF9800;
+            border: 1px solid rgba(255, 152, 0, 0.3);
+        }
+        
+        .condition-damaged {
+            background: rgba(220, 53, 69, 0.2);
+            color: #F46A7C;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+        
+        .condition-under_repair {
+            background: rgba(0, 123, 255, 0.2);
+            color: #4DA3FF;
+            border: 1px solid rgba(0, 123, 255, 0.3);
+        }
+        
+        /* Maintenance Badges */
+        .maintenance-up_to_date {
+            background: rgba(40, 167, 69, 0.2);
+            color: #5CD685;
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+        
+        .maintenance-due_soon {
+            background: rgba(255, 193, 7, 0.2);
+            color: #FFC107;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+        
+        .maintenance-overdue {
+            background: rgba(220, 53, 69, 0.2);
+            color: #F46A7C;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+        
+        .maintenance-not_applicable {
+            background: rgba(108, 117, 125, 0.2);
+            color: #ADB5BD;
+            border: 1px solid rgba(108, 117, 125, 0.3);
+        }
+    }
+    
+    /* Stock Metrics */
+    .mesob_asset_stock {
+        display: flex;
+        gap: 16px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(212, 175, 55, 0.15);
+    }
+    
+    .stock_metric {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        
+        i {
+            color: #D4AF37;
+            font-size: 14px;
+        }
+        
+        .metric_label {
+            color: rgba(212, 175, 55, 0.8);
+            font-weight: 600;
+        }
+        
+        .metric_value {
+            color: #F4E5C3;
+            font-weight: 700;
+        }
+    }
+    
+    /* Kanban Column Headers */
+    .o_kanban_group_title {
+        color: #D4AF37;
+        font-weight: 700;
+        font-size: 15px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIST VIEW STYLING
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.mesob_asset_dashboard_list {
+    
+    thead {
+        background: linear-gradient(135deg, #0B1B3D 0%, #152847 100%);
+        
+        th {
+            color: #D4AF37;
+            font-weight: 700;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+            padding: 14px 10px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    }
+    
+    tbody tr {
+        background: #FFFFFF;
+        border-bottom: 1px solid rgba(11, 27, 61, 0.08);
+        
+        &:hover {
+            background: rgba(212, 175, 55, 0.04);
+        }
+        
+        td {
+            color: #0B1B3D;
+            padding: 12px 10px;
+            vertical-align: middle;
+            font-size: 13px;
+        }
+    }
+    
+    .o_data_cell {
+        font-weight: 500;
+    }
+    
+    /* Boolean fields */
+    .o_field_boolean {
+        text-align: center;
+        
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #D4AF37;
+        }
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FORM VIEW STYLING
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.mesob_asset_dashboard_form {
+    
+    /* Form Divider */
+    .mesob_form_divider {
+        height: 3px;
+        background: linear-gradient(90deg, #D4AF37 0%, #F4E5C3 50%, #D4AF37 100%);
+        margin: 20px -24px;
+        border-radius: 2px;
+    }
+    
+    .o_form_sheet {
+        background: #FFFFFF;
+        padding: 24px;
+        margin: 20px;
+        border-radius: 8px;
+    }
+    
+    /* Group Headers */
+    .o_group .o_group_title {
+        background: linear-gradient(135deg, #0B1B3D 0%, #152847 100%);
+        color: #D4AF37;
+        padding: 10px 16px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 16px;
+        border-left: 4px solid #D4AF37;
+    }
+    
+    /* Field Labels */
+    .o_form_label {
+        color: #0B1B3D;
+        font-weight: 600;
+        font-size: 13px;
+    }
+    
+    /* Field Values */
+    .o_field_widget {
+        color: #152847;
+        font-size: 13px;
+        
+        &.o_field_many2one,
+        &.o_field_char,
+        &.o_field_text {
+            font-weight: 500;
+        }
+    }
+    
+    /* Notebook */
+    .o_notebook {
+        margin-top: 24px;
+        
+        .nav-tabs {
+            border-bottom: 2px solid rgba(212, 175, 55, 0.2);
+            
+            .nav-link {
+                color: #0B1B3D;
+                font-weight: 600;
+                font-size: 13px;
+                padding: 12px 20px;
+                border: none;
+                border-bottom: 3px solid transparent;
+                background: transparent;
+                
+                &:hover {
+                    color: #D4AF37;
+                    background: rgba(212, 175, 55, 0.05);
+                    border-bottom-color: rgba(212, 175, 55, 0.3);
+                }
+                
+                &.active {
+                    color: #D4AF37;
+                    background: rgba(212, 175, 55, 0.1);
+                    border-bottom-color: #D4AF37;
+                    font-weight: 700;
+                }
+            }
+        }
+        
+        .tab-content {
+            padding: 24px 0;
+        }
+    }
+    
+    /* Stat Buttons */
+    .oe_button_box {
+        .oe_stat_button {
+            background: linear-gradient(135deg, #0B1B3D 0%, #152847 100%);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            color: #D4AF37;
+            
+            &:hover {
+                border-color: #D4AF37;
+                box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
+            }
+            
+            .o_stat_value {
+                color: #F4E5C3;
+                font-weight: 700;
+                font-size: 24px;
+            }
+            
+            .o_stat_text {
+                color: #D4AF37;
+                font-size: 12px;
+                font-weight: 600;
+            }
+            
+            i {
+                color: #D4AF37;
+            }
+        }
+    }
+    
+    /* Header Buttons */
+    .o_form_statusbar {
+        background: linear-gradient(135deg, #0B1B3D 0%, #152847 100%);
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #D4AF37 0%, #C49A2E 100%);
+            border: none;
+            color: #0B1B3D;
+            font-weight: 700;
+            padding: 8px 20px;
+            border-radius: 6px;
+            
+            &:hover {
+                background: linear-gradient(135deg, #F4E5C3 0%, #D4AF37 100%);
+                box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+            }
+        }
+        
+        .btn-secondary {
+            background: rgba(212, 175, 55, 0.2);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            color: #D4AF37;
+            font-weight: 600;
+            padding: 8px 20px;
+            border-radius: 6px;
+            
+            &:hover {
+                background: rgba(212, 175, 55, 0.3);
+                border-color: #D4AF37;
+            }
+        }
+        
+        .btn-warning {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid rgba(255, 193, 7, 0.4);
+            color: #FFC107;
+            font-weight: 600;
+            padding: 8px 20px;
+            border-radius: 6px;
+            
+            &:hover {
+                background: rgba(255, 193, 7, 0.3);
+                border-color: #FFC107;
+            }
+        }
+    }
+    
+    /* Ribbons */
+    .o_ribbon {
+        &.text-bg-success {
+            background: #28A745;
+        }
+        
+        &.text-bg-danger {
+            background: #DC3545;
+        }
+        
+        &.text-bg-warning {
+            background: #FFC107;
+            color: #0B1B3D;
+        }
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SEARCH PANEL STYLING
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.o_searchview {
+    
+    .o_searchview_facet {
+        background: linear-gradient(135deg, #0B1B3D 0%, #152847 100%);
+        border: 1px solid rgba(212, 175, 55, 0.3);
+        color: #D4AF37;
+        
+        .o_facet_values {
+            color: #F4E5C3;
+        }
+    }
+    
+    .o_filters_menu,
+    .o_group_by_menu {
+        .dropdown-item {
+            color: #0B1B3D;
+            
+            &:hover {
+                background: rgba(212, 175, 55, 0.1);
+                color: #D4AF37;
+            }
+            
+            &.selected {
+                background: rgba(212, 175, 55, 0.2);
+                color: #D4AF37;
+                font-weight: 600;
+            }
+        }
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE DESIGN
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    .mesob_asset_dashboard_kanban {
+        .mesob_asset_info_grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .mesob_asset_status_row {
+            flex-direction: column;
+        }
+        
+        .mesob_asset_stock {
+            flex-direction: column;
+        }
+    }
+}
