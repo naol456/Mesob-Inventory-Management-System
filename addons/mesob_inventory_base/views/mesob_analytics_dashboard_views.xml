@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ══════════════════════════════════════════════════════════════
+         Analytics & BI Dashboard Views for Center Manager
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- Inventory Overview Dashboard -->
+    <record id="action_analytics_inventory_overview" model="ir.actions.act_window">
+        <field name="name">Inventory Overview</field>
+        <field name="res_model">mesob.inventory.item</field>
+        <field name="view_mode">kanban,tree,pivot,graph</field>
+        <field name="domain">[]</field>
+        <field name="context">{
+            'group_by': ['major_classification_id', 'current_status']
+        }</field>
+    </record>
+
+    <!-- Stock Levels Analytics -->
+    <record id="action_analytics_stock_levels" model="ir.actions.act_window">
+        <field name="name">Stock Levels &amp; Valuation</field>
+        <field name="res_model">mesob.bin_card</field>
+        <field name="view_mode">tree,graph,pivot</field>
+        <field name="domain">[]</field>
+        <field name="context">{
+            'group_by': ['item_id']
+        }</field>
+    </record>
+
+    <!-- Requisition Analytics -->
+    <record id="action_analytics_requisitions" model="ir.actions.act_window">
+        <field name="name">Requisition Analytics</field>
+        <field name="res_model">mesob.inventory.requisition</field>
+        <field name="view_mode">tree,graph,pivot</field>
+        <field name="domain">[]</field>
+        <field name="context">{
+            'group_by': ['state', 'department_id', 'request_date']
+        }</field>
+    </record>
+
+    <!-- Receiving & Inspection Metrics -->
+    <record id="action_analytics_receiving" model="ir.actions.act_window">
+        <field name="name">Receiving &amp; Inspection</field>
+        <field name="res_model">mesob.inventory.receiving</field>
+        <field name="view_mode">tree,graph,pivot</field>
+        <field name="domain">[]</field>
+        <field name="context">{
+            'group_by': ['state', 'inspection_type', 'inspector_id', 'date_received']
+        }</field>
+    </record>
+
+    <!-- Issue Voucher Analytics -->
+    <record id="action_analytics_issue_vouchers" model="ir.actions.act_window">
+        <field name="name">Issue Voucher Trends</field>
+        <field name="res_model">mesob.inventory.issue_voucher</field>
+        <field name="view_mode">tree,graph,pivot</field>
+        <field name="domain">[]</field>
+        <field name="context">{
+            'group_by': ['state', 'requesting_department_id', 'issue_date']
+        }</field>
+    </record>
+
+    <!-- Procurement Analytics -->
+    <record id="action_analytics_procurement" model="ir.actions.act_window">
+        <field name="name">Procurement Performance</field>
+        <field name="res_model">mesob.procurement.order</field>
+        <field name="view_mode">tree,graph,pivot</field>
+        <field name="domain">[]</field>
+        <field name="context">{
+            'group_by': ['state', 'po_date']
+        }</field>
+    </record>
+
+    <!-- Department Performance -->
+    <record id="action_analytics_department_performance" model="ir.actions.act_window">
+        <field name="name">Department Performance</field>
+        <field name="res_model">mesob.inventory.requisition</field>
+        <field name="view_mode">graph,pivot,tree</field>
+        <field name="domain">[]</field>
+        <field name="context">{
+            'group_by': ['department_id', 'state']
+        }</field>
+    </record>
+
+    <!-- Stock Record Card Analytics -->
+    <record id="action_analytics_stock_valuation" model="ir.actions.act_window">
+        <field name="name">Stock Valuation Report</field>
+        <field name="res_model">mesob.stock.record.card</field>
+        <field name="view_mode">tree,pivot,graph</field>
+        <field name="domain">[]</field>
+        <field name="context">{
+            'group_by': ['item_id']
+        }</field>
+    </record>
+
+</odoo>

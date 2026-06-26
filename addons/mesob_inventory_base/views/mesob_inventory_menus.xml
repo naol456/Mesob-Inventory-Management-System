@@ -7,6 +7,54 @@
               groups="mesob_inventory_base.group_mesob_center_manager"
               sequence="5"/>
 
+    <menuitem id="menu_analytics_inventory_overview"
+              name="Inventory Overview"
+              parent="menu_mesob_analytics_bi"
+              action="action_analytics_inventory_overview"
+              sequence="10"/>
+
+    <menuitem id="menu_analytics_stock_levels"
+              name="Stock Levels &amp; Valuation"
+              parent="menu_mesob_analytics_bi"
+              action="action_analytics_stock_levels"
+              sequence="20"/>
+
+    <menuitem id="menu_analytics_requisitions"
+              name="Requisition Analytics"
+              parent="menu_mesob_analytics_bi"
+              action="action_analytics_requisitions"
+              sequence="30"/>
+
+    <menuitem id="menu_analytics_receiving"
+              name="Receiving &amp; Inspection"
+              parent="menu_mesob_analytics_bi"
+              action="action_analytics_receiving"
+              sequence="40"/>
+
+    <menuitem id="menu_analytics_issue_vouchers"
+              name="Issue Voucher Trends"
+              parent="menu_mesob_analytics_bi"
+              action="action_analytics_issue_vouchers"
+              sequence="50"/>
+
+    <menuitem id="menu_analytics_procurement"
+              name="Procurement Performance"
+              parent="menu_mesob_analytics_bi"
+              action="action_analytics_procurement"
+              sequence="60"/>
+
+    <menuitem id="menu_analytics_department_performance"
+              name="Department Performance"
+              parent="menu_mesob_analytics_bi"
+              action="action_analytics_department_performance"
+              sequence="70"/>
+
+    <menuitem id="menu_analytics_stock_valuation"
+              name="Stock Valuation Report"
+              parent="menu_mesob_analytics_bi"
+              action="action_analytics_stock_valuation"
+              sequence="80"/>
+
     <!-- ── Operations ─────────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_operations"
               name="Operations"
