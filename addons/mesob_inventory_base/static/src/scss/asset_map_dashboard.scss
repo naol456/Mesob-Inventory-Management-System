@@ -1,0 +1,221 @@
+/* Interactive Asset Location Map Dashboard */
+
+.mesob_asset_map_dashboard {
+    .asset_map_container {
+        padding: 30px;
+        background: linear-gradient(135deg, #0B1B3D 0%, #1a2942 100%);
+        min-height: 100vh;
+    }
+    
+    .map_title {
+        text-align: center;
+        color: #D4AF37;
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 30px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+    
+    .map_legend {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-bottom: 40px;
+        padding: 15px;
+        background: rgba(212, 175, 55, 0.1);
+        border-radius: 10px;
+        
+        .legend_item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #F4E5C3;
+            font-weight: 600;
+            font-size: 14px;
+            
+            i {
+                font-size: 12px;
+            }
+            
+            &.in_stock i {
+                color: #5CD685;
+            }
+            
+            &.issued i {
+                color: #4DA3FF;
+            }
+            
+            &.idle i {
+                color: #FFC107;
+            }
+            
+            &.missing i {
+                color: #F46A7C;
+            }
+        }
+    }
+    
+    .asset_map_grid {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+    
+    .location_zone {
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(212, 175, 55, 0.3);
+        border-radius: 15px;
+        padding: 25px;
+        min-height: 200px;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        
+        &:hover {
+            border-color: #D4AF37;
+            box-shadow: 0 8px 24px rgba(212, 175, 55, 0.2);
+        }
+        
+        h3 {
+            color: #D4AF37;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            
+            i {
+                font-size: 22px;
+            }
+        }
+        
+        .zone_stats {
+            color: #F4E5C3;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .zone_content {
+            margin-top: 15px;
+        }
+        
+        .zone_info {
+            color: rgba(244, 229, 195, 0.8);
+            font-size: 13px;
+            margin: 0;
+        }
+    }
+    
+    .main_store {
+        border-color: #5CD685;
+        
+        h3 {
+            color: #5CD685;
+        }
+    }
+    
+    .departments_grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    
+    .department {
+        &.finance {
+            border-color: #FFD700;
+            
+            h3 {
+                color: #FFD700;
+            }
+        }
+        
+        &.hr {
+            border-color: #4DA3FF;
+            
+            h3 {
+                color: #4DA3FF;
+            }
+        }
+        
+        &.it {
+            border-color: #9B59B6;
+            
+            h3 {
+                color: #9B59B6;
+            }
+        }
+        
+        &.operations {
+            border-color: #E67E22;
+            
+            h3 {
+                color: #E67E22;
+            }
+        }
+    }
+    
+    .map_footer {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        padding-top: 30px;
+        border-top: 2px solid rgba(212, 175, 55, 0.2);
+        
+        .btn {
+            padding: 12px 30px;
+            font-size: 15px;
+            font-weight: 700;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            
+            i {
+                font-size: 16px;
+            }
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #D4AF37 0%, #C49A2E 100%);
+            border: none;
+            color: #0B1B3D;
+            
+            &:hover {
+                background: linear-gradient(135deg, #F4E5C3 0%, #D4AF37 100%);
+            }
+        }
+        
+        .btn-secondary {
+            background: rgba(212, 175, 55, 0.2);
+            border: 2px solid #D4AF37;
+            color: #D4AF37;
+            
+            &:hover {
+                background: rgba(212, 175, 55, 0.3);
+            }
+        }
+    }
+}
+
+@media (max-width: 1200px) {
+    .mesob_asset_map_dashboard {
+        .asset_map_grid {
+            grid-template-columns: 1fr;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .mesob_asset_map_dashboard {
+        .departments_grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .map_legend {
+            flex-direction: column;
+            gap: 10px;
+        }
+    }
+}

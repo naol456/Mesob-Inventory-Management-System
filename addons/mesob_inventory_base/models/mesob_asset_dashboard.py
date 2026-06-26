@@ -204,3 +204,21 @@ class MesobAssetRegister(models.Model):
                 'type': 'success',
             }
         }
+    
+    @api.model
+    def _auto_register_item(self, item_id):
+        """
+        Auto-register an item if not already in the register
+        Called automatically when items are created or issued
+        """
+        if not self.search([('item_id', '=', item_id)], limit=1):
+            return self.create({'item_id': item_id})
+        return self.search([('item_id', '=', item_id)], limit=1)
+    
+    @api.model
+    def _cron_auto_sync_items(self):
+        """
+        Scheduled action to auto-sync new items to asset register
+        Run daily to catch any new items
+        """
+        return self.action_sync_from_items()

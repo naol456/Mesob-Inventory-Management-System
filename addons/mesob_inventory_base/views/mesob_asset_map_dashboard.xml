@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Interactive Asset Map Dashboard -->
+    <record id="view_mesob_asset_map_dashboard" model="ir.ui.view">
+        <field name="name">mesob.asset.map.dashboard</field>
+        <field name="model">mesob.asset.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Asset Map Dashboard" class="mesob_asset_map_dashboard">
+                <sheet>
+                    <div class="asset_map_container">
+                        <h1 class="map_title">Interactive Asset Location Map</h1>
+                        <div class="map_legend">
+                            <span class="legend_item in_stock">
+                                <i class="fa fa-circle"/> In Stock
+                            </span>
+                            <span class="legend_item issued">
+                                <i class="fa fa-circle"/> Issued
+                            </span>
+                            <span class="legend_item idle">
+                                <i class="fa fa-circle"/> Idle (180+ days)
+                            </span>
+                            <span class="legend_item missing">
+                                <i class="fa fa-circle"/> Missing
+                            </span>
+                        </div>
+                        
+                        <div class="asset_map_grid">
+                            <!-- Main Store Section -->
+                            <div class="location_zone main_store">
+                                <h3>Main Store</h3>
+                                <div class="zone_stats">
+                                    <t t-set="main_store_assets" t-value="0"/>
+                                    <span>Assets: <t t-esc="main_store_assets"/></span>
+                                </div>
+                            </div>
+                            
+                            <!-- Departments Grid -->
+                            <div class="departments_grid">
+                                <div class="location_zone department finance">
+                                    <h3><i class="fa fa-money-bill"/> Finance</h3>
+                                    <div class="zone_content">
+                                        <p class="zone_info">Assets issued to Finance department</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="location_zone department hr">
+                                    <h3><i class="fa fa-users"/> HR</h3>
+                                    <div class="zone_content">
+                                        <p class="zone_info">Assets issued to HR department</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="location_zone department it">
+                                    <h3><i class="fa fa-laptop"/> IT</h3>
+                                    <div class="zone_content">
+                                        <p class="zone_info">Assets issued to IT department</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="location_zone department operations">
+                                    <h3><i class="fa fa-cogs"/> Operations</h3>
+                                    <div class="zone_content">
+                                        <p class="zone_info">Assets issued to Operations</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="map_footer">
+                            <button type="object" name="action_refresh_map" 
+                                    class="btn btn-primary">
+                                <i class="fa fa-sync"/> Refresh Map
+                            </button>
+                            <button type="action" name="%(action_mesob_asset_dashboard)d" 
+                                    class="btn btn-secondary">
+                                <i class="fa fa-list"/> View List
+                            </button>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Asset Map Dashboard Action -->
+    <record id="action_mesob_asset_map" model="ir.actions.act_window">
+        <field name="name">Asset Location Map</field>
+        <field name="res_model">mesob.asset.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_mesob_asset_map_dashboard"/>
+        <field name="target">fullscreen</field>
+    </record>
+    
+    <!-- Menu Item for Asset Map -->
+    <menuitem id="menu_mesob_asset_map"
+              name="Asset Location Map"
+              parent="menu_mesob_inventory_stock_control"
+              action="action_mesob_asset_map"
+              sequence="6"/>
+    
+</odoo>

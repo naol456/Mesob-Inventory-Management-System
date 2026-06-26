@@ -70,6 +70,7 @@
         "views/mesob_storage_security_views.xml",
         "views/mesob_inventory_dashboard_views.xml",
         "views/mesob_asset_dashboard_views.xml",
+        "views/mesob_asset_map_dashboard.xml",
         # Login customization
         "views/mesob_login_template.xml",
         # Menus
@@ -95,6 +96,7 @@
             "mesob_inventory_base/static/src/scss/stock_records_premium.scss",
             "mesob_inventory_base/static/src/scss/procurement_premium.scss",
             "mesob_inventory_base/static/src/scss/asset_dashboard_premium.scss",
+            "mesob_inventory_base/static/src/scss/asset_map_dashboard.scss",
             "mesob_inventory_base/static/src/js/navbar_sidebar.js",
             "mesob_inventory_base/static/src/xml/apps_sidebar.xml",
         ],
