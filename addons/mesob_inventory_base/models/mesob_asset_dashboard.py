@@ -26,7 +26,7 @@ class MesobAssetRegister(models.Model):
     
     # Core Identification
     item_id = fields.Many2one('mesob.inventory.item', string='Inventory Item', 
-                              required=True, ondelete='cascade', index=True)
+                              ondelete='cascade', index=True)
     item_code = fields.Char(related='item_id.item_code', string='Asset Code', store=True, index=True)
     display_name = fields.Char(compute='_compute_display_name', store=True)
     item_name = fields.Char(related='item_id.name', string='Asset Name', store=True)

@@ -28,10 +28,10 @@
                         <div class="asset_map_grid">
                             <!-- Main Store Section -->
                             <div class="location_zone main_store">
-                                <h3>Main Store</h3>
+                                <h3><i class="fa fa-warehouse"/> Main Store</h3>
                                 <div class="zone_stats">
-                                    <t t-set="main_store_assets" t-value="0"/>
-                                    <span>Assets: <t t-esc="main_store_assets"/></span>
+                                    <p class="stat_label">Assets in Stock</p>
+                                    <p class="stat_value">--</p>
                                 </div>
                             </div>
                             
@@ -41,6 +41,7 @@
                                     <h3><i class="fa fa-money-bill"/> Finance</h3>
                                     <div class="zone_content">
                                         <p class="zone_info">Assets issued to Finance department</p>
+                                        <p class="asset_count">--</p>
                                     </div>
                                 </div>
                                 
@@ -48,6 +49,7 @@
                                     <h3><i class="fa fa-users"/> HR</h3>
                                     <div class="zone_content">
                                         <p class="zone_info">Assets issued to HR department</p>
+                                        <p class="asset_count">--</p>
                                     </div>
                                 </div>
                                 
@@ -55,6 +57,7 @@
                                     <h3><i class="fa fa-laptop"/> IT</h3>
                                     <div class="zone_content">
                                         <p class="zone_info">Assets issued to IT department</p>
+                                        <p class="asset_count">--</p>
                                     </div>
                                 </div>
                                 
@@ -62,19 +65,47 @@
                                     <h3><i class="fa fa-cogs"/> Operations</h3>
                                     <div class="zone_content">
                                         <p class="zone_info">Assets issued to Operations</p>
+                                        <p class="asset_count">--</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
+                        <div class="map_stats_summary">
+                            <div class="stat_card">
+                                <i class="fa fa-cubes"/>
+                                <div class="stat_content">
+                                    <p class="stat_title">Total Assets</p>
+                                    <p class="stat_number">--</p>
+                                </div>
+                            </div>
+                            <div class="stat_card">
+                                <i class="fa fa-check-circle"/>
+                                <div class="stat_content">
+                                    <p class="stat_title">In Stock</p>
+                                    <p class="stat_number">--</p>
+                                </div>
+                            </div>
+                            <div class="stat_card">
+                                <i class="fa fa-hand-holding"/>
+                                <div class="stat_content">
+                                    <p class="stat_title">Issued</p>
+                                    <p class="stat_number">--</p>
+                                </div>
+                            </div>
+                            <div class="stat_card">
+                                <i class="fa fa-exclamation-triangle"/>
+                                <div class="stat_content">
+                                    <p class="stat_title">Idle</p>
+                                    <p class="stat_number">--</p>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="map_footer">
-                            <button type="object" name="action_refresh_map" 
-                                    class="btn btn-primary">
-                                <i class="fa fa-sync"/> Refresh Map
-                            </button>
                             <button type="action" name="%(action_mesob_asset_dashboard)d" 
-                                    class="btn btn-secondary">
-                                <i class="fa fa-list"/> View List
+                                    class="btn btn-primary">
+                                <i class="fa fa-list"/> View Asset Register
                             </button>
                         </div>
                     </div>
@@ -89,7 +120,7 @@
         <field name="res_model">mesob.asset.dashboard</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_mesob_asset_map_dashboard"/>
-        <field name="target">fullscreen</field>
+        <field name="target">current</field>
     </record>
     
     <!-- Menu Item for Asset Map -->
