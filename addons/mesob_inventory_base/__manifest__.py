@@ -91,7 +91,7 @@
             "mesob_inventory_base/static/src/scss/kanban.scss",
             "mesob_inventory_base/static/src/scss/modals.scss",
             "mesob_inventory_base/static/src/scss/navbar.scss",
-            "mesob_inventory_base/static/src/scss/receiving_premium.scss",
+            "mesob_inventory_base/static/src/scss/stock_records_premium.scss",
             "mesob_inventory_base/static/src/js/navbar_sidebar.js",
             "mesob_inventory_base/static/src/xml/apps_sidebar.xml",
         ],
