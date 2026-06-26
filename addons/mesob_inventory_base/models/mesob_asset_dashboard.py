@@ -222,3 +222,36 @@ class MesobAssetRegister(models.Model):
         Run daily to catch any new items
         """
         return self.action_sync_from_items()
+
+    
+    @api.model
+    def get_asset_map_data(self):
+        """
+        Get asset distribution data for the Interactive Asset Map
+        Returns counts by location, department, and state
+        """
+        # Count by state
+        state_counts = {
+            'in_stock': self.search_count([('asset_state', '=', 'in_stock')]),
+            'issued': self.search_count([('asset_state', '=', 'issued')]),
+            'idle': self.search_count([('asset_state', '=', 'idle')]),
+            'missing': self.search_count([('asset_state', '=', 'missing')]),
+        }
+        
+        # Count by department
+        departments = self.env['mesob.department'].search([])
+        dept_counts = {}
+        for dept in departments:
+            count = self.search_count([('using_department_id', '=', dept.id)])
+            if count > 0:
+                dept_counts[dept.name] = count
+        
+        # Count in Main Store (not issued)
+        main_store_count = self.search_count([('asset_state', '=', 'in_stock')])
+        
+        return {
+            'total_assets': self.search_count([]),
+            'state_counts': state_counts,
+            'department_counts': dept_counts,
+            'main_store_count': main_store_count,
+        }
