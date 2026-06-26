@@ -82,60 +82,91 @@
         <field name="name">mesob.asset.dashboard.form</field>
         <field name="model">mesob.asset.dashboard</field>
         <field name="arch" type="xml">
-            <form string="Asset Details">
+            <form string="Asset Details" class="mesob_asset_dashboard_form">
                 <header>
                     <button name="action_view_history" type="object" string="View History" 
                             icon="fa-history" class="btn-primary"/>
-                    <field name="asset_state" widget="statusbar"/>
+                    <field name="asset_state" widget="statusbar" 
+                           statusbar_visible="in_stock,issued,idle,missing"/>
                 </header>
                 <sheet>
-                    <field name="holder_image" widget="image" class="oe_avatar"/>
-                    <div class="oe_title">
-                        <h1><field name="item_code" readonly="1"/></h1>
-                        <h2><field name="item_name" readonly="1"/></h2>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" 
+                                name="action_view_history" icon="fa-history">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value"><field name="issue_count"/></span>
+                                <span class="o_stat_text">Times Issued</span>
+                            </div>
+                        </button>
                     </div>
+                    
+                    <widget name="web_ribbon" title="Surplus" 
+                            bg_color="bg-warning" invisible="not is_surplus"/>
+                    <widget name="web_ribbon" title="Controlled" 
+                            bg_color="bg-danger" invisible="not is_controlled"/>
+                    
+                    <field name="holder_image" widget="image" class="oe_avatar"/>
+                    
+                    <div class="oe_title">
+                        <label for="item_id" class="oe_edit_only"/>
+                        <h1><field name="item_id" placeholder="Select Inventory Item..." 
+                                   options="{'no_create': True}"/></h1>
+                        <h2><field name="item_code" readonly="1" class="text-muted"/></h2>
+                        <h3><field name="item_name" readonly="1"/></h3>
+                    </div>
+                    
+                    <div class="mesob_form_divider"/>
+                    
                     <group>
-                        <group string="Asset Information">
-                            <field name="item_id"/>
+                        <group string="Current Holder">
+                            <field name="current_holder_id" widget="many2one_avatar_user"/>
+                            <field name="holder_name"/>
+                            <field name="holder_email" widget="email"/>
+                            <field name="holder_phone" widget="phone"/>
+                            <field name="using_department_id"/>
+                        </group>
+                        <group string="Location and Ownership">
+                            <field name="current_location"/>
+                            <field name="owning_branch"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group string="Classification">
                             <field name="major_classification_id"/>
                             <field name="sub_classification_id"/>
                             <field name="is_controlled"/>
                             <field name="is_surplus"/>
                         </group>
-                        <group string="Current Holder">
-                            <field name="current_holder_id"/>
-                            <field name="holder_name"/>
-                            <field name="holder_email" widget="email"/>
-                            <field name="holder_phone" widget="phone"/>
-                        </group>
-                    </group>
-                    <group>
-                        <group string="Location and Ownership">
-                            <field name="current_location"/>
-                            <field name="owning_branch"/>
-                            <field name="using_department_id"/>
-                        </group>
                         <group string="Quantities">
-                            <field name="quantity_total"/>
+                            <field name="quantity_total" class="text-success"/>
                             <field name="quantity_in_stock"/>
-                            <field name="quantity_issued"/>
-                            <field name="quantity_available"/>
+                            <field name="quantity_issued" class="text-warning"/>
+                            <field name="quantity_available" class="text-primary"/>
                         </group>
                     </group>
+                    
                     <group>
-                        <group string="Financial">
+                        <group string="Financial (FIFO)">
                             <field name="currency_id" invisible="1"/>
-                            <field name="unit_cost"/>
-                            <field name="total_value"/>
+                            <field name="unit_cost" widget="monetary"/>
+                            <field name="total_value" widget="monetary" class="text-success"/>
                         </group>
                         <group string="Lifecycle">
                             <field name="first_received_date"/>
                             <field name="last_movement_date"/>
-                            <field name="days_since_last_movement"/>
-                            <field name="issue_count"/>
+                            <field name="days_since_last_movement" 
+                                   decoration-danger="days_since_last_movement &gt; 180"
+                                   decoration-warning="days_since_last_movement &gt; 90"/>
                         </group>
                     </group>
-                    <field name="description"/>
+                    
+                    <notebook>
+                        <page string="Description">
+                            <field name="description" placeholder="Asset description and notes..."/>
+                            <field name="item_name_am"/>
+                        </page>
+                    </notebook>
                 </sheet>
                 <div class="oe_chatter">
                     <field name="message_follower_ids"/>
