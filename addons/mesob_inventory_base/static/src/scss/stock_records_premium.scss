@@ -481,6 +481,7 @@
 .o_form_view {
     .o_form_sheet_bg {
         background: #0B1B3D !important; // Solid navy blue
+        padding: 20px !important; // Add padding around the form
     }
     
     .o_form_sheet {
@@ -489,6 +490,24 @@
         border: 1px solid rgba(212, 175, 55, 0.2) !important; // Subtle golden border
         border-radius: 12px !important;
         padding: 30px !important;
+        margin: 20px !important; // Gap from edges
+        
+        // Add golden separator after the corporate header
+        .mesob_corporate_header {
+            margin-bottom: 0px !important; // Remove bottom margin from header
+            
+            // Add golden divider after header
+            &::after {
+                content: '' !important;
+                display: block !important;
+                height: 3px !important;
+                background: linear-gradient(90deg, transparent, #D4AF37, #ECC844, #D4AF37, transparent) !important;
+                margin-top: 20px !important;
+                margin-bottom: 25px !important;
+                border-radius: 2px !important;
+                box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4) !important; // Golden glow
+            }
+        }
     }
     
     // Style all group containers with navy blue
@@ -514,6 +533,7 @@
     // Notebook tabs styling
     .o_notebook {
         background: #0B1B3D !important;
+        margin-top: 20px !important; // Gap before notebook
         
         .nav-tabs {
             border-bottom: 2px solid rgba(212, 175, 55, 0.3) !important; // Golden divider
