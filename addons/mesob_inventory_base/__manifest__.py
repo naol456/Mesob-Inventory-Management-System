@@ -92,9 +92,11 @@
             "mesob_inventory_base/static/src/scss/kanban.scss",
             "mesob_inventory_base/static/src/scss/modals.scss",
             "mesob_inventory_base/static/src/scss/navbar.scss",
+            "mesob_inventory_base/static/src/scss/analytics_menu.scss",
             "mesob_inventory_base/static/src/scss/stock_records_premium.scss",
             "mesob_inventory_base/static/src/scss/procurement_premium.scss",
             "mesob_inventory_base/static/src/js/navbar_sidebar.js",
+            "mesob_inventory_base/static/src/js/analytics_menu.js",
             "mesob_inventory_base/static/src/xml/apps_sidebar.xml",
         ],
         "web.assets_frontend": [

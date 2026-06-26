@@ -1,0 +1,196 @@
+/**
+ * Analytics & BI Menu - Multi-Column Grid Layout
+ * Displays submenu items in a responsive grid with proper spacing and hover effects
+ */
+
+// Variables for customization
+$menu-bg: rgba(255, 255, 255, 0.95);
+$menu-item-bg: rgba(212, 175, 55, 0.1);
+$menu-item-hover-bg: rgba(212, 175, 55, 0.25);
+$menu-item-border: rgba(212, 175, 55, 0.3);
+$menu-item-text: #333;
+$menu-item-hover-text: #1a1a1a;
+$menu-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+$transition-speed: 0.25s;
+
+// Grid configuration
+$grid-gap: 12px;
+$item-min-width: 200px;
+$item-padding: 14px 18px;
+
+// Target the Analytics & BI menu specifically
+.o_navbar_apps_menu {
+    .dropdown-menu {
+        // Find menu items under Analytics & BI parent
+        .o-dropdown-item[data-menu-xmlid*="menu_analytics"] {
+            // Apply multi-column grid layout to parent container
+            & + .o-dropdown-item,
+            &:has(+ .o-dropdown-item[data-menu-xmlid*="menu_analytics"]) {
+                display: inline-block;
+            }
+        }
+    }
+}
+
+// Multi-column grid container for Analytics & BI submenu
+.o_navbar_apps_menu .dropdown-menu {
+    .o-dropdown-item[data-menu-xmlid="mesob_inventory_base.menu_mesob_analytics_bi"] {
+        & ~ .o-dropdown-item[data-menu-xmlid*="menu_analytics_"] {
+            // Grid layout for submenu items
+            &:first-of-type {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax($item-min-width, 1fr));
+                gap: $grid-gap;
+                padding: 16px;
+                background: $menu-bg;
+                border-radius: 8px;
+                box-shadow: $transition-speed;
+                margin: 8px 0;
+                width: 100%;
+                max-width: 700px;
+            }
+        }
+    }
+}
+
+// Alternative approach: Target by menu structure
+.o_navbar_apps_menu {
+    // Analytics & BI submenu container
+    .o-dropdown[data-menu-xmlid="mesob_inventory_base.menu_mesob_analytics_bi"] {
+        .dropdown-menu {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax($item-min-width, 1fr));
+            gap: $grid-gap;
+            padding: 16px;
+            min-width: 650px;
+            max-width: 800px;
+            background: $menu-bg;
+            border-radius: 12px;
+            box-shadow: $menu-shadow;
+            
+            .o-dropdown-item {
+                display: flex;
+                align-items: center;
+                padding: $item-padding;
+                background: $menu-item-bg;
+                border: 1px solid $menu-item-border;
+                border-radius: 8px;
+                color: $menu-item-text;
+                font-weight: 500;
+                font-size: 14px;
+                transition: all $transition-speed ease;
+                text-decoration: none;
+                cursor: pointer;
+                white-space: normal;
+                word-wrap: break-word;
+                
+                // Hover effect
+                &:hover {
+                    background: $menu-item-hover-bg;
+                    border-color: rgba(212, 175, 55, 0.5);
+                    color: $menu-item-hover-text;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 8px rgba(212, 175, 55, 0.2);
+                }
+                
+                // Active/focus state
+                &:active,
+                &:focus {
+                    outline: 2px solid rgba(212, 175, 55, 0.6);
+                    outline-offset: 2px;
+                }
+                
+                // Icon spacing (if icons are present)
+                i, .fa, .oi {
+                    margin-right: 8px;
+                    font-size: 16px;
+                    opacity: 0.8;
+                }
+            }
+        }
+    }
+}
+
+// Responsive design for smaller screens
+@media (max-width: 1024px) {
+    .o_navbar_apps_menu {
+        .o-dropdown[data-menu-xmlid="mesob_inventory_base.menu_mesob_analytics_bi"] {
+            .dropdown-menu {
+                grid-template-columns: repeat(2, 1fr);
+                min-width: 450px;
+                max-width: 600px;
+            }
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .o_navbar_apps_menu {
+        .o-dropdown[data-menu-xmlid="mesob_inventory_base.menu_mesob_analytics_bi"] {
+            .dropdown-menu {
+                grid-template-columns: 1fr;
+                min-width: 280px;
+                max-width: 100%;
+                gap: 8px;
+                padding: 12px;
+                
+                .o-dropdown-item {
+                    padding: 12px 14px;
+                    font-size: 13px;
+                }
+            }
+        }
+    }
+}
+
+// Fallback: Generic multi-column menu styling for Analytics section
+.o_main_navbar {
+    // Target the specific menu by ID or class
+    #menu_mesob_analytics_bi_submenu,
+    [data-parent-menu="mesob_inventory_base.menu_mesob_analytics_bi"] {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax($item-min-width, 1fr));
+        gap: $grid-gap;
+        padding: 16px;
+        background: $menu-bg;
+        border-radius: 12px;
+        box-shadow: $menu-shadow;
+        min-width: 650px;
+        
+        a, button {
+            background: $menu-item-bg;
+            border: 1px solid $menu-item-border;
+            border-radius: 8px;
+            padding: $item-padding;
+            transition: all $transition-speed ease;
+            
+            &:hover {
+                background: $menu-item-hover-bg;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(212, 175, 55, 0.2);
+            }
+        }
+    }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+    .o_navbar_apps_menu {
+        .o-dropdown[data-menu-xmlid="mesob_inventory_base.menu_mesob_analytics_bi"] {
+            .dropdown-menu {
+                background: rgba(40, 40, 40, 0.95);
+                
+                .o-dropdown-item {
+                    background: rgba(212, 175, 55, 0.15);
+                    border-color: rgba(212, 175, 55, 0.4);
+                    color: #e0e0e0;
+                    
+                    &:hover {
+                        background: rgba(212, 175, 55, 0.3);
+                        color: #ffffff;
+                    }
+                }
+            }
+        }
+    }
+}
