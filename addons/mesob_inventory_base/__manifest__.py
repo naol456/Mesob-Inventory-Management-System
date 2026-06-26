@@ -69,6 +69,7 @@
         "views/mesob_stock_taking_handover_views.xml",
         "views/mesob_storage_security_views.xml",
         "views/mesob_inventory_dashboard_views.xml",
+        "views/mesob_analytics_dashboard_views.xml",
         # Login customization
         "views/mesob_login_template.xml",
         # Menus
@@ -91,9 +92,11 @@
             "mesob_inventory_base/static/src/scss/kanban.scss",
             "mesob_inventory_base/static/src/scss/modals.scss",
             "mesob_inventory_base/static/src/scss/navbar.scss",
+            "mesob_inventory_base/static/src/scss/analytics_menu.scss",
             "mesob_inventory_base/static/src/scss/stock_records_premium.scss",
             "mesob_inventory_base/static/src/scss/procurement_premium.scss",
             "mesob_inventory_base/static/src/js/navbar_sidebar.js",
+            "mesob_inventory_base/static/src/js/analytics_menu.js",
             "mesob_inventory_base/static/src/xml/apps_sidebar.xml",
         ],
         "web.assets_frontend": [
