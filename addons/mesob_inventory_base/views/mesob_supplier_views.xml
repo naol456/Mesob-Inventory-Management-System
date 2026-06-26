@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Supplier Registration Form View -->
+    <record id="view_res_partner_supplier_form" model="ir.ui.view">
+        <field name="name">res.partner.supplier.form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="is_supplier"/>
+            </xpath>
+            <xpath expr="//page[@name='sales_purchases']" position="after">
+                <page string="Supplier Registration (FPPA)" name="supplier_registration" invisible="not is_supplier">
+                    <group>
+                        <group string="Legal Registration">
+                            <field name="legal_registration_number"/>
+                            <field name="tin"/>
+                            <field name="registration_expiry_date"/>
+                        </group>
+                        <group string="Performance &amp; Status">
+                            <field name="performance_score" readonly="1"/>
+                            <field name="fppa_blacklisted"/>
+                            <field name="blacklist_reason" invisible="not fppa_blacklisted"/>
+                        </group>
+                    </group>
+                    <group string="Supply Categories">
+                        <field name="supply_category_ids" widget="many2many_tags" nolabel="1"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Supplier List View -->
+    <record id="view_res_partner_supplier_tree" model="ir.ui.view">
+        <field name="name">res.partner.supplier.tree</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <list string="Registered Suppliers">
+                <field name="name"/>
+                <field name="legal_registration_number"/>
+                <field name="tin"/>
+                <field name="registration_expiry_date"/>
+                <field name="performance_score" widget="progressbar"/>
+                <field name="fppa_blacklisted" widget="boolean_toggle"/>
+                <field name="is_supplier" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Supplier Search View -->
+    <record id="view_res_partner_supplier_search" model="ir.ui.view">
+        <field name="name">res.partner.supplier.search</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter string="Suppliers" name="suppliers_only" domain="[('is_supplier', '=', True)]"/>
+                <filter string="Active Suppliers" name="active_suppliers" domain="[('is_supplier', '=', True), ('fppa_blacklisted', '=', False)]"/>
+                <filter string="Blacklisted" name="blacklisted" domain="[('fppa_blacklisted', '=', True)]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Action for Supplier Registration -->
+    <record id="action_mesob_supplier_registration" model="ir.actions.act_window">
+        <field name="name">Supplier Registration</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_supplier', '=', True)]</field>
+        <field name="context">{'default_is_supplier': True, 'default_is_company': True, 'search_default_active_suppliers': 1}</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_res_partner_supplier_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_res_partner_supplier_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Register a New Supplier
+            </p>
+            <p>
+                Create and manage supplier registrations according to FPPA requirements.
+                Track legal documentation, performance scores, and blacklist status.
+            </p>
+        </field>
+    </record>
+
+</odoo>

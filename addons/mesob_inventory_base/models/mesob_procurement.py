@@ -516,7 +516,7 @@ class MesobProcurementBid(models.Model):
         "res.partner",
         string="Supplier",
         required=True,
-        domain=[("fppa_blacklisted", "=", False)],
+        domain=[("fppa_blacklisted", "=", False), ("is_supplier", "=", True)],
     )
     bid_price = fields.Float(string="Original Bid Price (ETB)", required=True)
     local_content = fields.Float(
@@ -557,7 +557,7 @@ class MesobProcurementContract(models.Model):
         "res.partner",
         string="Supplier",
         required=True,
-        domain=[("fppa_blacklisted", "=", False)],
+        domain=[("fppa_blacklisted", "=", False), ("is_supplier", "=", True)],
     )
     lot_id = fields.Many2one("mesob.procurement.plan.lot", string="APP Lot Reference", required=True)
     total_value = fields.Float(string="Total Contract Value (ETB)", required=True)
@@ -641,7 +641,7 @@ class MesobProcurementOrder(models.Model):
         "res.partner",
         string="Supplier",
         required=True,
-        domain=[("is_blacklisted", "=", False)],
+        domain=[("fppa_blacklisted", "=", False), ("is_supplier", "=", True)],
         tracking=True,
     )
     date_order = fields.Date(string="Order Date", default=fields.Date.today, required=True)
