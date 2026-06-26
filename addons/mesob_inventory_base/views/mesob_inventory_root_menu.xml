@@ -4,7 +4,7 @@
     <menuitem id="menu_mesob_inventory_root" 
               name="Mesob Inventory Management System"
               web_icon="mesob_inventory_base,static/description/icon.png"
-              groups="mesob_inventory_base.group_mesob_inventory_user,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_security_guard,mesob_inventory_base.group_mesob_auditor,mesob_inventory_base.group_mesob_dept_head,mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_inspector"
+              groups="mesob_inventory_base.group_mesob_inventory_user,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_security_guard,mesob_inventory_base.group_mesob_auditor,mesob_inventory_base.group_mesob_dept_head,mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_inspector,mesob_inventory_base.group_mesob_center_manager"
               sequence="10"/>
 
     <!-- ── Hide Default Unused Odoo Menus from Applications Sidebar ── -->

@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <!-- ── Analytics & BI (Center Manager) ────────────────────────── -->
+    <menuitem id="menu_mesob_analytics_bi"
+              name="Analytics &amp; BI"
+              parent="menu_mesob_inventory_root"
+              groups="mesob_inventory_base.group_mesob_center_manager"
+              sequence="5"/>
+
     <!-- ── Operations ─────────────────────────────────────────────── -->
     <menuitem id="menu_mesob_inventory_operations"
               name="Operations"
