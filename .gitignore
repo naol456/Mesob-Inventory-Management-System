@@ -56,3 +56,16 @@ MESOB_LOGIN_IMPLEMENTATION.md
 # Agent Skills
 .agents/
 skills-lock.json
+
+# Deployment secrets and runtime data (NEVER COMMIT!)
+deployment/.env
+deployment/backups/
+deployment/config/nginx/*.key
+deployment/config/nginx/*.crt
+deployment/config/nginx/*.pem
+
+# Docker volumes (managed by Docker)
+deployment/volumes/
+
+# Production logs
+deployment/logs/

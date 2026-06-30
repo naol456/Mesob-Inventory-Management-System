@@ -1,0 +1,155 @@
+# =============================================================================
+# Mesob Inventory Management System - Python Dependencies
+# =============================================================================
+#
+# This file lists all Python packages required for the Mesob Inventory
+# Management System beyond the base Odoo 19 installation.
+#
+# Installation: pip install -r requirements.txt
+#
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Core Dependencies (Required)
+# -----------------------------------------------------------------------------
+
+# XML processing - REQUIRED by mesob_inventory_base models
+# Used in: mesob_inventory_receiving, mesob_gate_pass, mesob_procurement, etc.
+lxml>=4.9.3,<6.0
+
+# Python Imaging Library - Enhanced image processing
+Pillow>=10.0.0,<11.0
+
+# ReportLab - PDF generation (enhanced reports)
+reportlab>=4.0.0,<5.0
+
+# QRCode generation (for gate passes, assets)
+qrcode>=7.4.2,<8.0
+
+# Python barcode generation
+python-barcode>=0.15.1,<1.0
+
+# -----------------------------------------------------------------------------
+# Database & Performance
+# -----------------------------------------------------------------------------
+
+# PostgreSQL adapter (usually included with Odoo, but pinned for consistency)
+psycopg2-binary>=2.9.9,<3.0
+
+# -----------------------------------------------------------------------------
+# Security & Authentication
+# -----------------------------------------------------------------------------
+
+# Passlib - Enhanced password hashing
+passlib>=1.7.4,<2.0
+
+# PyJWT - JSON Web Token support (for API extensions)
+PyJWT>=2.8.0,<3.0
+
+# -----------------------------------------------------------------------------
+# Date & Time Handling
+# -----------------------------------------------------------------------------
+
+# Python timezone support
+pytz>=2024.1
+
+# Date parsing
+python-dateutil>=2.8.2,<3.0
+
+# -----------------------------------------------------------------------------
+# Validation & Data Processing
+# -----------------------------------------------------------------------------
+
+# Email validation
+email-validator>=2.1.0,<3.0
+
+# Phone number validation (international format)
+phonenumbers>=8.13.0,<9.0
+
+# -----------------------------------------------------------------------------
+# Excel & Document Processing
+# -----------------------------------------------------------------------------
+
+# Excel file handling (for imports/exports)
+openpyxl>=3.1.2,<4.0
+
+# XLSX writer (optimized Excel writing)
+XlsxWriter>=3.2.0,<4.0
+
+# PDF processing
+PyPDF2>=3.0.0,<4.0
+
+# -----------------------------------------------------------------------------
+# HTTP & API
+# -----------------------------------------------------------------------------
+
+# Requests library (for external API calls if needed)
+requests>=2.31.0,<3.0
+
+# URL parsing and manipulation
+urllib3>=2.2.0,<3.0
+
+# -----------------------------------------------------------------------------
+# Utilities
+# -----------------------------------------------------------------------------
+
+# Python-slugify - URL-friendly strings
+python-slugify>=8.0.0,<9.0
+
+# Num2words - Number to words conversion (for Ethiopian Birr)
+num2words>=0.5.13,<1.0
+
+# Babel - Internationalization (i18n) support
+Babel>=2.14.0,<3.0
+
+# -----------------------------------------------------------------------------
+# Development & Testing Dependencies (Optional)
+# -----------------------------------------------------------------------------
+
+# Code formatting
+black>=24.0.0,<25.0
+
+# Linting
+pylint>=3.0.0,<4.0
+flake8>=7.0.0,<8.0
+
+# Type checking
+mypy>=1.8.0,<2.0
+
+# Testing
+pytest>=8.0.0,<9.0
+pytest-cov>=4.1.0,<5.0
+pytest-mock>=3.12.0,<4.0
+
+# Debugging
+ipython>=8.20.0,<9.0
+ipdb>=0.13.13,<1.0
+
+# =============================================================================
+# Version Policy
+# =============================================================================
+#
+# - Use semantic versioning (MAJOR.MINOR.PATCH)
+# - Pin major versions to prevent breaking changes
+# - Allow minor and patch updates for security fixes
+# - Test thoroughly before upgrading major versions
+#
+# Update check: pip list --outdated
+# Security audit: pip-audit (install: pip install pip-audit)
+#
+# =============================================================================
+
+# =============================================================================
+# Odoo 19 Compatibility Notes
+# =============================================================================
+#
+# This requirements.txt is tested with:
+# - Python 3.10+
+# - Odoo 19.0
+# - PostgreSQL 14+
+# - Ubuntu 22.04 LTS / 24.04 LTS
+#
+# For full Odoo dependencies, see:
+# https://github.com/odoo/odoo/blob/19.0/requirements.txt
+#
+# =============================================================================

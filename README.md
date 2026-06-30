@@ -12,27 +12,15 @@ This repository contains **custom addons** for an FDRE-compliant inventory manag
 See `specs/Development-Workflow-Notion.md`.
 
 
-MESOB INVENTORY TEST ACCOUNTS
-==============================
+## Test/Demo Accounts
 
-PAO Account:
-  Email: pao@mesob.local
-  Password: Pao123
-  
+**⚠️ SECURITY WARNING: FOR DEVELOPMENT/TESTING ONLY ⚠️**
 
-Storekeeper Account:
-  Email: store@mesob.local
-  Password: Store123
-  
+Demo accounts are available in the demo data. These accounts **MUST BE DISABLED OR DELETED** before production deployment.
 
-Stock Clerk Account:
-  Email: clerk@mesob.local
-  Password: Clerk123
-  
+**NEVER use these credentials in a production environment.**
 
-Regular User Account:
-  Email: user@mesob.local
-  Password: User123
+For production deployment instructions, see [deployment/README.md](deployment/README.md)
 
 
 
