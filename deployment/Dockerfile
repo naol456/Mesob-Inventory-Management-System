@@ -73,9 +73,9 @@ ENV LANG=en_US.UTF-8 \
 # Copy requirements file
 COPY requirements.txt /tmp/requirements.txt
 
-# Install Python dependencies
-RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel \
-    && pip3 install --no-cache-dir -r /tmp/requirements.txt \
+# Install Python dependencies (using --break-system-packages for Debian 12)
+# Skip pip/setuptools upgrade as they're managed by Debian
+RUN pip3 install --no-cache-dir --break-system-packages -r /tmp/requirements.txt \
     && rm /tmp/requirements.txt
 
 # -----------------------------------------------------------------------------
@@ -102,7 +102,7 @@ RUN mkdir -p /etc/odoo \
     && chown -R odoo:odoo /etc/odoo
 
 # Copy Odoo configuration
-COPY --chown=odoo:odoo config/odoo.conf /etc/odoo/odoo.conf
+COPY --chown=odoo:odoo deployment/config/odoo.conf /etc/odoo/odoo.conf
 
 # Secure configuration file permissions
 RUN chmod 600 /etc/odoo/odoo.conf
@@ -122,7 +122,7 @@ RUN mkdir -p /var/lib/odoo \
 # -----------------------------------------------------------------------------
 
 # Copy health check script
-COPY --chown=odoo:odoo scripts/healthcheck.py /usr/local/bin/healthcheck.py
+COPY --chown=odoo:odoo deployment/scripts/healthcheck.py /usr/local/bin/healthcheck.py
 RUN chmod +x /usr/local/bin/healthcheck.py
 
 # Configure Docker health check

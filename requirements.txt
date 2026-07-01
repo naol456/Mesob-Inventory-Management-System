@@ -10,18 +10,17 @@
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# Core Dependencies (Required)
+# Core Dependencies (Required by mesob_inventory_base)
 # -----------------------------------------------------------------------------
 
-# XML processing - REQUIRED by mesob_inventory_base models
-# Used in: mesob_inventory_receiving, mesob_gate_pass, mesob_procurement, etc.
-lxml>=4.9.3,<6.0
+# XML processing - REQUIRED (already in Odoo base, but ensuring version)
+# lxml>=4.9.3,<6.0  # Already included in Odoo
 
-# Python Imaging Library - Enhanced image processing
-Pillow>=10.0.0,<11.0
+# Python Imaging Library - Enhanced image processing (already in Odoo)
+# Pillow>=10.0.0,<11.0  # Already included in Odoo
 
-# ReportLab - PDF generation (enhanced reports)
-reportlab>=4.0.0,<5.0
+# ReportLab - PDF generation (already in Odoo)
+# reportlab>=4.0.0,<5.0  # Already included in Odoo
 
 # QRCode generation (for gate passes, assets)
 qrcode>=7.4.2,<8.0
@@ -33,97 +32,99 @@ python-barcode>=0.15.1,<1.0
 # Database & Performance
 # -----------------------------------------------------------------------------
 
-# PostgreSQL adapter (usually included with Odoo, but pinned for consistency)
-psycopg2-binary>=2.9.9,<3.0
+# PostgreSQL adapter (already in Odoo base)
+# psycopg2-binary>=2.9.9,<3.0  # Already included
 
 # -----------------------------------------------------------------------------
 # Security & Authentication
 # -----------------------------------------------------------------------------
 
-# Passlib - Enhanced password hashing
-passlib>=1.7.4,<2.0
+# Passlib - Enhanced password hashing (already in Odoo)
+# passlib>=1.7.4,<2.0  # Already included
 
-# PyJWT - JSON Web Token support (for API extensions)
-PyJWT>=2.8.0,<3.0
+# PyJWT - JSON Web Token support (already in Odoo)
+# PyJWT>=2.8.0,<3.0  # Already included
 
 # -----------------------------------------------------------------------------
 # Date & Time Handling
 # -----------------------------------------------------------------------------
 
-# Python timezone support
-pytz>=2024.1
+# Python timezone support (already in Odoo)
+# pytz>=2024.1  # Already included
 
-# Date parsing
-python-dateutil>=2.8.2,<3.0
+# Date parsing (already in Odoo)
+# python-dateutil>=2.8.2,<3.0  # Already included
 
 # -----------------------------------------------------------------------------
 # Validation & Data Processing
 # -----------------------------------------------------------------------------
 
-# Email validation
-email-validator>=2.1.0,<3.0
+# Email validation (already in Odoo)
+# email-validator>=2.1.0,<3.0  # Already included
 
-# Phone number validation (international format)
-phonenumbers>=8.13.0,<9.0
+# Phone number validation (already in Odoo)
+# phonenumbers>=8.13.0,<9.0  # Already included
 
 # -----------------------------------------------------------------------------
 # Excel & Document Processing
 # -----------------------------------------------------------------------------
 
-# Excel file handling (for imports/exports)
-openpyxl>=3.1.2,<4.0
+# Excel file handling (already in Odoo)
+# openpyxl>=3.1.2,<4.0  # Already included
 
-# XLSX writer (optimized Excel writing)
-XlsxWriter>=3.2.0,<4.0
+# XLSX writer (already in Odoo)
+# XlsxWriter>=3.2.0,<4.0  # Already included
 
-# PDF processing
-PyPDF2>=3.0.0,<4.0
+# PDF processing (already in Odoo)
+# PyPDF2>=3.0.0,<4.0  # Already included
 
 # -----------------------------------------------------------------------------
 # HTTP & API
 # -----------------------------------------------------------------------------
 
-# Requests library (for external API calls if needed)
-requests>=2.31.0,<3.0
+# Requests library (already in Odoo)
+# requests>=2.31.0,<3.0  # Already included
 
-# URL parsing and manipulation
-urllib3>=2.2.0,<3.0
+# URL parsing (already in Odoo)
+# urllib3>=2.2.0,<3.0  # Already included
 
 # -----------------------------------------------------------------------------
 # Utilities
 # -----------------------------------------------------------------------------
 
-# Python-slugify - URL-friendly strings
-python-slugify>=8.0.0,<9.0
+# Python-slugify (already in Odoo)
+# python-slugify>=8.0.0,<9.0  # Already included
 
-# Num2words - Number to words conversion (for Ethiopian Birr)
+# Num2words - Number to words conversion
 num2words>=0.5.13,<1.0
 
-# Babel - Internationalization (i18n) support
-Babel>=2.14.0,<3.0
+# Babel (already in Odoo)
+# Babel>=2.14.0,<3.0  # Already included
 
 # -----------------------------------------------------------------------------
-# Development & Testing Dependencies (Optional)
+# Development & Testing Dependencies (Commented out - not needed in production)
 # -----------------------------------------------------------------------------
+
+# Uncomment below for development environment only
 
 # Code formatting
-black>=24.0.0,<25.0
+# black>=24.0.0,<25.0
 
-# Linting
-pylint>=3.0.0,<4.0
-flake8>=7.0.0,<8.0
+# Linting  
+# pylint>=3.0.0,<4.0
+# flake8>=7.0.0,<8.0
 
 # Type checking
-mypy>=1.8.0,<2.0
+# mypy>=1.8.0,<2.0
 
 # Testing
-pytest>=8.0.0,<9.0
-pytest-cov>=4.1.0,<5.0
-pytest-mock>=3.12.0,<4.0
+# pytest>=8.0.0,<9.0
+# pytest-cov>=4.1.0,<5.0
+# pytest-mock>=3.12.0,<4.0
 
 # Debugging
-ipython>=8.20.0,<9.0
-ipdb>=0.13.13,<1.0
+# ipython>=8.20.0,<9.0
+# ipdb>=0.13.13,<1.0
 
 # =============================================================================
 # Version Policy
