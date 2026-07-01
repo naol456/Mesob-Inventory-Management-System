@@ -1,0 +1,663 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ==================== ANNUAL PROCUREMENT PLAN (APP) ==================== -->
+    <record id="view_mesob_procurement_plan_tree" model="ir.ui.view">
+        <field name="name">mesob.procurement.plan.tree</field>
+        <field name="model">mesob.procurement.plan</field>
+        <field name="arch" type="xml">
+            <list string="Annual Procurement Plans">
+                <field name="name"/>
+                <field name="fiscal_year"/>
+                <field name="planning_type"/>
+                <field name="execution_type"/>
+                <field name="procurement_stream"/>
+                <field name="state" widget="badge" decoration-info="state == 'puh_approved'" decoration-warning="state == 'pec_approved'" decoration-success="state == 'hope_approved'" decoration-danger="state == 'rejected'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_procurement_plan_form" model="ir.ui.view">
+        <field name="name">mesob.procurement.plan.form</field>
+        <field name="model">mesob.procurement.plan</field>
+        <field name="arch" type="xml">
+            <form string="Annual Procurement Plan">
+                <header>
+                    <button name="action_auto_generate_lots" string="Auto Group Needs to Lots" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_puh_approve" string="PUH Approve" type="object" class="oe_highlight" invisible="state not in ['draft', 'rejected']" groups="mesob_inventory_base.group_mesob_pao"/>
+                    <button name="action_pec_approve" string="PEC Approve" type="object" class="oe_highlight" invisible="state != 'puh_approved'" groups="mesob_inventory_base.group_mesob_pao"/>
+                    <button name="action_hope_approve" string="HOPE Publish" type="object" class="oe_highlight" invisible="state != 'pec_approved'" groups="mesob_inventory_base.group_mesob_pao"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,puh_approved,pec_approved,hope_approved"/>
+                </header>
+                <sheet>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="fiscal_year" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Annual Procurement Plan</div>
+                        </div>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="fiscal_year" readonly="state != 'draft'"/>
+                            <field name="planning_type" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="execution_type" readonly="state != 'draft'"/>
+                            <field name="procurement_stream" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== DEPARTMENT NEEDS ==================== -->
+    <record id="view_mesob_procurement_need_tree" model="ir.ui.view">
+        <field name="name">mesob.procurement.need.tree</field>
+        <field name="model">mesob.procurement.need</field>
+        <field name="arch" type="xml">
+            <list string="Department Needs Requests">
+                <field name="department_id"/>
+                <field name="major_classification_id"/>
+                <field name="sub_classification_id"/>
+                <field name="item_code"/>
+                <field name="quantity"/>
+                <field name="estimated_unit_price"/>
+                <field name="total_price" sum="Total Cost"/>
+                <field name="expected_delivery_period"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_procurement_need_form" model="ir.ui.view">
+        <field name="name">mesob.procurement.need.form</field>
+        <field name="model">mesob.procurement.need</field>
+        <field name="arch" type="xml">
+            <form string="Department Need Request">
+                <header>
+                    <button name="action_submit" string="Submit to Review" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_review" string="Review Need" type="object" class="oe_highlight" invisible="state != 'submitted'" groups="mesob_inventory_base.group_mesob_pao"/>
+                    <button name="action_lock" string="Lock (Immutable)" type="object" class="oe_highlight" invisible="state != 'reviewed'" groups="mesob_inventory_base.group_mesob_pao"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,reviewed,locked"/>
+                </header>
+                <sheet>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="item_id" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Department Need Request</div>
+                        </div>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="department_id" readonly="state == 'locked'"/>
+                            <field name="major_classification_id" readonly="state == 'locked'"/>
+                            <field name="sub_classification_id" readonly="state == 'locked'" domain="[('major_classification_id', '=', major_classification_id)]"/>
+                            <field name="item_code"/>
+                        </group>
+                        <group>
+                            <field name="quantity" readonly="state == 'locked'"/>
+                            <field name="estimated_unit_price" readonly="state == 'locked'"/>
+                            <field name="total_price"/>
+                            <field name="expected_delivery_period" readonly="state == 'locked'"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== TENDER / TENDERING ==================== -->
+    <record id="view_mesob_procurement_tender_tree" model="ir.ui.view">
+        <field name="name">mesob.procurement.tender.tree</field>
+        <field name="model">mesob.procurement.tender</field>
+        <field name="arch" type="xml">
+            <list string="Tenders">
+                <field name="name"/>
+                <field name="lot_id"/>
+                <field name="spec_status" widget="badge"/>
+                <field name="advertisement_date"/>
+                <field name="submission_deadline"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_procurement_tender_form" model="ir.ui.view">
+        <field name="name">mesob.procurement.tender.form</field>
+        <field name="model">mesob.procurement.tender</field>
+        <field name="arch" type="xml">
+            <form string="Tender">
+                <header>
+                    <button name="action_approve_spec" string="Approve Specs" type="object" class="oe_highlight" invisible="spec_status == 'approved'"/>
+                    <button name="action_advertise" string="Advertise Tender" type="object" class="oe_highlight" invisible="state != 'spec_approved'"/>
+                    <button name="action_open_bids" string="Open Bids Publicly" type="object" class="oe_highlight" invisible="state != 'advertised'"/>
+                    <button name="action_evaluate" string="Evaluate &amp; Compute Rank" type="object" class="oe_highlight" invisible="state != 'opened'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,spec_approved,advertised,opened,evaluated,closed"/>
+                </header>
+                <sheet>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="name" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Tender Request (FR-PROC)</div>
+                        </div>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="lot_id" readonly="state != 'draft'"/>
+                            <field name="spec_status" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="advertisement_date" readonly="state not in ['draft', 'spec_approved']"/>
+                            <field name="submission_deadline" readonly="state not in ['draft', 'spec_approved']"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Technical Specifications (FR-PROC-009)" name="specs">
+                            <field name="technical_specifications" placeholder="Quality characteristics, performances..." readonly="state != 'draft'"/>
+                        </page>
+                        <page string="Bidders Submission List (FR-PROC-017)" name="bids">
+                            <field name="bid_ids">
+                                <list editable="bottom">
+                                    <field name="supplier_id"/>
+                                    <field name="bid_price"/>
+                                    <field name="local_content"/>
+                                    <field name="preliminary_passed"/>
+                                    <field name="technical_score"/>
+                                    <field name="financial_score"/>
+                                    <field name="evaluated_price" readonly="1"/>
+                                    <field name="ranking" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Public Opening Minutes (FR-PROC-015)" name="opening">
+                            <group>
+                                <field name="opening_minutes" placeholder="Minutes of the public bid opening..."/>
+                                <field name="opening_signatures" placeholder="Names and signatures..."/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== CONTRACTS ==================== -->
+    <record id="view_mesob_procurement_contract_tree" model="ir.ui.view">
+        <field name="name">mesob.procurement.contract.tree</field>
+        <field name="model">mesob.procurement.contract</field>
+        <field name="arch" type="xml">
+            <list string="Contracts">
+                <field name="name"/>
+                <field name="supplier_id"/>
+                <field name="lot_id"/>
+                <field name="total_value"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_procurement_contract_form" model="ir.ui.view">
+        <field name="name">mesob.procurement.contract.form</field>
+        <field name="model">mesob.procurement.contract</field>
+        <field name="arch" type="xml">
+            <form string="Contract">
+                <header>
+                    <button name="action_sign_contract" string="Sign Contract" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,signed,variation,closed"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" readonly="state != 'draft'"/>
+                            <field name="supplier_id" readonly="state != 'draft'"/>
+                            <field name="lot_id" readonly="state != 'draft'"/>
+                            <field name="total_value" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="advance_payment" readonly="state != 'draft'"/>
+                            <field name="advance_payment_guarantee" readonly="state != 'draft'"/>
+                            <field name="performance_security_recorded" readonly="state != 'draft'"/>
+                            <field name="cumulative_variation_total"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Delivery &amp; Payments Info" name="delivery_payment">
+                            <group>
+                                <field name="delivery_schedule" placeholder="Key delivery milestones..." readonly="state != 'draft'"/>
+                                <field name="payment_terms" placeholder="Terms of payments..." readonly="state != 'draft'"/>
+                                <field name="performance_security_details" placeholder="Insurance bond or bank guarantees..." readonly="state != 'draft'"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== PURCHASE ORDERS ==================== -->
+    <!-- Simplified Kanban for Storekeepers (read-only, PO reference only) -->
+    <record id="view_mesob_procurement_order_kanban_storekeeper" model="ir.ui.view">
+        <field name="name">mesob.procurement.order.kanban.storekeeper</field>
+        <field name="model">mesob.procurement.order</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="receiving_status" create="0" edit="0" delete="0" class="o_kanban_mobile">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="receiving_status"/>
+                <field name="supplier_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div style="background: rgba(11,27,61,0.95); backdrop-filter: blur(10px); border: 2px solid rgba(212,175,55,0.4); border-radius: 12px; padding: 32px; margin-bottom: 16px; text-align: center; box-shadow: 0 6px 20px rgba(0,0,0,0.25); cursor: default;">
+                            <div style="color: rgba(212,175,55,0.7); font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 12px;">Purchase Order Reference</div>
+                            <div class="font-monospace" style="background: linear-gradient(135deg, #D4AF37, #ECC844); color: #0B1B3D; font-size: 24px; font-weight: 800; padding: 16px 28px; border-radius: 8px; box-shadow: 0 4px 15px rgba(212,175,55,0.4); letter-spacing: 1px; user-select: all;">
+                                <t t-esc="record.name.value"/>
+                            </div>
+                            <div style="color: rgba(255,255,255,0.7); font-size: 13px; margin-top: 16px; font-weight: 500;">
+                                <t t-esc="record.supplier_id.value"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Full Kanban for PAO/Procurement Officers -->
+    <record id="view_mesob_procurement_order_kanban" model="ir.ui.view">
+        <field name="name">mesob.procurement.order.kanban</field>
+        <field name="model">mesob.procurement.order</field>
+        <field name="priority">10</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="receiving_status" drag_drop="false" class="o_kanban_mobile">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="supplier_id"/>
+                <field name="date_order"/>
+                <field name="plan_lot_id"/>
+                <field name="inspection_type"/>
+                <field name="receiving_status"/>
+                <field name="state"/>
+                <field name="contract_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click" 
+                             style="background: rgba(11,27,61,0.95); backdrop-filter: blur(10px); border: 1px solid rgba(212,175,55,0.25); border-radius: 12px; padding: 24px; margin-bottom: 16px; min-height: 180px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                            
+                            <!-- Header Row: PO Number + Status Badge -->
+                            <div class="d-flex justify-content-between align-items-start mb-3 pb-3" style="border-bottom: 1px solid rgba(212,175,55,0.2);">
+                                <div>
+                                    <div style="color: rgba(212,175,55,0.7); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 6px;">Purchase Order</div>
+                                    <span class="fw-bold font-monospace" style="color: #D4AF37; font-size: 18px; letter-spacing: 0.5px;">
+                                        <t t-esc="record.name.value"/>
+                                    </span>
+                                </div>
+                                <t t-if="record.state.raw_value == 'approved'">
+                                    <span class="badge" style="background: linear-gradient(135deg, #D4AF37, #C59B27); color: #FFFFFF; padding: 6px 12px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
+                                        <i class="fa fa-check-circle me-1"/>APPROVED
+                                    </span>
+                                </t>
+                                <t t-elif="record.state.raw_value == 'pending'">
+                                    <span class="badge" style="background: linear-gradient(135deg, #ECC844, #F9E060); color: #0B1B3D; padding: 6px 12px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
+                                        <i class="fa fa-clock-o me-1"/>PENDING
+                                    </span>
+                                </t>
+                                <t t-elif="record.state.raw_value == 'sent'">
+                                    <span class="badge" style="background: rgba(212,175,55,0.3); color: #D4AF37; padding: 6px 12px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; border: 1px solid rgba(212,175,55,0.5);">
+                                        <i class="fa fa-paper-plane me-1"/>SENT
+                                    </span>
+                                </t>
+                                <t t-else="">
+                                    <span class="badge" style="background: rgba(212,175,55,0.15); color: rgba(212,175,55,0.8); padding: 6px 12px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; border: 1px solid rgba(212,175,55,0.3);">
+                                        <i class="fa fa-file-o me-1"/>DRAFT
+                                    </span>
+                                </t>
+                            </div>
+
+                            <!-- Supplier Name -->
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="fa fa-building" style="color: rgba(212,175,55,0.6); font-size: 12px;"/>
+                                    <span style="color: rgba(212,175,55,0.7); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Supplier</span>
+                                </div>
+                                <div class="fw-bold" style="color: #FFFFFF; font-size: 15px; line-height: 1.3;">
+                                    <t t-esc="record.supplier_id.value"/>
+                                </div>
+                            </div>
+
+                            <!-- Information Grid -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <i class="fa fa-sitemap" style="color: rgba(212,175,55,0.6); font-size: 11px;"/>
+                                        <span style="color: rgba(212,175,55,0.6); font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;">Plan/Lot</span>
+                                    </div>
+                                    <div style="color: rgba(255,255,255,0.85); font-size: 12px; font-weight: 500;">
+                                        <t t-esc="record.plan_lot_id.value or 'N/A'"/>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <i class="fa fa-calendar-o" style="color: rgba(212,175,55,0.6); font-size: 11px;"/>
+                                        <span style="color: rgba(212,175,55,0.6); font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;">Order Date</span>
+                                    </div>
+                                    <div class="font-monospace" style="color: rgba(255,255,255,0.85); font-size: 12px; font-weight: 500;">
+                                        <t t-esc="record.date_order.value"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Footer: Inspection Type -->
+                            <div class="pt-3" style="border-top: 1px solid rgba(212,175,55,0.15);">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa fa-search" style="color: rgba(212,175,55,0.6); font-size: 12px;"/>
+                                    <span style="color: rgba(212,175,55,0.7); font-size: 11px; font-weight: 500;">
+                                        <t t-esc="record.inspection_type.value"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_mesob_procurement_order_tree" model="ir.ui.view">
+        <field name="name">mesob.procurement.order.tree</field>
+        <field name="model">mesob.procurement.order</field>
+        <field name="arch" type="xml">
+            <list string="Purchase Orders">
+                <field name="name"/>
+                <field name="supplier_id"/>
+                <field name="plan_lot_id"/>
+                <field name="date_order"/>
+                <field name="inspection_type"/>
+                <field name="receiving_status" widget="badge" 
+                       decoration-info="receiving_status == 'new'" 
+                       decoration-success="receiving_status == 'received'"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+    
+    <!-- Purchase Order Search View -->
+    <record id="view_mesob_procurement_order_search" model="ir.ui.view">
+        <field name="name">mesob.procurement.order.search</field>
+        <field name="model">mesob.procurement.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="supplier_id"/>
+                <field name="plan_lot_id"/>
+                <field name="contract_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_mesob_procurement_order_form" model="ir.ui.view">
+        <field name="name">mesob.procurement.order.form</field>
+        <field name="model">mesob.procurement.order</field>
+        <field name="arch" type="xml">
+            <form string="Purchase Order">
+                <header>
+                    <button name="action_submit" string="Submit PO" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_approve" string="Approve PO" type="object" class="oe_highlight" invisible="state != 'pending'" groups="mesob_inventory_base.group_mesob_pao"/>
+                    <button name="action_send_to_storekeeper" string="Send to Storekeeper" type="object" class="oe_highlight" invisible="state != 'approved'" groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,pending,approved,sent,partially_received,fully_received,closed"/>
+                </header>
+                <sheet>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="name" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Purchase Order (PO)</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Premium Form Body with Icon-Label Combinations -->
+                    <group class="mb-4" col="2">
+                        <group string="Supplier &amp; Contract Details" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(11,27,61,0.95); border: 1px solid rgba(212,175,55,0.25) !important; border-radius: 12px;">
+                            <label for="supplier_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(212,175,55,0.85); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-building" style="color: #D4AF37;"/>Supplier
+                            </label>
+                            <field name="supplier_id" readonly="state != 'draft'" class="mb-3" options="{'no_open': True, 'no_create': True}"/>
+                            
+                            <label for="plan_lot_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(212,175,55,0.85); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-sitemap" style="color: #D4AF37;"/>Plan/Lot Reference
+                            </label>
+                            <field name="plan_lot_id" readonly="state != 'draft'" class="mb-3" options="{'no_open': True, 'no_create': True}"/>
+                            
+                            <label for="contract_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(212,175,55,0.85); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-file-text" style="color: #D4AF37;"/>Contract
+                            </label>
+                            <field name="contract_id" readonly="state != 'draft'" class="mb-2" options="{'no_open': True, 'no_create': True}"/>
+                        </group>
+                        
+                        <group string="Order &amp; Inspection Details" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(11,27,61,0.95); border: 1px solid rgba(212,175,55,0.25) !important; border-radius: 12px;">
+                            <label for="date_order" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(212,175,55,0.85); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-calendar-check-o" style="color: #D4AF37;"/>Order Date
+                            </label>
+                            <field name="date_order" readonly="state != 'draft'" class="mb-3 font-monospace"/>
+                            
+                            <label for="inspection_type" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(212,175,55,0.85); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-search" style="color: #D4AF37;"/>Inspection Type
+                            </label>
+                            <field name="inspection_type" readonly="state != 'draft'" class="mb-2"/>
+                        </group>
+                    </group>
+                    
+                    <notebook class="mt-4">
+                        <page string="Order Lines" name="lines">
+                            <div class="p-3">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <i class="fa fa-list-alt" style="color: #D4AF37; font-size: 18px;"/>
+                                    <label for="line_ids" class="mb-0" style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 600;">Purchase Order Items</label>
+                                </div>
+                                <field name="line_ids" readonly="state != 'draft'">
+                                    <list editable="bottom">
+                                        <field name="major_classification_id"/>
+                                        <field name="sub_classification_id" domain="[('major_classification_id', '=', major_classification_id)]"/>
+                                        <field name="quantity"/>
+                                        <field name="price_unit"/>
+                                        <field name="price_subtotal" readonly="1" sum="Total Amount"/>
+                                    </list>
+                                </field>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== PAYMENT CERTIFICATES ==================== -->
+    <record id="view_mesob_procurement_payment_tree" model="ir.ui.view">
+        <field name="name">mesob.procurement.payment.certificate.tree</field>
+        <field name="model">mesob.procurement.payment.certificate</field>
+        <field name="arch" type="xml">
+            <list string="Payment Certificates">
+                <field name="name"/>
+                <field name="order_id"/>
+                <field name="supplier_id"/>
+                <field name="amount_gross"/>
+                <field name="liquidated_damages"/>
+                <field name="retention_amount"/>
+                <field name="net_payable"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_procurement_payment_form" model="ir.ui.view">
+        <field name="name">mesob.procurement.payment.certificate.form</field>
+        <field name="model">mesob.procurement.payment.certificate</field>
+        <field name="arch" type="xml">
+            <form string="Payment Certificate">
+                <header>
+                    <button name="action_approve" string="Approve (3-Way Match)" type="object" class="oe_highlight" invisible="state != 'draft'" groups="mesob_inventory_base.group_mesob_pao"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approved"/>
+                </header>
+                <sheet>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="name" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Payment Certificate</div>
+                        </div>
+                    </div>
+                    <group>
+                        <group string="3-Way Match Verification (FR-PROC-034)">
+                            <field name="order_id" readonly="state != 'draft'"/>
+                            <field name="supplier_id"/>
+                            <field name="has_po" readonly="state != 'draft'"/>
+                            <field name="has_model19" readonly="state != 'draft'"/>
+                            <field name="has_invoice" readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Financial Deductions &amp; Liquidated Damages">
+                            <field name="amount_gross" readonly="state != 'draft'"/>
+                            <field name="days_delay" readonly="state != 'draft'"/>
+                            <field name="penalty_rate" readonly="state != 'draft'"/>
+                            <field name="liquidated_damages"/>
+                            <field name="retention_percent" readonly="state != 'draft'"/>
+                            <field name="retention_amount"/>
+                            <field name="net_payable"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== COMPLAINTS ==================== -->
+    <record id="view_mesob_procurement_complaint_tree" model="ir.ui.view">
+        <field name="name">mesob.procurement.complaint.tree</field>
+        <field name="model">mesob.procurement.complaint</field>
+        <field name="arch" type="xml">
+            <list string="Procurement Complaints">
+                <field name="name"/>
+                <field name="complainant_name"/>
+                <field name="lot_id"/>
+                <field name="date_filed"/>
+                <field name="nature"/>
+                <field name="state" widget="badge" decoration-danger="state == 'open'" decoration-success="state == 'resolved'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mesob_procurement_complaint_form" model="ir.ui.view">
+        <field name="name">mesob.procurement.complaint.form</field>
+        <field name="model">mesob.procurement.complaint</field>
+        <field name="arch" type="xml">
+            <form string="Complaint Registration">
+                <header>
+                    <button name="action_resolve" string="Resolve Complaint" type="object" class="oe_highlight" invisible="state != 'open'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="open,resolved"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="complainant_name" readonly="state != 'open'"/>
+                            <field name="lot_id" readonly="state != 'open'"/>
+                        </group>
+                        <group>
+                            <field name="date_filed" readonly="state != 'open'"/>
+                            <field name="nature" readonly="state != 'open'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Complaint details" name="details">
+                            <field name="details" placeholder="Full description of complaints/appeals..." readonly="state != 'open'"/>
+                        </page>
+                        <page string="Response &amp; Resolution Actions" name="resolution">
+                            <group>
+                                <field name="action_taken" placeholder="Enter actions taken..."/>
+                                <field name="resolution" placeholder="Document final outcome..."/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== ACTIONS ==================== -->
+    <record id="action_mesob_procurement_plan" model="ir.actions.act_window">
+        <field name="name">Annual Plans (APP)</field>
+        <field name="res_model">mesob.procurement.plan</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_mesob_procurement_need" model="ir.actions.act_window">
+        <field name="name">Department Needs Collection</field>
+        <field name="res_model">mesob.procurement.need</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_mesob_procurement_tender" model="ir.actions.act_window">
+        <field name="name">Bidding &amp; Tenders</field>
+        <field name="res_model">mesob.procurement.tender</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_mesob_procurement_contract" model="ir.actions.act_window">
+        <field name="name">Contracts Formation</field>
+        <field name="res_model">mesob.procurement.contract</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Action for Purchase Orders (automatically adapts based on user role) -->
+    <record id="action_mesob_procurement_order" model="ir.actions.act_window">
+        <field name="name">Purchase Orders</field>
+        <field name="res_model">mesob.procurement.order</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+    </record>
+
+    <record id="action_mesob_procurement_payment" model="ir.actions.act_window">
+        <field name="name">Payment Certificates</field>
+        <field name="res_model">mesob.procurement.payment.certificate</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_mesob_procurement_complaint" model="ir.actions.act_window">
+        <field name="name">Complaints &amp; Appeals</field>
+        <field name="res_model">mesob.procurement.complaint</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

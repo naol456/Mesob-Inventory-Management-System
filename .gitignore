@@ -12,9 +12,60 @@ Thumbs.db
 
 # Logs/build artifacts
 *.log
+logs/
 
 # User requirement: do not track docs folder
 docs/
 
 # Optional: local environment files
 .env
+docs12
+
+# Third-party themes (not part of Mesob project)
+addons/theme_*/
+
+# Odoo runtime and data directories (DO NOT COMMIT)
+odoo-19/
+odoo-data/
+odoo-env-new/
+
+# Local configuration (each developer has their own)
+odoo.conf
+
+# Documentation and setup files (local only)
+IMPLEMENTATION_ROADMAP.md
+PHASE1_TASK1_COMPLETED.md
+QUICK_START.txt
+RUN_ODOO.md
+SERVER_RUNNING.md
+UPGRADE_INSTRUCTIONS.md
+CONSUMABLE_VS_FIXED_ASSET_ANALYSIS.md
+
+# Setup scripts (local only)
+start_odoo.bat
+start_odoo.sh
+
+# Windows null file
+nul
+
+# Analysis and temp files
+*.md.backup
+temp_*.xml
+MESOB_LOGIN_IMPLEMENTATION.md
+
+# Agent Skills
+.agents/
+skills-lock.json
+
+# Deployment secrets and runtime data (NEVER COMMIT!)
+deployment/.env
+deployment/backups/
+deployment/config/nginx/*.key
+deployment/config/nginx/*.crt
+deployment/config/nginx/*.pem
+
+# Docker volumes (managed by Docker)
+deployment/volumes/
+
+# Production logs
+deployment/logs/

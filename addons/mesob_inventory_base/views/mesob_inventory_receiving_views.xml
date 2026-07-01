@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ── List View ──────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_receiving_list" model="ir.ui.view">
+        <field name="name">mesob.inventory.receiving.list</field>
+        <field name="model">mesob.inventory.receiving</field>
+        <field name="arch" type="xml">
+            <list string="Receiving Orders" default_order="received_date desc"
+                  decoration-info="state == 'draft'"
+                  decoration-warning="state == 'inspecting'"
+                  decoration-success="state in ('accepted', 'done')"
+                  decoration-danger="state == 'rejected'"
+                  decoration-muted="state == 'cancelled'">
+                <field name="name" class="fw-bold font-monospace text-primary" 
+                       decoration-bf="1" 
+                       widget="badge"/>
+                <field name="source_type" class="fw-semibold" widget="badge"/>
+                <field name="supplier_id" optional="show" class="fw-semibold text-muted"/>
+                <field name="received_by_id" class="fw-semibold text-muted"/>
+                <field name="received_date" class="font-monospace text-muted" widget="date"/>
+                <field name="inspection_type" optional="hide" widget="badge"/>
+                <field name="inspector_id" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state in ('received', 'inspecting')"
+                       decoration-success="state in ('accepted', 'done')"
+                       decoration-danger="state in ('rejected', 'cancelled')"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Kanban View ────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_receiving_kanban" model="ir.ui.view">
+        <field name="name">mesob.inventory.receiving.kanban</field>
+        <field name="model">mesob.inventory.receiving</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" drag_drop="false" class="o_kanban_mobile">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="supplier_id"/>
+                <field name="received_date"/>
+                <field name="source_type"/>
+                <field name="received_by_id"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click" 
+                             style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; margin-bottom: 12px; min-height: 140px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                            
+                            <!-- Header Row: Document ID + Source Type Badge -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa fa-file-text-o" style="color: #D4AF37; font-size: 16px;"/>
+                                    <span class="fw-bold font-monospace" style="color: #D4AF37; font-size: 15px; letter-spacing: 0.5px;">
+                                        <t t-esc="record.name.value"/>
+                                    </span>
+                                </div>
+                                <t t-if="record.source_type.raw_value == 'supplier'">
+                                    <span class="badge" style="background: linear-gradient(135deg, #10B981, #059669); color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">
+                                        <i class="fa fa-truck me-1"/>Supplier
+                                    </span>
+                                </t>
+                                <t t-else="">
+                                    <span class="badge" style="background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">
+                                        <i class="fa fa-undo me-1"/>Return
+                                    </span>
+                                </t>
+                            </div>
+
+                            <!-- Main Content: Supplier/Source Name -->
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="fa fa-building-o" style="color: rgba(255,255,255,0.5); font-size: 14px;"/>
+                                    <span style="color: rgba(255,255,255,0.5); font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;">Source</span>
+                                </div>
+                                <h5 class="fw-bold mb-0" style="color: #FFFFFF; font-size: 16px; line-height: 1.3;">
+                                    <t t-esc="record.supplier_id.value or 'Department Return'"/>
+                                </h5>
+                            </div>
+
+                            <!-- Footer Row: Received By + Date -->
+                            <div class="d-flex justify-content-between align-items-center pt-3" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa fa-user-circle" style="color: rgba(255,255,255,0.6); font-size: 14px;"/>
+                                    <span style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 500;">
+                                        <t t-esc="record.received_by_id.value"/>
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa fa-calendar" style="color: rgba(255,255,255,0.6); font-size: 13px;"/>
+                                    <span class="font-monospace" style="color: rgba(255,255,255,0.7); font-size: 11px;">
+                                        <t t-esc="record.received_date.value"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ── Form View ──────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_receiving_form" model="ir.ui.view">
+        <field name="name">mesob.inventory.receiving.form</field>
+        <field name="model">mesob.inventory.receiving</field>
+        <field name="arch" type="xml">
+            <form string="Receiving Order" class="o_receiving_form_premium">
+                <header>
+                    <button name="action_receive" type="object" string="Mark Received"
+                            class="btn-primary"
+                            invisible="state != 'draft'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <button name="action_start_inspection" type="object"
+                            string="Start Inspection"
+                            class="btn-primary"
+                            invisible="state != 'received'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_inspector"/>
+                    <button name="action_accept" type="object" string="Accept"
+                            class="btn-success"
+                            invisible="state != 'inspecting'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_inspector"/>
+                    <button name="action_reject" type="object" string="Reject"
+                            class="btn-danger"
+                            invisible="state != 'inspecting'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_inspector"/>
+                    <button name="action_done" type="object" string="Finalize"
+                            class="btn-primary"
+                            invisible="state not in ('accepted', 'rejected')"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state in ('done', 'cancelled')"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"
+                            confirm="Are you sure you want to cancel this receiving order?"/>
+                    <button name="action_set_to_draft" type="object"
+                            string="Reset to Draft"
+                            invisible="state != 'cancelled'"
+                            groups="mesob_inventory_base.group_mesob_storekeeper"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,received,inspecting,accepted,done"/>
+                </header>
+                <sheet class="o_receiving_sheet_premium">
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_model19" type="object"
+                                class="oe_stat_button o_stat_button_premium" icon="fa-file-text"
+                                invisible="not model19_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Model 19</span>
+                            </div>
+                        </button>
+                        <button name="action_view_dsr" type="object"
+                                class="oe_stat_button o_stat_button_premium o_stat_button_danger" icon="fa-exclamation-triangle"
+                                invisible="not dsr_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">DSR</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="oe_title mb-4">
+                        <span class="text-muted fw-bold text-uppercase fs-6">FDRE Stock Receiving Order</span>
+                        <h1>
+                            <field name="name" readonly="True" class="fw-bold text-primary font-monospace"/>
+                        </h1>
+                    </div>
+
+                    <!-- Source Information Section -->
+                    <div class="o_receiving_section_premium mb-4">
+                        <div class="o_section_header_premium">
+                            <i class="fa fa-cube me-2"/>
+                            <span>SOURCE INFORMATION</span>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="o_field_container_premium">
+                                    <label for="source_type" class="o_form_label_premium">Source Type</label>
+                                    <field name="source_type" readonly="state != 'draft'" widget="radio" options="{'horizontal': true}"/>
+                                </div>
+                                <div class="o_field_container_premium">
+                                    <label for="supplier_id" class="o_form_label_premium">Supplier</label>
+                                    <field name="supplier_id" readonly="state != 'draft'" placeholder="Select supplier or source..."/>
+                                </div>
+                                <div class="o_field_container_premium">
+                                    <label for="purchase_order_ref" class="o_form_label_premium">PO / Packing Slip Reference</label>
+                                    <field name="purchase_order_ref" readonly="state != 'draft'" class="font-monospace" placeholder="PO-XXXX-YYYY"/>
+                                </div>
+                                <field name="is_no_payment" invisible="source_type != 'dept_return'" readonly="state != 'draft'"/>
+                            </div>
+                            <div class="col-6">
+                                <div class="o_field_container_premium">
+                                    <label for="received_date" class="o_form_label_premium">Received Date</label>
+                                    <field name="received_date" readonly="state != 'draft'" class="font-monospace"/>
+                                </div>
+                                <div class="o_field_container_premium">
+                                    <label for="received_by_id" class="o_form_label_premium">Received By</label>
+                                    <field name="received_by_id" readonly="state != 'draft'"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <group invisible="state == 'draft'" class="mb-4">
+                        <group string="Quality Assurance Inspection" col="1" class="glass-card p-3 rounded shadow-sm border">
+                            <field name="inspection_type" readonly="state not in ('received', 'inspecting')" class="mb-2"/>
+                            <field name="inspector_id" readonly="state not in ('received', 'inspecting')" class="mb-2" 
+                                   options="{'no_create': True, 'no_create_edit': True}"
+                                   groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_inspector"/>
+                            <field name="inspection_date" readonly="1" class="mb-2 font-monospace"/>
+                        </group>
+                    </group>
+
+                    <!-- Tabs Section -->
+                    <notebook class="o_notebook_premium">
+                        <page string="Items" name="lines">
+                            <div class="o_items_step_premium">
+                                <i class="fa fa-info-circle me-2"/>
+                                <span>Step 1:</span> Add items you're receiving below. Fill in expected quantities.
+                            </div>
+                            <field name="line_ids" readonly="state in ('done', 'cancelled')">
+                                <list editable="bottom" class="o_receiving_lines_table_premium">
+                                    <field name="major_classification_id" placeholder="Select major class..."/>
+                                    <field name="sub_classification_id"
+                                           domain="[('major_classification_id', '=', major_classification_id), ('active', '=', True)]"
+                                           context="{'default_major_classification_id': major_classification_id}"
+                                           placeholder="Select sub class..."/>
+                                    <field name="description" placeholder="Item description..."/>
+                                    <field name="qty_expected" class="text-end fw-bold"/>
+                                    <field name="qty_received" class="text-end fw-bold"/>
+                                    <field name="qty_accepted" class="text-end fw-bold"/>
+                                    <field name="qty_rejected" class="text-end fw-bold"/>
+                                    <field name="unit_price" class="text-end" widget="monetary"/>
+                                    <field name="total_price" class="text-end fw-bold" sum="Total" widget="monetary"/>
+                                    <field name="generated_item_count" string="Generated" optional="hide"/>
+                                    <field name="rejection_reason" optional="hide" placeholder="Reason for rejection..."/>
+                                    <field name="auto_generate_items" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="inspection" invisible="state == 'draft'">
+                            <div class="o_notes_container_premium">
+                                <div class="o_notes_header_premium">
+                                    <i class="fa fa-clipboard me-2"/>
+                                    <span>Quality Audit &amp; Inspection Observations</span>
+                                </div>
+                                <field name="inspection_notes"
+                                       placeholder="Record detailed structural, physical, or quantity check observations..."
+                                       readonly="state not in ('inspecting',)"
+                                       class="w-100 border p-3 rounded" style="min-height: 100px;"
+                                       groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_inspector"/>
+                            </div>
+                        </page>
+                        <page string="Additional Notes" name="notes">
+                            <div class="o_notes_container_premium">
+                                <div class="o_notes_header_premium">
+                                    <i class="fa fa-comment-o me-2"/>
+                                    <span>Internal Comments / Logistics Notes</span>
+                                </div>
+                                <field name="note"
+                                       placeholder="Add any administrative remarks or supplier communication logs..."/>
+                            </div>
+                        </page>
+                    </notebook>
+
+                    <!-- Hidden fields for smart button visibility -->
+                    <field name="model19_id" invisible="1"/>
+                    <field name="dsr_id" invisible="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ── Search View ────────────────────────────────────────────── -->
+    <record id="view_mesob_inventory_receiving_search" model="ir.ui.view">
+        <field name="name">mesob.inventory.receiving.search</field>
+        <field name="model">mesob.inventory.receiving</field>
+        <field name="arch" type="xml">
+            <search string="Receiving Orders">
+                <field name="name"/>
+                <field name="supplier_id"/>
+                <field name="received_by_id"/>
+                <filter string="Draft" name="filter_draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter string="Received" name="filter_received"
+                        domain="[('state', '=', 'received')]"/>
+                <filter string="Under Inspection" name="filter_inspecting"
+                        domain="[('state', '=', 'inspecting')]"/>
+                <filter string="Accepted" name="filter_accepted"
+                        domain="[('state', '=', 'accepted')]"/>
+                <filter string="Rejected" name="filter_rejected"
+                        domain="[('state', '=', 'rejected')]"/>
+                <filter string="From Supplier" name="filter_supplier"
+                        domain="[('source_type', '=', 'supplier')]"/>
+                <filter string="Dept Return" name="filter_dept_return"
+                        domain="[('source_type', '=', 'dept_return')]"/>
+                <filter string="My Receivings" name="filter_mine"
+                        domain="[('received_by_id', '=', uid)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Action ─────────────────────────────────────────────────── -->
+    <record id="action_mesob_inventory_receiving" model="ir.actions.act_window">
+        <field name="name">Receiving Orders</field>
+        <field name="res_model">mesob.inventory.receiving</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_filter_mine': 1}</field>
+        <field name="help" type="html">
+            <div class="text-center" style="padding: 40px; max-width: 600px; margin: 0 auto;">
+                <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.7;">
+                    <i class="fa fa-inbox" style="color: #D4AF37;"/>
+                </div>
+                <h3 style="color: #D4AF37; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.5px;">
+                    No Receiving Orders Yet
+                </h3>
+                <p style="color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.6; margin-bottom: 24px;">
+                    Record goods arriving from suppliers or department returns.
+                    <br/>
+                    Each order goes through inspection before acceptance (Model 19) or rejection (DSR).
+                </p>
+                <a type="action" class="btn btn-primary" style="background: linear-gradient(135deg, #D4AF37, #C59B27); border: none; padding: 12px 28px; border-radius: 8px; font-weight: 600; box-shadow: 0 4px 12px rgba(212,175,55,0.3);">
+                    <i class="fa fa-plus-circle me-2"/>Create Your First Receiving Order
+                </a>
+            </div>
+        </field>
+    </record>
+
+    <!-- ── Inspector Dashboard Action ────────────────────────────────── -->
+    <record id="action_inspector_dashboard" model="ir.actions.act_window">
+        <field name="name">My Inspections</field>
+        <field name="res_model">mesob.inventory.receiving</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('inspector_id', '=', uid), ('state', 'in', ['received', 'inspecting'])]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No pending inspections
+            </p>
+            <p>
+                You will see orders here when a storekeeper assigns you as the inspector.
+                You can then inspect the items, fill in accepted and rejected quantities,
+                and complete the inspection.
+            </p>
+        </field>
+    </record>
+
+</odoo>

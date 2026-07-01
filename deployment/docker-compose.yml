@@ -1,0 +1,314 @@
+# =============================================================================
+# Mesob Inventory Management System - Docker Compose Configuration
+# =============================================================================
+#
+# Production-ready multi-container setup for Odoo 19 deployment
+#
+# Services:
+#   - nginx:    Reverse proxy with SSL termination
+#   - odoo:     Odoo 19 application server
+#   - postgres: PostgreSQL 16 database
+#   - certbot:  SSL certificate management (Let's Encrypt)
+#
+# Usage:
+#   docker compose up -d              # Start all services
+#   docker compose down               # Stop all services
+#   docker compose logs -f odoo       # View Odoo logs
+#   docker compose restart odoo       # Restart Odoo
+#
+# =============================================================================
+
+version: '3.8'
+
+# =============================================================================
+# SERVICES
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    container_name: mesob-postgres
+    restart: ${RESTART_POLICY:-unless-stopped}
+    
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-postgres}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - TZ=${TZ:-Africa/Addis_Ababa}
+    
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+      - ./backups:/backups
+    
+    networks:
+      - mesob_network
+    
+    ports:
+      # SECURITY: Only expose on localhost for admin access
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    
+    command:
+      - postgres
+      - -c
+      - max_connections=${POSTGRES_MAX_CONNECTIONS:-100}
+      - -c
+      - shared_buffers=${POSTGRES_SHARED_BUFFERS:-1GB}
+      - -c
+      - effective_cache_size=${POSTGRES_EFFECTIVE_CACHE_SIZE:-3GB}
+      - -c
+      - maintenance_work_mem=256MB
+      - -c
+      - checkpoint_completion_target=0.9
+      - -c
+      - wal_buffers=16MB
+      - -c
+      - default_statistics_target=100
+      - -c
+      - random_page_cost=1.1
+      - -c
+      - effective_io_concurrency=200
+      - -c
+      - work_mem=16MB
+      - -c
+      - min_wal_size=1GB
+      - -c
+      - max_wal_size=4GB
+      - -c
+      - log_line_prefix=%t [%p]: [%l-1] db=%d,user=%u,app=%a,client=%h
+      - -c
+      - log_checkpoints=on
+      - -c
+      - log_connections=on
+      - -c
+      - log_disconnections=on
+      - -c
+      - log_lock_waits=on
+      - -c
+      - log_temp_files=0
+      - -c
+      - track_activities=on
+      - -c
+      - track_counts=on
+
+  # ---------------------------------------------------------------------------
+  # Odoo Application Server
+  # ---------------------------------------------------------------------------
+  odoo:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile
+    image: mesob-inventory:${ODOO_VERSION:-19.0}
+    container_name: mesob-odoo
+    restart: ${RESTART_POLICY:-unless-stopped}
+    
+    depends_on:
+      postgres:
+        condition: service_healthy
+    
+    environment:
+      - HOST=${POSTGRES_HOST:-postgres}
+      - PORT=${POSTGRES_PORT:-5432}
+      - USER=${POSTGRES_ODOO_USER:-odoo}
+      - PASSWORD=${POSTGRES_ODOO_PASSWORD:?POSTGRES_ODOO_PASSWORD must be set}
+      - TZ=${TZ:-Africa/Addis_Ababa}
+    
+    volumes:
+      # Configuration
+      - ./config/odoo.conf:/etc/odoo/odoo.conf:ro
+      
+      # Data persistence
+      - odoo_data:/var/lib/odoo
+      - odoo_logs:/var/log/odoo
+      
+      # Custom addons (read-only for security)
+      - ../addons:/mnt/extra-addons:ro
+      
+      # Backups
+      - ./backups:/backups
+    
+    networks:
+      - mesob_network
+    
+    ports:
+      # SECURITY: Only expose on internal network, nginx handles external access
+      - "127.0.0.1:8069:8069"
+      - "127.0.0.1:8072:8072"
+    
+    healthcheck:
+      test: ["CMD", "python3", "/usr/local/bin/healthcheck.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    labels:
+      - "com.mesob.service=odoo"
+      - "com.mesob.version=${ODOO_VERSION:-19.0}"
+      - "com.mesob.environment=${ENVIRONMENT:-production}"
+
+  # ---------------------------------------------------------------------------
+  # Nginx Reverse Proxy
+  # ---------------------------------------------------------------------------
+  nginx:
+    image: nginx:${NGINX_VERSION:-alpine}
+    container_name: mesob-nginx
+    restart: ${RESTART_POLICY:-unless-stopped}
+    
+    depends_on:
+      - odoo
+    
+    environment:
+      - TZ=${TZ:-Africa/Addis_Ababa}
+    
+    volumes:
+      # Nginx configuration
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx/mesob.conf:/etc/nginx/conf.d/default.conf:ro
+      
+      # SSL certificates
+      - certbot_data:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+      
+      # Logs
+      - nginx_logs:/var/log/nginx
+    
+    networks:
+      - mesob_network
+    
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    
+    labels:
+      - "com.mesob.service=nginx"
+      - "com.mesob.domain=${DOMAIN}"
+
+  # ---------------------------------------------------------------------------
+  # Certbot (SSL Certificate Management)
+  # ---------------------------------------------------------------------------
+  certbot:
+    image: certbot/certbot:latest
+    container_name: mesob-certbot
+    
+    volumes:
+      - certbot_data:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+      - ./scripts/renew-cert.sh:/renew-cert.sh:ro
+    
+    networks:
+      - mesob_network
+    
+    # Certificate renewal command (run manually or via cron)
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot --webroot-path=/var/www/certbot --quiet; sleep 12h & wait $${!}; done;'"
+    
+    labels:
+      - "com.mesob.service=certbot"
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+
+networks:
+  mesob_network:
+    driver: bridge
+    name: mesob_network
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.25.0.0/16
+
+# =============================================================================
+# VOLUMES (Persistent Data)
+# =============================================================================
+
+volumes:
+  
+  # PostgreSQL data
+  postgres_data:
+    driver: local
+    name: mesob_postgres_data
+    driver_opts:
+      type: none
+      o: bind
+      device: ${BACKUP_DIR:-/opt/mesob-inventory/data}/postgres
+  
+  # Odoo filestore (uploaded files, attachments)
+  odoo_data:
+    driver: local
+    name: mesob_odoo_data
+    driver_opts:
+      type: none
+      o: bind
+      device: ${BACKUP_DIR:-/opt/mesob-inventory/data}/odoo
+  
+  # Odoo logs
+  odoo_logs:
+    driver: local
+    name: mesob_odoo_logs
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/log/mesob-inventory
+  
+  # Nginx logs
+  nginx_logs:
+    driver: local
+    name: mesob_nginx_logs
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/log/mesob-inventory/nginx
+  
+  # SSL certificates
+  certbot_data:
+    driver: local
+    name: mesob_certbot_data
+  
+  # Certbot webroot
+  certbot_www:
+    driver: local
+    name: mesob_certbot_www
+
+# =============================================================================
+# NOTES
+# =============================================================================
+#
+# Volume Management:
+#   docker volume ls                  # List volumes
+#   docker volume inspect <name>      # Inspect volume details
+#
+# Backup:
+#   ./scripts/backup.sh               # Backup all data
+#
+# Monitoring:
+#   docker stats                      # Resource usage
+#   docker compose ps                 # Service status
+#
+# Security:
+#   - PostgreSQL only accessible via localhost
+#   - Odoo only accessible via nginx reverse proxy
+#   - All passwords managed via .env file (never commit!)
+#   - SSL certificates auto-renewed by certbot
+#
+# =============================================================================

@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Bin Card List View -->
+    <record id="view_mesob_bin_card_list" model="ir.ui.view">
+        <field name="name">mesob.bin.card.list</field>
+        <field name="model">mesob.bin.card</field>
+        <field name="arch" type="xml">
+            <list string="Bin Cards" create="true" edit="true" delete="true" 
+                  default_order="date desc, sub_classification_id"
+                  decoration-info="transaction_type == 'transfer'"
+                  decoration-warning="transaction_type == 'adjustment'"
+                  decoration-success="transaction_type == 'receipt'"
+                  decoration-danger="transaction_type == 'issue'">
+                <field name="date" widget="date"/>
+                <field name="major_classification_id"/>
+                <field name="sub_classification_id"/>
+                <field name="location"/>
+                <field name="transaction_type" widget="badge"/>
+                <field name="reference"/>
+                <field name="quantity_received" string="Received" sum="Total Received"/>
+                <field name="quantity_distributed" string="Distributed" sum="Total Distributed"/>
+                <field name="balance" sum="Total Balance"/>
+                <field name="item_count" string="Items" optional="show"/>
+                <button name="action_view_items" type="object" 
+                        string="View Items" 
+                        icon="fa-cubes"
+                        title="View detailed items with codes"/>
+            </list>
+        </field>
+    </record>
+    
+    <!-- Bin Card Search View -->
+    <record id="view_mesob_bin_card_search" model="ir.ui.view">
+        <field name="name">mesob.bin.card.search</field>
+        <field name="model">mesob.bin.card</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="major_classification_id"/>
+                <field name="sub_classification_id"/>
+                <field name="location"/>
+                <field name="reference"/>
+                <field name="transaction_type"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Kanban View ────────────────────────────────────────────── -->
+    <record id="view_mesob_bin_card_kanban" model="ir.ui.view">
+        <field name="name">mesob.bin.card.kanban</field>
+        <field name="model">mesob.bin.card</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="transaction_type" drag_drop="false" class="o_kanban_mobile">
+                <field name="id"/>
+                <field name="location"/>
+                <field name="sub_classification_id"/>
+                <field name="date"/>
+                <field name="transaction_type"/>
+                <field name="reference"/>
+                <field name="balance"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click" 
+                             style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; margin-bottom: 12px; min-height: 145px;">
+                            
+                            <!-- Header: Location Badge + Transaction Type -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa fa-map-marker" style="color: #D4AF37; font-size: 16px;"/>
+                                    <span class="fw-bold font-monospace" style="color: #D4AF37; font-size: 14px; letter-spacing: 0.3px;">
+                                        <t t-esc="record.location.value"/>
+                                    </span>
+                                </div>
+                                <t t-if="record.transaction_type.raw_value == 'receipt'">
+                                    <span class="badge" style="background: linear-gradient(135deg, #10B981, #059669); color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">
+                                        <i class="fa fa-arrow-down me-1"/>Receipt
+                                    </span>
+                                </t>
+                                <t t-elif="record.transaction_type.raw_value == 'issue'">
+                                    <span class="badge" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">
+                                        <i class="fa fa-arrow-up me-1"/>Issue
+                                    </span>
+                                </t>
+                                <t t-else="">
+                                    <span class="badge" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">
+                                        <i class="fa fa-exchange me-1"/>Adjust
+                                    </span>
+                                </t>
+                            </div>
+
+                            <!-- Main Content: Sub Classification -->
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="fa fa-folder-open-o" style="color: rgba(255,255,255,0.5); font-size: 13px;"/>
+                                    <span style="color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;">Classification</span>
+                                </div>
+                                <h5 class="fw-bold mb-0" style="color: #FFFFFF; font-size: 15px; line-height: 1.3;">
+                                    <t t-esc="record.sub_classification_id.value"/>
+                                </h5>
+                            </div>
+
+                            <!-- Footer: Reference + Date -->
+                            <div class="d-flex justify-content-between align-items-center pt-3" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa fa-hashtag" style="color: rgba(255,255,255,0.6); font-size: 12px;"/>
+                                    <span class="font-monospace" style="color: rgba(255,255,255,0.8); font-size: 11px;">
+                                        <t t-esc="record.reference.value or 'No Ref'"/>
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa fa-calendar-o" style="color: rgba(255,255,255,0.6); font-size: 12px;"/>
+                                    <span class="font-monospace" style="color: rgba(255,255,255,0.7); font-size: 11px;">
+                                        <t t-esc="record.date.value"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Bin Card Form View -->
+    <record id="view_mesob_bin_card_form" model="ir.ui.view">
+        <field name="name">mesob.bin.card.form</field>
+        <field name="model">mesob.bin.card</field>
+        <field name="arch" type="xml">
+            <form string="Bin Card" class="o_mesob_gov_doc">
+                <sheet>
+                    <!-- Smart Button -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_items" type="object"
+                                class="oe_stat_button" icon="fa-cubes">
+                            <field name="item_count" widget="statinfo" string="Items"/>
+                        </button>
+                    </div>
+
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="location" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Bin Card Ledger</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Symmetrical Information: Multi-Column layout w/ No-Clutter Dropdowns -->
+                    <group class="mb-4" col="2">
+                        <group string="Classification Details" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px;">
+                            <label for="major_classification_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-folder" style="color: #D4AF37;"/>Major Classification
+                            </label>
+                            <field name="major_classification_id" options="{'no_open': True, 'no_create': True}" class="mb-3"/>
+                            
+                            <label for="sub_classification_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-folder-open-o" style="color: #D4AF37;"/>Sub Classification
+                            </label>
+                            <field name="sub_classification_id" options="{'no_open': True, 'no_create': True}" 
+                                   domain="[('major_classification_id', '=', major_classification_id)]" class="mb-2"/>
+                        </group>
+                        <group string="Transaction Details" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px;">
+                            <label for="date" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-calendar-check-o" style="color: #3B82F6;"/>Transaction Date
+                            </label>
+                            <field name="date" class="mb-3 font-monospace"/>
+                            
+                            <label for="transaction_type" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-exchange" style="color: #3B82F6;"/>Type
+                            </label>
+                            <field name="transaction_type" class="mb-3" widget="radio" options="{'horizontal': true}"/>
+                            
+                            <label for="reference" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-hashtag" style="color: #3B82F6;"/>Reference
+                            </label>
+                            <field name="reference" class="mb-2 font-monospace" placeholder="e.g. IV/2026/0004"/>
+                        </group>
+                    </group>
+
+                    <group class="mb-4" col="2">
+                        <group string="Quantities" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.2) !important; border-radius: 12px;">
+                            <label for="quantity_received" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-arrow-down" style="color: #10B981;"/>Quantity Received
+                            </label>
+                            <field name="quantity_received" class="text-end fw-bold font-monospace mb-3" style="color: #10B981; font-size: 18px;"/>
+                            
+                            <label for="quantity_distributed" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-arrow-up" style="color: #EF4444;"/>Quantity Distributed
+                            </label>
+                            <field name="quantity_distributed" class="text-end fw-bold font-monospace mb-3" style="color: #EF4444; font-size: 18px;"/>
+                            
+                            <label for="balance" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-balance-scale" style="color: #3B82F6;"/>Balance
+                            </label>
+                            <field name="balance" class="text-end fw-bold font-monospace mb-2" style="color: #3B82F6; font-size: 20px;"/>
+                        </group>
+                        <group string="Verification Signatures" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px;">
+                            <label for="received_by_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-user" style="color: #D4AF37;"/>Received By
+                            </label>
+                            <field name="received_by_id" options="{'no_open': True, 'no_create': True}" class="mb-3"/>
+                            
+                            <label for="verified_by_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-user-circle" style="color: #D4AF37;"/>Verified By
+                            </label>
+                            <field name="verified_by_id" options="{'no_open': True, 'no_create': True}" class="mb-2"/>
+                        </group>
+                    </group>
+                    
+                    <notebook class="mt-4">
+                        <page string="Transaction Description" name="description_tab">
+                            <div class="p-4" style="background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <i class="fa fa-file-text-o" style="color: #D4AF37; font-size: 18px;"/>
+                                    <label for="description" class="mb-0" style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 600;">Ledger Description &amp; Memo Details</label>
+                                </div>
+                                <field name="description" placeholder="Write any transaction explanations, adjustments reasons, or inventory remarks..." class="w-100" style="min-height: 120px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; color: white;"/>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Bin Card Hierarchical Navigation Action -->
+    <record id="action_mesob_bin_card" model="ir.actions.act_window">
+        <field name="name">Bin Cards (Physical Storage Location)</field>
+        <field name="res_model">mesob.inventory.major.classification</field>
+        <field name="view_mode">kanban,list</field>
+        <field name="help" type="html">
+            <div class="text-center" style="padding: 40px; max-width: 600px; margin: 0 auto;">
+                <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.7;">
+                    <i class="fa fa-archive" style="color: #D4AF37;"/>
+                </div>
+                <h3 style="color: #D4AF37; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.5px;">
+                    Bin Cards Navigation
+                </h3>
+                <p style="color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.6; margin-bottom: 0;">
+                    Select a Major Classification card to browse physical store bins,
+                    <br/>
+                    item balances, and transaction history.
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <!-- Fallback/Raw Transaction Entries Action -->
+    <record id="action_mesob_bin_card_raw" model="ir.actions.act_window">
+        <field name="name">Raw Bin Card Ledger Entries</field>
+        <field name="res_model">mesob.bin.card</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <div class="text-center" style="padding: 40px; max-width: 600px; margin: 0 auto;">
+                <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.7;">
+                    <i class="fa fa-list-alt" style="color: #D4AF37;"/>
+                </div>
+                <h3 style="color: #D4AF37; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.5px;">
+                    Raw Bin Card Ledger
+                </h3>
+                <p style="color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.6; margin-bottom: 0;">
+                    A raw audit log of all transaction lines posted to individual bins.
+                </p>
+            </div>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         Record Rules for Issue of Stocks
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- PAO can see all requisitions from ALL users -->
+    <record id="rule_requisition_pao_all" model="ir.rule">
+        <field name="name">PAO: All Requisitions</field>
+        <field name="model_id" ref="model_mesob_inventory_requisition"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Storekeeper can view all requisitions from ALL users -->
+    <record id="rule_requisition_storekeeper" model="ir.rule">
+        <field name="name">Storekeeper: All Requisitions</field>
+        <field name="model_id" ref="model_mesob_inventory_requisition"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_storekeeper')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- Stock Clerk can view all requisitions -->
+    <record id="rule_requisition_stock_clerk" model="ir.rule">
+        <field name="name">Stock Clerk: All Requisitions</field>
+        <field name="model_id" ref="model_mesob_inventory_requisition"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_stock_clerk')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- Basic users can see ONLY their own requisitions -->
+    <record id="rule_requisition_user_own" model="ir.rule">
+        <field name="name">User: Own Requisitions Only</field>
+        <field name="model_id" ref="model_mesob_inventory_requisition"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_inventory_user')])]"/>
+        <field name="domain_force">[('requested_by_id', '=', user.id)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         Record Rules for Issue Vouchers (Model 22)
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Storekeeper: can see all, create, and mark as issued -->
+    <record id="rule_issue_voucher_storekeeper" model="ir.rule">
+        <field name="name">Storekeeper: All Issue Vouchers</field>
+        <field name="model_id" ref="model_mesob_inventory_issue_voucher"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_storekeeper')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- PAO: can see all issue vouchers, read-only -->
+    <record id="rule_issue_voucher_pao" model="ir.rule">
+        <field name="name">PAO: All Issue Vouchers (Read-Only)</field>
+        <field name="model_id" ref="model_mesob_inventory_issue_voucher"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- Stock Clerk: can see all issue vouchers, read-only -->
+    <record id="rule_issue_voucher_stock_clerk" model="ir.rule">
+        <field name="name">Stock Clerk: All Issue Vouchers (Read-Only)</field>
+        <field name="model_id" ref="model_mesob_inventory_issue_voucher"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_stock_clerk')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         Record Rules for Receiving Orders (Model 21)
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Storekeeper: can see all, create, and approve -->
+    <record id="rule_receiving_storekeeper" model="ir.rule">
+        <field name="name">Storekeeper: All Receiving Orders</field>
+        <field name="model_id" ref="model_mesob_inventory_receiving"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_storekeeper')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- PAO: can see all receiving orders, read-only -->
+    <record id="rule_receiving_pao" model="ir.rule">
+        <field name="name">PAO: All Receiving Orders (Read-Only)</field>
+        <field name="model_id" ref="model_mesob_inventory_receiving"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- Stock Clerk: can see all receiving orders, read-only -->
+    <record id="rule_receiving_stock_clerk" model="ir.rule">
+        <field name="name">Stock Clerk: All Receiving Orders (Read-Only)</field>
+        <field name="model_id" ref="model_mesob_inventory_receiving"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_stock_clerk')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- Inspector: can see only receiving orders assigned to them in received/inspecting state -->
+    <record id="rule_receiving_inspector" model="ir.rule">
+        <field name="name">Inspector: Assigned Orders Only</field>
+        <field name="model_id" ref="model_mesob_inventory_receiving"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_inspector')])]"/>
+        <field name="domain_force">[('state', 'in', ['received', 'inspecting']), ('inspector_id', '=', user.id)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         Model 19 (Receipt) Record Rules
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- Storekeeper: Full access to all Model 19 receipts -->
+    <record id="rule_model19_storekeeper" model="ir.rule">
+        <field name="name">Storekeeper: Full access to Model 19 receipts</field>
+        <field name="model_id" ref="model_mesob_inventory_model19"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_storekeeper')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- PAO: Read-only access to all Model 19 receipts -->
+    <record id="rule_model19_pao" model="ir.rule">
+        <field name="name">PAO: Read-only access to Model 19 receipts</field>
+        <field name="model_id" ref="model_mesob_inventory_model19"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- Stock Clerk: Read-only access to all Model 19 receipts -->
+    <record id="rule_model19_stock_clerk" model="ir.rule">
+        <field name="name">Stock Clerk: Read-only access to Model 19 receipts</field>
+        <field name="model_id" ref="model_mesob_inventory_model19"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_stock_clerk')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         DSR (Damage/Shortage Report) Record Rules
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- Storekeeper: Full access to all DSRs -->
+    <record id="rule_dsr_storekeeper" model="ir.rule">
+        <field name="name">Storekeeper: Full access to DSRs</field>
+        <field name="model_id" ref="model_mesob_inventory_dsr"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_storekeeper')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- PAO: Read-only access to all DSRs -->
+    <record id="rule_dsr_pao" model="ir.rule">
+        <field name="name">PAO: Read-only access to DSRs</field>
+        <field name="model_id" ref="model_mesob_inventory_dsr"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- Stock Clerk: Read-only access to all DSRs -->
+    <record id="rule_dsr_stock_clerk" model="ir.rule">
+        <field name="name">Stock Clerk: Read-only access to DSRs</field>
+        <field name="model_id" ref="model_mesob_inventory_dsr"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_stock_clerk')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         Bin Card Record Rules
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- Storekeeper: Full access to all Bin Cards -->
+    <record id="rule_bin_card_storekeeper" model="ir.rule">
+        <field name="name">Storekeeper: Full access to Bin Cards</field>
+        <field name="model_id" ref="model_mesob_bin_card"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_storekeeper')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Stock Clerk: Read-only access to Bin Cards -->
+    <record id="rule_bin_card_stock_clerk" model="ir.rule">
+        <field name="name">Stock Clerk: Read-only access to Bin Cards</field>
+        <field name="model_id" ref="model_mesob_bin_card"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_stock_clerk')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- PAO: Read-only access to all Bin Cards -->
+    <record id="rule_bin_card_pao" model="ir.rule">
+        <field name="name">PAO: Read-only access to Bin Cards</field>
+        <field name="model_id" ref="model_mesob_bin_card"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         Stock Record Card Record Rules
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- Stock Clerk: Full access to all Stock Record Cards -->
+    <record id="rule_stock_record_card_stock_clerk" model="ir.rule">
+        <field name="name">Stock Clerk: Full access to Stock Record Cards</field>
+        <field name="model_id" ref="model_mesob_stock_record_card"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_stock_clerk')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Storekeeper: Full access to Stock Record Cards -->
+    <record id="rule_stock_record_card_storekeeper" model="ir.rule">
+        <field name="name">Storekeeper: Full access to Stock Record Cards</field>
+        <field name="model_id" ref="model_mesob_stock_record_card"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_storekeeper')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- PAO: Read-only access to Stock Record Cards -->
+    <record id="rule_stock_record_card_pao" model="ir.rule">
+        <field name="name">PAO: Read-only access to Stock Record Cards</field>
+        <field name="model_id" ref="model_mesob_stock_record_card"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         Inventory Items Record Rules
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- PAO: Full access to all Inventory Items (master data management) -->
+    <record id="rule_inventory_item_pao" model="ir.rule">
+        <field name="name">PAO: Full access to Inventory Items</field>
+        <field name="model_id" ref="model_mesob_inventory_item"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Storekeeper: Full access to all Inventory Items -->
+    <record id="rule_inventory_item_storekeeper" model="ir.rule">
+        <field name="name">Storekeeper: Full access to Inventory Items</field>
+        <field name="model_id" ref="model_mesob_inventory_item"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_storekeeper')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Stock Clerk: Read-only access to Inventory Items -->
+    <record id="rule_inventory_item_stock_clerk" model="ir.rule">
+        <field name="name">Stock Clerk: Read-only access to Inventory Items</field>
+        <field name="model_id" ref="model_mesob_inventory_item"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_stock_clerk')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- Inventory Users: Full access to all items (for requisitions) -->
+    <record id="rule_inventory_item_inventory_user" model="ir.rule">
+        <field name="name">Inventory User: Full access to Inventory Items</field>
+        <field name="model_id" ref="model_mesob_inventory_item"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_inventory_user')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         Reorder Alerts Record Rules
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- PAO: Full access to all Reorder Alerts -->
+    <record id="rule_reorder_alert_pao" model="ir.rule">
+        <field name="name">PAO: Full access to Reorder Alerts</field>
+        <field name="model_id" ref="model_mesob_stock_reorder_alert"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Stock Clerk: Read/write all alerts (acknowledge, create requisitions) -->
+    <record id="rule_reorder_alert_stock_clerk" model="ir.rule">
+        <field name="name">Stock Clerk: Read/write Reorder Alerts</field>
+        <field name="model_id" ref="model_mesob_stock_reorder_alert"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_stock_clerk')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         Stock Taking Record Rules
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- PAO: Full access - initiates and supervises stock taking -->
+    <record id="rule_stock_taking_pao" model="ir.rule">
+        <field name="name">PAO: Full access to Stock Taking</field>
+        <field name="model_id" ref="model_mesob_stock_taking"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Stock Clerk: Full access - conducts physical counts (no delete) -->
+    <record id="rule_stock_taking_stock_clerk" model="ir.rule">
+        <field name="name">Stock Clerk: Full access to Stock Taking</field>
+        <field name="model_id" ref="model_mesob_stock_taking"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_stock_clerk')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         Stock Handover Record Rules
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- PAO: Full access - acts as witness and oversees handovers -->
+    <record id="rule_stock_handover_pao" model="ir.rule">
+        <field name="name">PAO: Full access to Stock Handovers</field>
+        <field name="model_id" ref="model_mesob_stock_handover"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Storekeeper: Full access - initiates and participates in handovers (no delete) -->
+    <record id="rule_stock_handover_storekeeper" model="ir.rule">
+        <field name="name">Storekeeper: Full access to Stock Handovers</field>
+        <field name="model_id" ref="model_mesob_stock_handover"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_storekeeper')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         Purchase Order (Procurement) Record Rules
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- PAO: Full access to all Purchase Orders -->
+    <record id="rule_procurement_order_pao" model="ir.rule">
+        <field name="name">PAO: Full access to Purchase Orders</field>
+        <field name="model_id" ref="model_mesob_procurement_order"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Procurement Officer: Full access to all Purchase Orders -->
+    <record id="rule_procurement_order_procurement" model="ir.rule">
+        <field name="name">Procurement Officer: Full access to Purchase Orders</field>
+        <field name="model_id" ref="model_mesob_procurement_order"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_procurement')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Storekeeper: Can only see POs that have been sent to them (state = sent or later) -->
+    <record id="rule_procurement_order_storekeeper" model="ir.rule">
+        <field name="name">Storekeeper: Only Sent Purchase Orders</field>
+        <field name="model_id" ref="model_mesob_procurement_order"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_storekeeper')])]"/>
+        <field name="domain_force">[('state', 'in', ['sent', 'partially_received', 'fully_received', 'closed'])]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+</odoo>

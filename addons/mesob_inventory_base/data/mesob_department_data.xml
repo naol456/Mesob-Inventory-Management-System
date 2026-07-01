@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Initial Department Data -->
+        <record id="dept_ministry_transport_logistics" model="mesob.department">
+            <field name="name">Ministry of Transport and Logistics</field>
+            <field name="code">MTL</field>
+        </record>
+
+        <record id="dept_commercial_bank_ethiopia" model="mesob.department">
+            <field name="name">Commercial Bank of Ethiopia</field>
+            <field name="code">CBE</field>
+        </record>
+
+        <record id="dept_ethio_telecom" model="mesob.department">
+            <field name="name">Ethio telecom</field>
+            <field name="code">ET</field>
+        </record>
+
+        <record id="dept_education_training_authority" model="mesob.department">
+            <field name="name">Education and Training Authority</field>
+            <field name="code">ETA</field>
+        </record>
+
+        <record id="dept_ethiopian_environmental_protection" model="mesob.department">
+            <field name="name">Ethiopian Environmental Protection Authority</field>
+            <field name="code">EEPA</field>
+        </record>
+
+        <record id="dept_ethiopian_food_drug_authority" model="mesob.department">
+            <field name="name">Ethiopian Food and Drug Authority</field>
+            <field name="code">EFDA</field>
+        </record>
+
+        <record id="dept_ethiopian_agricultural_authority" model="mesob.department">
+            <field name="name">Ethiopian Agricultural Authority</field>
+            <field name="code">EAA</field>
+        </record>
+
+        <record id="dept_ethiopian_construction_authority" model="mesob.department">
+            <field name="name">Ethiopian Construction Authority</field>
+            <field name="code">ECA</field>
+        </record>
+
+        <record id="dept_ministry_health" model="mesob.department">
+            <field name="name">Ministry of Health</field>
+            <field name="code">MOH</field>
+        </record>
+
+        <record id="dept_ethiopian_customs_commission" model="mesob.department">
+            <field name="name">Ethiopian Customs Commission</field>
+            <field name="code">ECC</field>
+        </record>
+
+        <record id="dept_ministry_justice" model="mesob.department">
+            <field name="name">Ministry of Justice</field>
+            <field name="code">MOJ</field>
+        </record>
+
+        <record id="dept_ministry_trade_regional_integration" model="mesob.department">
+            <field name="name">Ministry of Trade and Regional Integration</field>
+            <field name="code">MTRI</field>
+        </record>
+
+        <record id="dept_ministry_tourism" model="mesob.department">
+            <field name="name">Ministry of Tourism</field>
+            <field name="code">MOT</field>
+        </record>
+
+        <record id="dept_ethiopian_postal_service" model="mesob.department">
+            <field name="name">Ethiopian Postal Service Enterprise</field>
+            <field name="code">EPSE</field>
+        </record>
+
+        <record id="dept_ethiopian_investment_commission" model="mesob.department">
+            <field name="name">Ethiopian Investment Commission</field>
+            <field name="code">EIC</field>
+        </record>
+
+        <record id="dept_educational_assessment_examination" model="mesob.department">
+            <field name="name">Educational Assessment and Examination Service</field>
+            <field name="code">EAES</field>
+        </record>
+
+        <record id="dept_documents_authentication_registration" model="mesob.department">
+            <field name="name">Documents Authentication and Registration Service</field>
+            <field name="code">DARS</field>
+        </record>
+
+        <record id="dept_ministry_revenues" model="mesob.department">
+            <field name="name">Ministry of Revenues</field>
+            <field name="code">MOR</field>
+        </record>
+
+        <record id="dept_ministry_foreign_affairs" model="mesob.department">
+            <field name="name">Ministry of Foreign Affairs</field>
+            <field name="code">MFA</field>
+        </record>
+
+        <record id="dept_ministry_labor_skills" model="mesob.department">
+            <field name="name">Ministry of Labor and Skills</field>
+            <field name="code">MLS</field>
+        </record>
+
+        <record id="dept_immigration_citizenship_service" model="mesob.department">
+            <field name="name">Immigration and Citizenship Service</field>
+            <field name="code">ICS</field>
+        </record>
+
+        <record id="dept_national_id_program" model="mesob.department">
+            <field name="name">National ID Program</field>
+            <field name="code">NIDP</field>
+        </record>
+    </data>
+</odoo>

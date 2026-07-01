@@ -1,0 +1,171 @@
+/**
+ * Analytics & BI Menu - Horizontal Top Bar Layout
+ * Displays submenu items as horizontal tabs in the top navigation bar
+ */
+
+// Variables for customization
+$menu-bg: rgba(212, 175, 55, 0.15);
+$menu-item-bg: transparent;
+$menu-item-hover-bg: rgba(212, 175, 55, 0.25);
+$menu-item-active-bg: rgba(212, 175, 55, 0.35);
+$menu-item-border: rgba(212, 175, 55, 0.4);
+$menu-item-text: #ffffff;
+$menu-item-hover-text: #D4AF37;
+$menu-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+$transition-speed: 0.25s;
+
+// Horizontal menu bar styling for Analytics & BI
+.o_main_navbar {
+    // Target the Analytics & BI section in the navbar
+    .o_menu_sections {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px;
+        
+        // Style Analytics & BI menu items as horizontal tabs
+        button[data-menu-xmlid*="menu_analytics_"],
+        a[data-menu-xmlid*="menu_analytics_"],
+        .o_menu_item[data-menu-xmlid*="menu_analytics_"] {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            margin: 0 2px;
+            background: $menu-item-bg;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            color: $menu-item-text;
+            font-weight: 500;
+            font-size: 13px;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all $transition-speed ease;
+            cursor: pointer;
+            
+            // Hover effect
+            &:hover {
+                background: $menu-item-hover-bg;
+                border-color: $menu-item-border;
+                color: $menu-item-hover-text;
+                transform: translateY(-1px);
+            }
+            
+            // Active/selected state
+            &.active,
+            &.o_menu_item_active,
+            &[aria-current="page"] {
+                background: $menu-item-active-bg;
+                border-color: $menu-item-border;
+                color: $menu-item-hover-text;
+                font-weight: 600;
+            }
+            
+            // Focus state for accessibility
+            &:focus {
+                outline: 2px solid rgba(212, 175, 55, 0.6);
+                outline-offset: 2px;
+            }
+        }
+    }
+    
+    // Ensure Analytics & BI parent section is visible
+    .o_navbar_apps_menu {
+        .dropdown-menu {
+            .dropdown-item[data-menu-xmlid="mesob_inventory_base.menu_mesob_analytics_bi"] {
+                font-weight: 600;
+                color: #D4AF37;
+                background: rgba(212, 175, 55, 0.1);
+                padding: 10px 16px;
+                border-left: 3px solid #D4AF37;
+            }
+        }
+    }
+}
+
+// Secondary menu bar (horizontal submenu under main navbar)
+.o_menu_sections,
+.o_menu_systray,
+nav.o_main_navbar {
+    // Make Analytics items appear in a horizontal row
+    [data-menu-xmlid*="menu_analytics_"] {
+        display: inline-block !important;
+        vertical-align: middle;
+    }
+}
+
+// Top bar horizontal layout specific to Analytics
+.o_action_manager {
+    .o_menu_sections {
+        // Container for horizontal menu items
+        &:has([data-menu-xmlid*="menu_analytics_"]) {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 8px 12px;
+            background: $menu-bg;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+            margin-bottom: 12px;
+        }
+    }
+}
+
+// Responsive design for smaller screens
+@media (max-width: 1200px) {
+    .o_main_navbar {
+        .o_menu_sections {
+            button[data-menu-xmlid*="menu_analytics_"],
+            a[data-menu-xmlid*="menu_analytics_"] {
+                padding: 6px 12px;
+                font-size: 12px;
+                margin: 0 1px;
+            }
+        }
+    }
+}
+
+@media (max-width: 992px) {
+    .o_main_navbar {
+        .o_menu_sections {
+            button[data-menu-xmlid*="menu_analytics_"],
+            a[data-menu-xmlid*="menu_analytics_"] {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .o_main_navbar {
+        .o_menu_sections {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 4px;
+            
+            button[data-menu-xmlid*="menu_analytics_"],
+            a[data-menu-xmlid*="menu_analytics_"] {
+                width: 100%;
+                justify-content: flex-start;
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+        }
+    }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+    .o_main_navbar {
+        .o_menu_sections {
+            button[data-menu-xmlid*="menu_analytics_"],
+            a[data-menu-xmlid*="menu_analytics_"] {
+                color: #e0e0e0;
+                
+                &:hover {
+                    color: #D4AF37;
+                }
+            }
+        }
+    }
+}

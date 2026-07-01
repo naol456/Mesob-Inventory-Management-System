@@ -1,0 +1,347 @@
+@font-face {
+    font-family: 'GraceFont';
+    src: url('/mesob_inventory_base/static/gracefont.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+// Custom variables for Gold & Navy luxury theme
+$navy-dark: rgba(11, 27, 61, 0.85);
+$gold-color: #D4AF37;
+$gold-border: rgba(212, 175, 55, 0.28);
+$gold-hover: rgba(212, 175, 55, 0.14);
+
+.o_navbar {
+    @include glass-effect($navy-dark, $blur-heavy);
+    border: 1px solid $gold-border !important;
+    border-radius: 24px !important;
+    margin: 14px 24px !important;
+    padding: 6px 24px !important;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4) !important;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    height: auto !important;
+
+    &:hover {
+        background: rgba(11, 27, 61, 0.94) !important;
+        border-color: rgba(212, 175, 55, 0.55) !important;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+    }
+}
+
+.o_main_navbar {
+    @include transparent-bg;
+    border-bottom: transparent !important;
+    display: flex;
+    align-items: center;
+    width: 100%;
+
+    // Sidebar Toggle Button
+    .o_navbar_sidebar_toggle {
+        background: rgba(255, 255, 255, 0.06) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        color: #FFFFFF !important;
+        border-radius: 12px !important;
+        width: 40px !important;
+        height: 40px !important;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0 !important;
+
+        &:hover {
+            background: $gold-hover !important;
+            border-color: $gold-color !important;
+            color: $gold-color !important;
+        }
+    }
+
+    // Brand / Logo section - Highly responsive & adaptive!
+    .o_menu_brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: $gold-color !important;
+        font-family: $font-display;
+        font-weight: 800;
+        font-size: 16px;
+        letter-spacing: 0.5px;
+        padding-right: 18px;
+        margin-right: 15px;
+        border-right: 1px solid rgba(212, 175, 55, 0.25) !important;
+        flex-shrink: 0 !important;
+        transition: all 0.3s ease;
+
+        span {
+            transition: all 0.3s ease;
+            @media (max-width: 1400px) {
+                font-size: 13px !important;
+            }
+            @media (max-width: 1200px) {
+                display: none !important; // Hide text completely, leaving strictly the gold logo icon!
+            }
+        }
+
+        @media (max-width: 1200px) {
+            border-right: none !important;
+            padding-right: 0 !important;
+            margin-right: 10px !important;
+        }
+    }
+
+    // App/Menu Sections - Scrollable horizontally with premium fade masking!
+    .o_menu_sections {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-left: 15px;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        white-space: nowrap !important;
+        flex-wrap: nowrap !important;
+        flex-grow: 1;
+        max-width: 55%; // Dynamic restriction to prevent overlap with systray
+        transition: all 0.3s ease;
+
+        // Hide clunky standard browser scrollbars
+        &::-webkit-scrollbar {
+            display: none !important;
+            height: 0 !important;
+        }
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+
+        // Apple-style horizontal linear gradient alpha transparency mask!
+        mask-image: linear-gradient(to right, 
+            transparent 0%, 
+            #000000 20px, 
+            #000000 calc(100% - 20px), 
+            transparent 100%
+        );
+        -webkit-mask-image: linear-gradient(to right, 
+            transparent 0%, 
+            #000000 20px, 
+            #000000 calc(100% - 20px), 
+            transparent 100%
+        );
+
+        @media (max-width: 1200px) {
+            max-width: 70%; // Grant wider menu space once the brand text is hidden!
+        }
+
+        .o_nav_entry, 
+        .o-dropdown {
+            @include transparent-bg;
+            color: rgba(255, 255, 255, 0.88) !important;
+            font-family: $font-body;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 16px !important;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0 !important; // STRICTLY block flexbox from squeezing items!
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+            a, button, span {
+                color: inherit !important;
+                background: transparent !important;
+                border: none !important;
+                font-weight: inherit !important;
+            }
+
+            // High-end sliding gold underline transition
+            &::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                width: 0;
+                height: 2px;
+                background: $gold-color;
+                transition: all 0.3s ease;
+                transform: translateX(-50%);
+            }
+
+            &:hover {
+                color: $gold-color !important;
+                background: $gold-hover !important;
+
+                &::after {
+                    width: 60%;
+                }
+            }
+
+            &.show, &.o_active {
+                color: $gold-color !important;
+                background: $gold-hover !important;
+                box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.1);
+                font-weight: 600;
+
+                &::after {
+                    width: 60%;
+                }
+            }
+        }
+    }
+
+    // Right-side system tray controls (Systray)
+    .o_menu_systray {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0 !important;
+
+        // Forcefully hide messaging, activities, and company switcher options
+        .o_messaging_menu, 
+        .o_mail_systray_item,
+        .o_switch_company_menu,
+        .o_company_menu,
+        .o_activity_menu {
+            display: none !important;
+        }
+
+        .o_user_menu,
+        .o_debug_manager {
+            color: rgba(255, 255, 255, 0.88) !important;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 40px;
+            padding: 0 12px !important;
+            border-radius: 10px;
+            flex-shrink: 0 !important;
+
+            &:hover {
+                background: $gold-hover !important;
+                border: 1px solid rgba(212, 175, 55, 0.2) !important;
+                color: $gold-color !important;
+            }
+
+            a, button, span {
+                color: inherit !important;
+            }
+        }
+    }
+}
+
+// Slidable applications menu sidebar redesign
+.o_apps_sidebar {
+    position: fixed;
+    top: 0;
+    left: -380px;
+    width: 380px;
+    height: 100vh;
+    z-index: 1050;
+    padding: 35px 25px;
+    transition: left 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    @include glass-effect(rgba(11, 27, 61, 0.96), $blur-heavy);
+    border-right: 1px solid $gold-border !important;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.65);
+    overflow-y: auto;
+    border-radius: 0 24px 24px 0;
+
+    // Stylized custom scrollbar
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: rgba(212, 175, 55, 0.25);
+        border-radius: 10px;
+        &:hover {
+            background: rgba(212, 175, 55, 0.55);
+        }
+    }
+
+    &.o_sidebar_open {
+        left: 0;
+    }
+
+    .o_sidebar_header {
+        border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        padding-bottom: 15px;
+
+        h3 {
+            color: $gold-color !important;
+            font-family: $font-display;
+            letter-spacing: 0.5px;
+            font-size: 24px;
+        }
+
+        .o_sidebar_close {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            transition: all 0.3s ease;
+
+            &:hover {
+                color: $gold-color !important;
+                border-color: $gold-color !important;
+                background: $gold-hover;
+            }
+        }
+    }
+
+    .o_sidebar_content {
+        padding-top: 20px;
+    }
+
+    .o_apps_sidebar_item {
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.03);
+        transition: all 0.3s ease;
+
+        &:hover {
+            background: $gold-hover !important;
+            border-color: $gold-border !important;
+
+            .o_app_icon_container {
+                border-color: $gold-color !important;
+            }
+
+            .o_app_name {
+                color: $gold-color !important;
+            }
+        }
+
+        .o_app_icon_container {
+            width: 72px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            transition: all 0.3s ease;
+
+            .o_app_icon {
+                transition: transform 0.3s ease;
+            }
+
+            .o_app_icon_placeholder {
+                color: #FFFFFF;
+            }
+        }
+
+        .o_app_name {
+            @include text-white-color;
+            margin-top: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+    }
+}

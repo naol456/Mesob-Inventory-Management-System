@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ABC Classification Wizard Form View -->
+    <record id="view_mesob_abc_classification_wizard_form" model="ir.ui.view">
+        <field name="name">mesob.abc.classification.wizard.form</field>
+        <field name="model">mesob.abc.classification.wizard</field>
+        <field name="arch" type="xml">
+            <form string="ABC Classification">
+                <group>
+                    <group string="Classification Criteria">
+                        <field name="class_a_percentage"/>
+                        <field name="class_b_percentage"/>
+                        <field name="period_months"/>
+                    </group>
+                    <group string="Filters">
+                        <field name="classification_id"/>
+                    </group>
+                </group>
+                
+                <group string="Summary" invisible="not result_line_ids">
+                    <group>
+                        <field name="total_items"/>
+                        <field name="total_value" widget="monetary"/>
+                    </group>
+                    <group>
+                        <label for="class_a_count" string="Class A (High Value)"/>
+                        <div>
+                            <field name="class_a_count" class="oe_inline"/> items
+                        </div>
+                        <label for="class_b_count" string="Class B (Medium Value)"/>
+                        <div>
+                            <field name="class_b_count" class="oe_inline"/> items
+                        </div>
+                        <label for="class_c_count" string="Class C (Low Value)"/>
+                        <div>
+                            <field name="class_c_count" class="oe_inline"/> items
+                        </div>
+                    </group>
+                </group>
+                
+                <notebook invisible="not result_line_ids">
+                    <page string="Classification Results">
+                        <field name="result_line_ids" nolabel="1">
+                            <list editable="bottom" decoration-success="recommended_class=='A'" decoration-warning="recommended_class=='B'" decoration-muted="recommended_class=='C'">
+                                <field name="item_id" readonly="1"/>
+                                <field name="current_class" readonly="1"/>
+                                <field name="recommended_class" readonly="1" widget="badge"/>
+                                <field name="usage_value" readonly="1" sum="Total"/>
+                                <field name="usage_qty" readonly="1" sum="Total"/>
+                                <field name="usage_percentage" readonly="1"/>
+                                <field name="cumulative_percentage" readonly="1"/>
+                                <field name="class_changed" readonly="1" invisible="1"/>
+                                <field name="apply"/>
+                                <field name="currency_id" column_invisible="1"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+                
+                <footer>
+                    <button name="action_calculate_abc" string="Calculate ABC" type="object" class="btn-primary" invisible="result_line_ids"/>
+                    <button name="action_apply_classification" string="Apply Classification" type="object" class="btn-primary" invisible="not result_line_ids"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ABC Classification Wizard Action -->
+    <record id="action_mesob_abc_classification_wizard" model="ir.actions.act_window">
+        <field name="name">ABC Classification</field>
+        <field name="res_model">mesob.abc.classification.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_mesob_inventory_item"/>
+    </record>
+
+</odoo>

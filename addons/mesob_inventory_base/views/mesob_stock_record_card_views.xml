@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Stock Record Card List View -->
+    <record id="view_mesob_stock_record_card_list" model="ir.ui.view">
+        <field name="name">mesob.stock.record.card.list</field>
+        <field name="model">mesob.stock.record.card</field>
+        <field name="arch" type="xml">
+            <list string="Stock Record Cards" create="true" edit="true"
+                  default_order="date desc, item_id"
+                  decoration-info="transaction_type == 'transfer'"
+                  decoration-warning="transaction_type == 'adjustment'"
+                  decoration-success="transaction_type == 'receipt'"
+                  decoration-danger="transaction_type == 'issue'">
+                <field name="date" widget="date"/>
+                <field name="item_id"/>
+                <field name="transaction_type" widget="badge"/>
+                <field name="reference"/>
+                <field name="quantity_in" string="Qty In" sum="Total In"/>
+                <field name="quantity_out" string="Qty Out" sum="Total Out"/>
+                <field name="quantity_balance" string="Balance" sum="Total Balance"/>
+                <field name="unit_cost" string="Unit Cost"/>
+                <field name="balance_value" string="Value" sum="Total Value"/>
+                <field name="average_cost" string="Avg Cost"/>
+            </list>
+        </field>
+    </record>
+    
+    <!-- Stock Record Card Search View -->
+    <record id="view_mesob_stock_record_card_search" model="ir.ui.view">
+        <field name="name">mesob.stock.record.card.search</field>
+        <field name="model">mesob.stock.record.card</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="item_id"/>
+                <field name="reference"/>
+                <field name="transaction_type"/>
+                <field name="source_document"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Kanban View ────────────────────────────────────────────── -->
+    <record id="view_mesob_stock_record_card_kanban" model="ir.ui.view">
+        <field name="name">mesob.stock.record.card.kanban</field>
+        <field name="model">mesob.stock.record.card</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="transaction_type" drag_drop="false" class="o_kanban_mobile">
+                <field name="id"/>
+                <field name="item_id"/>
+                <field name="date"/>
+                <field name="transaction_type"/>
+                <field name="reference"/>
+                <field name="quantity_balance"/>
+                <field name="balance_value"/>
+                <field name="average_cost"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click" 
+                             style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; margin-bottom: 12px; min-height: 160px;">
+                            
+                            <!-- Header: Item Code + Transaction Type Badge -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa fa-cube" style="color: #3B82F6; font-size: 16px;"/>
+                                    <span class="fw-bold font-monospace" style="color: #3B82F6; font-size: 14px; letter-spacing: 0.3px;">
+                                        <t t-esc="record.item_id.value"/>
+                                    </span>
+                                </div>
+                                <t t-if="record.transaction_type.raw_value == 'receipt'">
+                                    <span class="badge" style="background: linear-gradient(135deg, #10B981, #059669); color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">
+                                        <i class="fa fa-arrow-down me-1"/>Receipt
+                                    </span>
+                                </t>
+                                <t t-elif="record.transaction_type.raw_value == 'issue'">
+                                    <span class="badge" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">
+                                        <i class="fa fa-arrow-up me-1"/>Issue
+                                    </span>
+                                </t>
+                                <t t-else="">
+                                    <span class="badge" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">
+                                        <i class="fa fa-exchange me-1"/>Adjust
+                                    </span>
+                                </t>
+                            </div>
+
+                            <!-- Main Content: Quantity Balance -->
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="fa fa-balance-scale" style="color: rgba(255,255,255,0.5); font-size: 13px;"/>
+                                    <span style="color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600;">Balance Quantity</span>
+                                </div>
+                                <h5 class="fw-bold mb-0 font-monospace" style="color: #3B82F6; font-size: 24px; line-height: 1.3;">
+                                    <t t-esc="record.quantity_balance.value"/>
+                                </h5>
+                            </div>
+
+                            <!-- Secondary: Balance Value -->
+                            <div class="mb-3 d-flex align-items-center gap-2">
+                                <i class="fa fa-money" style="color: #D4AF37; font-size: 14px;"/>
+                                <span class="fw-bold font-monospace" style="color: #D4AF37; font-size: 16px;">
+                                    <t t-esc="record.balance_value.value"/>
+                                </span>
+                            </div>
+
+                            <!-- Footer: Reference + Date -->
+                            <div class="d-flex justify-content-between align-items-center pt-3" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa fa-hashtag" style="color: rgba(255,255,255,0.6); font-size: 12px;"/>
+                                    <span class="font-monospace" style="color: rgba(255,255,255,0.8); font-size: 11px;">
+                                        <t t-esc="record.reference.value or 'No Ref'"/>
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa fa-calendar-o" style="color: rgba(255,255,255,0.6); font-size: 12px;"/>
+                                    <span class="font-monospace" style="color: rgba(255,255,255,0.7); font-size: 11px;">
+                                        <t t-esc="record.date.value"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Stock Record Card Form View -->
+    <record id="view_mesob_stock_record_card_form" model="ir.ui.view">
+        <field name="name">mesob.stock.record.card.form</field>
+        <field name="model">mesob.stock.record.card</field>
+        <field name="arch" type="xml">
+            <form string="Stock Record Card" class="o_mesob_gov_doc">
+                <header>
+                    <button name="action_create_fifo_layers" string="Create FIFO Layers" type="object" 
+                            class="btn-primary" invisible="transaction_type != 'receipt'"/>
+                </header>
+                <sheet>
+                    <!-- Premium Reusable Corporate Form Header -->
+                    <div class="mesob_corporate_header">
+                        <div class="mesob_header_logo_container">
+                            <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="FDRE Logo"/>
+                            <div class="mesob_header_company_name">FDRE Mesob Center</div>
+                        </div>
+                        <div class="mesob_header_bottom_row">
+                            <div class="mesob_header_id">
+                                <field name="item_id" readonly="1"/>
+                            </div>
+                            <div class="mesob_header_title">Stock Record Card (Model 19)</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Symmetrical Information: Multi-Column layout w/ No-Clutter Dropdowns -->
+                    <group class="mb-4" col="2">
+                        <group string="Item Details" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px;">
+                            <label for="item_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-cube" style="color: #3B82F6;"/>Item Code
+                            </label>
+                            <field name="item_id" options="{'no_open': True, 'no_create': True}" class="mb-3"/>
+                            
+                            <label for="uom_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-balance-scale" style="color: #3B82F6;"/>Unit of Measure
+                            </label>
+                            <field name="uom_id" class="mb-2"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Transaction Auditing" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px;">
+                            <label for="date" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-calendar-check-o" style="color: #D4AF37;"/>Transaction Date
+                            </label>
+                            <field name="date" class="mb-3 font-monospace"/>
+                            
+                            <label for="transaction_type" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-exchange" style="color: #D4AF37;"/>Type
+                            </label>
+                            <field name="transaction_type" class="mb-3" widget="radio" options="{'horizontal': true}"/>
+                            
+                            <label for="reference" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-hashtag" style="color: #D4AF37;"/>Reference
+                            </label>
+                            <field name="reference" class="mb-3 font-monospace" placeholder="e.g. IV/2026/0004"/>
+                            
+                            <label for="source_document" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-file-text-o" style="color: #D4AF37;"/>Source Document
+                            </label>
+                            <field name="source_document" class="mb-2 font-monospace" placeholder="e.g. RV/2026/0012"/>
+                        </group>
+                    </group>
+
+                    <group class="mb-4" col="2">
+                        <group string="Stock Quantities" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px;">
+                            <label for="quantity_in" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-arrow-down" style="color: #10B981;"/>Quantity In
+                            </label>
+                            <field name="quantity_in" class="text-end fw-bold font-monospace mb-3" style="color: #10B981; font-size: 18px;"/>
+                            
+                            <label for="quantity_out" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-arrow-up" style="color: #EF4444;"/>Quantity Out
+                            </label>
+                            <field name="quantity_out" class="text-end fw-bold font-monospace mb-3" style="color: #EF4444; font-size: 18px;"/>
+                            
+                            <label for="quantity_balance" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-balance-scale" style="color: #3B82F6;"/>Balance
+                            </label>
+                            <field name="quantity_balance" class="text-end fw-bold font-monospace mb-2" style="color: #3B82F6; font-size: 20px;"/>
+                        </group>
+                        <group string="FIFO Financial Valuation" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(212,175,55,0.05); border: 1px solid rgba(212,175,55,0.2) !important; border-radius: 12px;">
+                            <label for="unit_cost" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-tag" style="color: #10B981;"/>Unit Cost
+                            </label>
+                            <field name="unit_cost" class="text-end font-monospace mb-3" style="color: #10B981; font-size: 16px;"/>
+                            
+                            <label for="total_cost_in" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-long-arrow-down" style="color: #10B981;"/>Total Cost In
+                            </label>
+                            <field name="total_cost_in" class="text-end font-monospace mb-3" style="color: #10B981; font-size: 16px;"/>
+                            
+                            <label for="total_cost_out" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-long-arrow-up" style="color: #EF4444;"/>Total Cost Out
+                            </label>
+                            <field name="total_cost_out" class="text-end font-monospace mb-3" style="color: #EF4444; font-size: 16px;"/>
+                            
+                            <label for="balance_value" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-money" style="color: #D4AF37;"/>Balance Value
+                            </label>
+                            <field name="balance_value" class="text-end fw-bold font-monospace mb-3" style="color: #D4AF37; font-size: 20px;"/>
+                            
+                            <label for="average_cost" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-calculator" style="color: #A78BFA;"/>Average Cost
+                            </label>
+                            <field name="average_cost" class="text-end font-monospace mb-2" style="color: #A78BFA; font-size: 16px;"/>
+                        </group>
+                    </group>
+                    
+                    <notebook class="mt-4">
+                        <page string="FIFO Cost Layers" name="fifo_layers_tab" invisible="transaction_type != 'receipt'">
+                            <div class="p-3">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <i class="fa fa-layer-group" style="color: #10B981; font-size: 18px;"/>
+                                    <label for="fifo_layer_ids" class="mb-0" style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 600;">Cost Layer Breakdown</label>
+                                </div>
+                                <field name="fifo_layer_ids">
+                                    <list editable="bottom" class="fifo-layers-table">
+                                        <field name="date"/>
+                                        <field name="quantity"/>
+                                        <field name="quantity_remaining"/>
+                                        <field name="quantity_consumed"/>
+                                        <field name="unit_cost"/>
+                                        <field name="total_cost"/>
+                                        <field name="cost_out"/>
+                                        <field name="is_exhausted" widget="boolean_toggle"/>
+                                    </list>
+                                </field>
+                            </div>
+                        </page>
+                        <page string="Transaction Notes" name="description_tab">
+                            <div class="p-4" style="background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <i class="fa fa-file-text-o" style="color: #D4AF37; font-size: 18px;"/>
+                                    <label for="description" class="mb-0" style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 600;">Ledger Description &amp; Audit Comments</label>
+                                </div>
+                                <field name="description" placeholder="Write any transaction explanations, adjustments reasons, or inventory remarks..." class="w-100" style="min-height: 120px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; color: white;"/>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Stock Record Card Action (Hierarchical Navigation Flow) -->
+    <record id="action_mesob_stock_record_card" model="ir.actions.act_window">
+        <field name="name">Stock Record Cards (Model 19 Ledger)</field>
+        <field name="res_model">mesob.inventory.major.classification</field>
+        <field name="view_mode">kanban,list</field>
+        <field name="help" type="html">
+            <div class="text-center" style="padding: 40px; max-width: 600px; margin: 0 auto;">
+                <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.7;">
+                    <i class="fa fa-book" style="color: #3B82F6;"/>
+                </div>
+                <h3 style="color: #3B82F6; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.5px;">
+                    Stock Record Cards Navigation
+                </h3>
+                <p style="color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.6; margin-bottom: 0;">
+                    Select a Major Classification card to browse item-level stock records,
+                    <br/>
+                    transaction history, and FIFO cost layer valuation.
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <!-- Fallback/Raw Stock Record Entries Action -->
+    <record id="action_mesob_stock_record_card_raw" model="ir.actions.act_window">
+        <field name="name">Raw Stock Record Ledger Entries</field>
+        <field name="res_model">mesob.stock.record.card</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <div class="text-center" style="padding: 40px; max-width: 600px; margin: 0 auto;">
+                <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.7;">
+                    <i class="fa fa-list-alt" style="color: #3B82F6;"/>
+                </div>
+                <h3 style="color: #3B82F6; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.5px;">
+                    Raw Stock Record Ledger
+                </h3>
+                <p style="color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.6; margin-bottom: 0;">
+                    A flat audit log of all costed valuation entries posted to individual items.
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <!-- FIFO Layer List View -->
+    <record id="view_mesob_stock_fifo_layer_list" model="ir.ui.view">
+        <field name="name">mesob.stock.fifo.layer.list</field>
+        <field name="model">mesob.stock.fifo.layer</field>
+        <field name="arch" type="xml">
+            <list string="FIFO Cost Layers" create="false" edit="false" class="fifo-layers-table">
+                <field name="date" widget="date"/>
+                <field name="item_id"/>
+                <field name="quantity"/>
+                <field name="quantity_remaining"/>
+                <field name="quantity_consumed"/>
+                <field name="unit_cost"/>
+                <field name="total_cost"/>
+                <field name="cost_out"/>
+                <field name="is_exhausted" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- FIFO Layer Action -->
+    <record id="action_mesob_stock_fifo_layer" model="ir.actions.act_window">
+        <field name="name">FIFO Cost Layers</field>
+        <field name="res_model">mesob.stock.fifo.layer</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <div class="text-center" style="padding: 40px; max-width: 600px; margin: 0 auto;">
+                <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.7;">
+                    <i class="fa fa-layer-group" style="color: #10B981;"/>
+                </div>
+                <h3 style="color: #10B981; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.5px;">
+                    FIFO Cost Layers
+                </h3>
+                <p style="color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.6; margin-bottom: 0;">
+                    Track item-level cost layers for First-In-First-Out inventory valuation.
+                    <br/>
+                    Each receipt creates a new layer consumed sequentially upon issue.
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <!-- Stock Valuation Config List View -->
+    <record id="view_mesob_stock_valuation_config_list" model="ir.ui.view">
+        <field name="name">mesob.stock.valuation.config.list</field>
+        <field name="model">mesob.stock.valuation.config</field>
+        <field name="arch" type="xml">
+            <list string="Valuation Configurations">
+                <field name="name"/>
+                <field name="item_id"/>
+                <field name="classification_id"/>
+                <field name="valuation_method" widget="badge"/>
+                <field name="standard_cost"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+    
+    <!-- Stock Valuation Config Search View -->
+    <record id="view_mesob_stock_valuation_config_search" model="ir.ui.view">
+        <field name="name">mesob.stock.valuation.config.search</field>
+        <field name="model">mesob.stock.valuation.config</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="item_id"/>
+                <field name="classification_id"/>
+                <field name="valuation_method"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Stock Valuation Config Form View -->
+    <record id="view_mesob_stock_valuation_config_form" model="ir.ui.view">
+        <field name="name">mesob.stock.valuation.config.form</field>
+        <field name="model">mesob.stock.valuation.config</field>
+        <field name="arch" type="xml">
+            <form string="Valuation Configuration">
+                <sheet>
+                    <div class="oe_title mb-4">
+                        <label for="name" class="d-flex align-items-center gap-2 mb-2" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <i class="fa fa-cog" style="color: #3B82F6;"/>Configuration Name
+                        </label>
+                        <h1>
+                            <field name="name" placeholder="Configuration Name" class="fw-bold text-primary"/>
+                        </h1>
+                    </div>
+                    <group class="mb-4" col="2">
+                        <group string="Scope" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px;">
+                            <label for="item_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-cube" style="color: #3B82F6;"/>Item Code
+                            </label>
+                            <field name="item_id" options="{'no_open': True, 'no_create': True}" class="mb-3"/>
+                            
+                            <label for="classification_id" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-folder-open-o" style="color: #3B82F6;"/>Classification
+                            </label>
+                            <field name="classification_id" options="{'no_open': True, 'no_create': True}" class="mb-2"/>
+                        </group>
+                        <group string="Valuation Method" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(212,175,55,0.05); border: 1px solid rgba(212,175,55,0.2) !important; border-radius: 12px;">
+                            <label for="valuation_method" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-calculator" style="color: #D4AF37;"/>Method
+                            </label>
+                            <field name="valuation_method" class="mb-3" widget="radio" options="{'horizontal': true}"/>
+                            
+                            <label for="standard_cost" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;" invisible="valuation_method != 'standard'">
+                                <i class="fa fa-tag" style="color: #D4AF37;"/>Standard Cost
+                            </label>
+                            <field name="standard_cost" invisible="valuation_method != 'standard'" class="mb-2 font-monospace text-end" style="color: #D4AF37; font-size: 18px;"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group class="mb-4" col="2">
+                        <group string="Settings" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px;">
+                            <label for="auto_create_layers" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-layer-group" style="color: #10B981;"/>Auto Create Layers
+                            </label>
+                            <field name="auto_create_layers" widget="boolean_toggle" class="mb-3"/>
+                            
+                            <label for="track_by_location" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-map-marker" style="color: #F59E0B;"/>Track By Location
+                            </label>
+                            <field name="track_by_location" widget="boolean_toggle" class="mb-3"/>
+                            
+                            <label for="allow_negative_stock" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-exclamation-triangle" style="color: #EF4444;"/>Allow Negative Stock
+                            </label>
+                            <field name="allow_negative_stock" widget="boolean_toggle" class="mb-2"/>
+                        </group>
+                        <group string="Status" col="1" class="glass-card p-4 rounded shadow-sm border w-100" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px;">
+                            <label for="active" class="d-flex align-items-center gap-2 mb-1" style="color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa fa-power-off" style="color: #10B981;"/>Active
+                            </label>
+                            <field name="active" widget="boolean_toggle" class="mb-2"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Stock Valuation Config Action -->
+    <record id="action_mesob_stock_valuation_config" model="ir.actions.act_window">
+        <field name="name">Valuation Configuration</field>
+        <field name="res_model">mesob.stock.valuation.config</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <div class="text-center" style="padding: 40px; max-width: 600px; margin: 0 auto;">
+                <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.7;">
+                    <i class="fa fa-cog" style="color: #3B82F6;"/>
+                </div>
+                <h3 style="color: #3B82F6; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.5px;">
+                    Valuation Configuration
+                </h3>
+                <p style="color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.6; margin-bottom: 0;">
+                    Configure inventory valuation methods (FIFO, Average, Standard)
+                    <br/>
+                    at item or classification level to control cost calculation.
+                </p>
+            </div>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         REPORT ACTIONS (QWeb PDF)
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Clean, Headerless, Borderless Paper Format for Mesob Corporate Documents -->
+    <record id="paperformat_mesob_corporate" model="report.paperformat">
+        <field name="name">Mesob Corporate Paper Format</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">11</field> <!-- Custom top margin of 11mm (2.2 times 5mm) as requested -->
+        <field name="margin_bottom">15</field>
+        <field name="margin_left">15</field>
+        <field name="margin_right">15</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field> <!-- Forcefully set header spacing to 0 to disable Odoo headers! -->
+        <field name="dpi">96</field>
+    </record>
+
+    <!-- Gate Pass Report Action -->
+    <record id="action_report_mesob_gate_pass" model="ir.actions.report">
+        <field name="name">Gate Pass</field>
+        <field name="model">mesob.gate.pass</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mesob_inventory_base.report_mesob_gate_pass_document</field>
+        <field name="report_file">mesob_inventory_base.report_mesob_gate_pass_document</field>
+        <field name="binding_model_id" ref="model_mesob_gate_pass"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="mesob_inventory_base.paperformat_mesob_corporate"/>
+    </record>
+
+    <!-- Model 19 (Goods Receiving Note) Report Action -->
+    <record id="action_report_mesob_model19" model="ir.actions.report">
+        <field name="name">Goods Receiving Voucher (Model 19)</field>
+        <field name="model">mesob.inventory.model19</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mesob_inventory_base.report_mesob_model19_document</field>
+        <field name="report_file">mesob_inventory_base.report_mesob_model19_document</field>
+        <field name="binding_model_id" ref="model_mesob_inventory_model19"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="mesob_inventory_base.paperformat_mesob_corporate"/>
+    </record>
+
+    <!-- Model 20 (Stores Requisition) Report Action -->
+    <record id="action_report_mesob_model20" model="ir.actions.report">
+        <field name="name">Stores Requisition (Model 20)</field>
+        <field name="model">mesob.inventory.requisition</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mesob_inventory_base.report_mesob_model20_document</field>
+        <field name="report_file">mesob_inventory_base.report_mesob_model20_document</field>
+        <field name="binding_model_id" ref="model_mesob_inventory_requisition"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="mesob_inventory_base.paperformat_mesob_corporate"/>
+    </record>
+
+    <!-- Model 22 (Issue Voucher) Report Action -->
+    <record id="action_report_mesob_model22" model="ir.actions.report">
+        <field name="name">Issue Voucher (Model 22)</field>
+        <field name="model">mesob.inventory.issue.voucher</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mesob_inventory_base.report_mesob_model22_document</field>
+        <field name="report_file">mesob_inventory_base.report_mesob_model22_document</field>
+        <field name="binding_model_id" ref="model_mesob_inventory_issue_voucher"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="mesob_inventory_base.paperformat_mesob_corporate"/>
+    </record>
+
+    <!-- DSR (Damage/Shortage Report) Report Action -->
+    <record id="action_report_mesob_dsr" model="ir.actions.report">
+        <field name="name">Damage/Shortage Report (DSR)</field>
+        <field name="model">mesob.inventory.dsr</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mesob_inventory_base.report_mesob_dsr_document</field>
+        <field name="report_file">mesob_inventory_base.report_mesob_dsr_document</field>
+        <field name="binding_model_id" ref="model_mesob_inventory_dsr"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="mesob_inventory_base.paperformat_mesob_corporate"/>
+    </record>
+
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         REUSABLE TEMPLATES & STYLING
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    <template id="mesob_report_header_snippet">
+        <div style="background-color: #0B1B3D; padding: 11px; border-radius: 4px; text-align: center; margin-bottom: 8px;">
+            <img src="/mesob_inventory_base/static/img/mesob_logo.png" style="max-height: 52px; margin-bottom: 4px; display: inline-block;" alt="FDRE Logo"/>
+            <div style="font-size: 16px; font-weight: bold; color: #D4AF37; letter-spacing: 0.75px; font-family: 'Plus Jakarta Sans', sans-serif;">FDRE Mesob Center</div>
+            <div style="font-size: 10px; color: #FFFFFF; font-style: italic; font-family: 'Plus Jakarta Sans', sans-serif;">Federal Democratic Republic of Ethiopia</div>
+        </div>
+        <div style="border-bottom: 2px solid #D4AF37; padding-bottom: 6px; margin-bottom: 18px; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10px; font-weight: bold; color: #0B1B3D;">
+            <div style="float: left; width: 50%;">Ref No: <span t-esc="doc_no"/></div>
+            <div style="float: right; width: 50%; text-align: right;"><span t-esc="title"/></div>
+        </div>
+    </template>
+
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         REPORT TEMPLATES (QWeb XML)
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- 1. Gate Pass Report Document Template -->
+    <template id="report_mesob_gate_pass_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <div class="page" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                        <t t-call="mesob_inventory_base.mesob_report_header_snippet">
+                            <t t-set="doc_no" t-value="o.name"/>
+                            <t t-set="title" t-value="'Gate Pass for Material Dispatch'"/>
+                        </t>
+
+                        <!-- Symmetrical Info Grids -->
+                        <div class="row mt-4" style="font-size: 13px; line-height: 1.6;">
+                            <div class="col-6">
+                                <h5 style="color: #0B1B3D; font-weight: bold; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">Authorization Ref</h5>
+                                <t t-if="o.issue_voucher_id">
+                                    <strong>Issue Voucher:</strong> <span t-field="o.issue_voucher_id.name"/><br/>
+                                </t>
+                                <t t-if="o.written_authorization">
+                                    <strong>Written Authorization:</strong> <span t-field="o.written_authorization"/><br/>
+                                </t>
+                                <strong>Date Schedule:</strong> <span t-field="o.dispatch_date"/><br/>
+                                <strong>Authorized By:</strong> <span t-field="o.authorized_by_id.name"/>
+                            </div>
+                            <div class="col-6">
+                                <h5 style="color: #0B1B3D; font-weight: bold; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">Receiver &amp; Transport</h5>
+                                <strong>Receiver Name:</strong> <span t-field="o.receiver_name"/><br/>
+                                <strong>Organization:</strong> <span t-field="o.receiver_organization"/><br/>
+                                <strong>Destination:</strong> <span t-field="o.destination"/><br/>
+                                <strong>Vehicle Plate:</strong> <span t-field="o.vehicle_plate or 'Local Pickup'"/>
+                            </div>
+                        </div>
+
+                        <!-- Line Items Table -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5 style="color: #0B1B3D; font-weight: bold;">Materials Dispatched</h5>
+                                <table class="table table-sm table-bordered" style="font-size: 12px; border-color: #dee2e6;">
+                                    <thead>
+                                        <tr style="background-color: #0B1B3D; color: #FFFFFF;">
+                                            <th style="padding: 6px;">#</th>
+                                            <th style="padding: 6px;">Item Code</th>
+                                            <th style="padding: 6px;">Description</th>
+                                            <th class="text-right" style="padding: 6px;">Quantity</th>
+                                            <th style="padding: 6px;">UOM</th>
+                                            <th style="padding: 6px;">Serial Numbers</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-set="line_num" t-value="0"/>
+                                        <tr t-foreach="o.line_ids" t-as="line">
+                                            <t t-set="line_num" t-value="line_num + 1"/>
+                                            <td style="padding: 6px;"><span t-esc="line_num"/></td>
+                                            <td style="padding: 6px;" class="font-monospace"><span t-field="line.item_id.item_code"/></td>
+                                            <td style="padding: 6px;"><span t-field="line.description"/></td>
+                                            <td style="padding: 6px;" class="text-right fw-bold font-monospace"><span t-field="line.quantity"/></td>
+                                            <td style="padding: 6px;"><span t-field="line.uom_id.name"/></td>
+                                            <td style="padding: 6px;" class="font-monospace"><span t-field="line.serial_numbers or 'N/A'"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Symmetrical Signatures Footer -->
+                        <div class="row mt-5" style="font-size: 12px; font-weight: bold; padding-top: 20px;">
+                            <div class="col-4 text-center">
+                                <p>_______________________</p>
+                                <p style="color: #0B1B3D; margin-bottom: 2px;">Prepared By (Storekeeper)</p>
+                                <span t-field="o.created_by_id.name" class="text-muted"/>
+                            </div>
+                            <div class="col-4 text-center">
+                                <p>_______________________</p>
+                                <p style="color: #0B1B3D; margin-bottom: 2px;">Authorized By (PAO)</p>
+                                <span t-field="o.authorized_by_id.name" class="text-muted"/>
+                            </div>
+                            <div class="col-4 text-center">
+                                <p>_______________________</p>
+                                <p style="color: #0B1B3D; margin-bottom: 2px;">Verified &amp; Released By</p>
+                                <span t-field="o.security_verified_by_id.name" class="text-muted"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- 2. Model 19 (Goods Receiving Note) Template -->
+    <template id="report_mesob_model19_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <div class="page" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                        <t t-call="mesob_inventory_base.mesob_report_header_snippet">
+                            <t t-set="doc_no" t-value="o.name"/>
+                            <t t-set="title" t-value="'Receipt for Articles/Property (Model 19)'"/>
+                        </t>
+
+                        <!-- Symmetrical Info Grids -->
+                        <div class="row mt-4" style="font-size: 13px; line-height: 1.6;">
+                            <div class="col-6">
+                                <h5 style="color: #0B1B3D; font-weight: bold; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">Supplier Details</h5>
+                                <strong>Vendor Name:</strong> <span t-field="o.supplier_id.name"/><br/>
+                                <strong>TIN:</strong> <span t-field="o.supplier_id.tin"/><br/>
+                                <strong>Receipt Date:</strong> <span t-field="o.date"/><br/>
+                            </div>
+                            <div class="col-6">
+                                <h5 style="color: #0B1B3D; font-weight: bold; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">Audit Details</h5>
+                                <strong>Receiving Order:</strong> <span t-field="o.receiving_id.name"/><br/>
+                                <strong>Total Value (ETB):</strong> <span t-field="o.total_amount" class="fw-bold text-primary"/><br/>
+                                <strong>Status:</strong> <span t-field="o.state"/>
+                            </div>
+                        </div>
+
+                        <!-- Line Items Table -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5 style="color: #0B1B3D; font-weight: bold;">Items Received</h5>
+                                <table class="table table-sm table-bordered" style="font-size: 12px; border-color: #dee2e6;">
+                                    <thead>
+                                        <tr style="background-color: #0B1B3D; color: #FFFFFF;">
+                                            <th style="padding: 6px;">#</th>
+                                            <th style="padding: 6px;">Item Code</th>
+                                            <th style="padding: 6px;">Item Name</th>
+                                            <th class="text-right" style="padding: 6px;">Quantity</th>
+                                            <th style="padding: 6px;">UOM</th>
+                                            <th class="text-right" style="padding: 6px;">Unit Cost</th>
+                                            <th class="text-right" style="padding: 6px;">Total Cost</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-set="line_num" t-value="0"/>
+                                        <tr t-foreach="o.line_ids" t-as="line">
+                                            <t t-set="line_num" t-value="line_num + 1"/>
+                                            <td style="padding: 6px;"><span t-esc="line_num"/></td>
+                                            <td style="padding: 6px;" class="font-monospace"><span t-field="line.item_id.item_code"/></td>
+                                            <td style="padding: 6px;" class="fw-semibold"><span t-field="line.item_id.name"/></td>
+                                            <td style="padding: 6px;" class="text-right fw-bold font-monospace"><span t-field="line.quantity"/></td>
+                                            <td style="padding: 6px;"><span t-field="line.uom_id.name"/></td>
+                                            <td style="padding: 6px;" class="text-right font-monospace text-success"><span t-field="line.unit_price"/></td>
+                                            <td style="padding: 6px;" class="text-right fw-bold font-monospace text-primary"><span t-field="line.total_price"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Symmetrical Signatures Footer -->
+                        <div class="row mt-5" style="font-size: 12px; font-weight: bold; padding-top: 20px;">
+                            <div class="col-4 text-center">
+                                <p>_______________________</p>
+                                <p style="color: #0B1B3D; margin-bottom: 2px;">Received By (Storekeeper)</p>
+                                <span class="text-muted">Signature &amp; Date</span>
+                            </div>
+                            <div class="col-4 text-center">
+                                <p>_______________________</p>
+                                <p style="color: #0B1B3D; margin-bottom: 2px;">Approved By (PAO)</p>
+                                <span class="text-muted">Signature &amp; Date</span>
+                            </div>
+                            <div class="col-4 text-center">
+                                <p>_______________________</p>
+                                <p style="color: #0B1B3D; margin-bottom: 2px;">Audited By (Internal Auditor)</p>
+                                <span class="text-muted">Signature &amp; Date</span>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- 3. Model 20 (Stores Requisition) Template -->
+    <template id="report_mesob_model20_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <div class="page" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                        <t t-call="mesob_inventory_base.mesob_report_header_snippet">
+                            <t t-set="doc_no" t-value="o.name"/>
+                            <t t-set="title" t-value="'Stores Requisition (Model 20)'"/>
+                        </t>
+
+                        <!-- Symmetrical Info Grids -->
+                        <div class="row mt-4" style="font-size: 13px; line-height: 1.6;">
+                            <div class="col-6">
+                                <h5 style="color: #0B1B3D; font-weight: bold; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">Requisition Details</h5>
+                                <strong>Department:</strong> <span t-field="o.department"/><br/>
+                                <strong>Requested By:</strong> <span t-field="o.requested_by_id.name"/><br/>
+                                <strong>Requested On:</strong> <span t-field="o.create_date" t-options='{"widget": "date"}'/><br/>
+                            </div>
+                            <div class="col-6">
+                                <h5 style="color: #0B1B3D; font-weight: bold; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">Issuing Details</h5>
+                                <strong>Issue Mode:</strong> <span t-field="o.issue_mode"/><br/>
+                                <strong>Status:</strong> <span t-field="o.state"/>
+                            </div>
+                        </div>
+
+                        <!-- Line Items Table -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5 style="color: #0B1B3D; font-weight: bold;">Items Requested</h5>
+                                <table class="table table-sm table-bordered" style="font-size: 12px; border-color: #dee2e6;">
+                                    <thead>
+                                        <tr style="background-color: #0B1B3D; color: #FFFFFF;">
+                                            <th style="padding: 6px;">#</th>
+                                            <th style="padding: 6px;">Item Code</th>
+                                            <th style="padding: 6px;">Item Name</th>
+                                            <th class="text-right" style="padding: 6px;">Qty Requested</th>
+                                            <th style="padding: 6px;">UOM</th>
+                                            <th style="padding: 6px;">Purpose / Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-set="line_num" t-value="0"/>
+                                        <tr t-foreach="o.line_ids" t-as="line">
+                                            <t t-set="line_num" t-value="line_num + 1"/>
+                                            <td style="padding: 6px;"><span t-esc="line_num"/></td>
+                                            <td style="padding: 6px;" class="font-monospace"><span t-field="line.item_id.item_code"/></td>
+                                            <td style="padding: 6px;" class="fw-semibold"><span t-field="line.item_id.name"/></td>
+                                            <td style="padding: 6px;" class="text-right fw-bold font-monospace"><span t-field="line.qty_requested"/></td>
+                                            <td style="padding: 6px;"><span t-field="line.uom_id.name"/></td>
+                                            <td style="padding: 6px;"><span t-field="line.remarks or 'N/A'"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Symmetrical Signatures Footer -->
+                        <div class="row mt-5" style="font-size: 12px; font-weight: bold; padding-top: 20px;">
+                            <div class="col-4 text-center">
+                                <p>_______________________</p>
+                                <p style="color: #0B1B3D; margin-bottom: 2px;">Requested By (Employee)</p>
+                                <span t-field="o.requested_by_id.name" class="text-muted"/>
+                            </div>
+                            <div class="col-4 text-center">
+                                <p>_______________________</p>
+                                <p style="color: #0B1B3D; margin-bottom: 2px;">Approved By (Dept Head)</p>
+                                <span class="text-muted">Signature &amp; Date</span>
+                            </div>
+                            <div class="col-4 text-center">
+                                <p>_______________________</p>
+                                <p style="color: #0B1B3D; margin-bottom: 2px;">Authorized By (PAO)</p>
+                                <span class="text-muted">Signature &amp; Date</span>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- 4. Model 22 (Issue Voucher) Template -->
+    <template id="report_mesob_model22_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <div class="page" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                        <t t-call="mesob_inventory_base.mesob_report_header_snippet">
+                            <t t-set="doc_no" t-value="o.name"/>
+                            <t t-set="title" t-value="'Issue Voucher (Model 22)'"/>
+                        </t>
+
+                        <!-- Symmetrical Info Grids -->
+                        <div class="row mt-4" style="font-size: 13px; line-height: 1.6;">
+                            <div class="col-6">
+                                <h5 style="color: #0B1B3D; font-weight: bold; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">Issuance Details</h5>
+                                <strong>Department:</strong> <span t-field="o.requesting_department"/><br/>
+                                <strong>Linked Requisition:</strong> <span t-field="o.requisition_id.name"/><br/>
+                                <strong>Issue Date:</strong> <span t-field="o.issue_date"/><br/>
+                            </div>
+                            <div class="col-6">
+                                <h5 style="color: #0B1B3D; font-weight: bold; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">Auditing</h5>
+                                <strong>Issued By:</strong> <span t-field="o.issued_by_id.name"/><br/>
+                                <strong>Status:</strong> <span t-field="o.state"/>
+                            </div>
+                        </div>
+
+                        <!-- Line Items Table -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5 style="color: #0B1B3D; font-weight: bold;">Items Issued</h5>
+                                <table class="table table-sm table-bordered" style="font-size: 12px; border-color: #dee2e6;">
+                                    <thead>
+                                        <tr style="background-color: #0B1B3D; color: #FFFFFF;">
+                                            <th style="padding: 6px;">#</th>
+                                            <th style="padding: 6px;">Item Code</th>
+                                            <th style="padding: 6px;">Item Name</th>
+                                            <th class="text-right" style="padding: 6px;">Qty Requested</th>
+                                            <th class="text-right" style="padding: 6px;">Qty Issued</th>
+                                            <th style="padding: 6px;">UOM</th>
+                                            <th style="padding: 6px;">Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-set="line_num" t-value="0"/>
+                                        <tr t-foreach="o.line_ids" t-as="line">
+                                            <t t-set="line_num" t-value="line_num + 1"/>
+                                            <td style="padding: 6px;"><span t-esc="line_num"/></td>
+                                            <td style="padding: 6px;" class="font-monospace"><span t-field="line.item_id.item_code"/></td>
+                                            <td style="padding: 6px;" class="fw-semibold"><span t-field="line.item_id.name"/></td>
+                                            <td style="padding: 6px;" class="text-right font-monospace text-muted"><span t-field="line.qty_requested"/></td>
+                                            <td style="padding: 6px;" class="text-right fw-bold font-monospace text-primary"><span t-field="line.qty_issued"/></td>
+                                            <td style="padding: 6px;"><span t-field="line.uom_id.name"/></td>
+                                            <td style="padding: 6px;"><span t-field="line.remarks or 'N/A'"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Symmetrical Signatures Footer -->
+                        <div class="row mt-5" style="font-size: 12px; font-weight: bold; padding-top: 20px;">
+                            <div class="col-4 text-center">
+                                <p>_______________________</p>
+                                <p style="color: #0B1B3D; margin-bottom: 2px;">Issued By (Storekeeper)</p>
+                                <span t-field="o.issued_by_id.name" class="text-muted"/>
+                            </div>
+                            <div class="col-4 text-center">
+                                <p>_______________________</p>
+                                <p style="color: #0B1B3D; margin-bottom: 2px;">Received By (Receiver)</p>
+                                <span class="text-muted">Signature &amp; Date</span>
+                            </div>
+                            <div class="col-4 text-center">
+                                <p>_______________________</p>
+                                <p style="color: #0B1B3D; margin-bottom: 2px;">Approved By (PAO)</p>
+                                <span class="text-muted">Signature &amp; Date</span>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- 5. DSR (Damage/Shortage Report) Template -->
+    <template id="report_mesob_dsr_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <div class="page" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                        <t t-call="mesob_inventory_base.mesob_report_header_snippet">
+                            <t t-set="doc_no" t-value="o.name"/>
+                            <t t-set="title" t-value="'Damage/Shortage Report (DSR)'"/>
+                        </t>
+
+                        <!-- Symmetrical Info Grids -->
+                        <div class="row mt-4" style="font-size: 13px; line-height: 1.6;">
+                            <div class="col-6">
+                                <h5 style="color: #0B1B3D; font-weight: bold; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">Supplier Details</h5>
+                                <strong>Vendor Name:</strong> <span t-field="o.supplier_id.name"/><br/>
+                                <strong>TIN:</strong> <span t-field="o.supplier_id.tin"/><br/>
+                                <strong>Report Date:</strong> <span t-field="o.date"/><br/>
+                            </div>
+                            <div class="col-6">
+                                <h5 style="color: #0B1B3D; font-weight: bold; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">Audit Details</h5>
+                                <strong>Receiving Order:</strong> <span t-field="o.receiving_id.name"/><br/>
+                                <strong>Status:</strong> <span t-field="o.state"/>
+                            </div>
+                        </div>
+
+                        <!-- Rejected Items Table -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5 style="color: #0B1B3D; font-weight: bold;">Rejected Materials</h5>
+                                <table class="table table-sm table-bordered" style="font-size: 12px; border-color: #dee2e6;">
+                                    <thead>
+                                        <tr style="background-color: #0B1B3D; color: #FFFFFF;">
+                                            <th style="padding: 6px;">#</th>
+                                            <th style="padding: 6px;">Item Code</th>
+                                            <th style="padding: 6px;">Item Name</th>
+                                            <th class="text-right" style="padding: 6px;">Qty Rejected</th>
+                                            <th style="padding: 6px;">UOM</th>
+                                            <th style="padding: 6px;">Discrepancy Type</th>
+                                            <th style="padding: 6px;">Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-set="line_num" t-value="0"/>
+                                        <tr t-foreach="o.line_ids" t-as="line">
+                                            <t t-set="line_num" t-value="line_num + 1"/>
+                                            <td style="padding: 6px;"><span t-esc="line_num"/></td>
+                                            <td style="padding: 6px;" class="font-monospace"><span t-field="line.item_id.item_code"/></td>
+                                            <td style="padding: 6px;" class="fw-semibold"><span t-field="line.item_id.name"/></td>
+                                            <td style="padding: 6px;" class="text-right fw-bold font-monospace text-danger"><span t-field="line.quantity"/></td>
+                                            <td style="padding: 6px;"><span t-field="line.uom_id.name"/></td>
+                                            <td style="padding: 6px;" class="fw-semibold text-warning"><span t-field="line.discrepancy_type"/></td>
+                                            <td style="padding: 6px;"><span t-field="line.notes or 'N/A'"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Symmetrical Signatures Footer -->
+                        <div class="row mt-5" style="font-size: 12px; font-weight: bold; padding-top: 20px;">
+                            <div class="col-4 text-center">
+                                <p>_______________________</p>
+                                <p style="color: #0B1B3D; margin-bottom: 2px;">Inspected By (Storekeeper)</p>
+                                <span class="text-muted">Signature &amp; Date</span>
+                            </div>
+                            <div class="col-4 text-center">
+                                <p>_______________________</p>
+                                <p style="color: #0B1B3D; margin-bottom: 2px;">Approved By (PAO)</p>
+                                <span class="text-muted">Signature &amp; Date</span>
+                            </div>
+                            <div class="col-4 text-center">
+                                <p>_______________________</p>
+                                <p style="color: #0B1B3D; margin-bottom: 2px;">Procurement Review</p>
+                                <span class="text-muted">Signature &amp; Date</span>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
