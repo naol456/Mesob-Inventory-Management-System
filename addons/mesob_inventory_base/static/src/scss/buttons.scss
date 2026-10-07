@@ -13,11 +13,18 @@ input[type="submit"],
 
 .btn-primary {
     background: $primary-gradient !important;
-    backdrop-filter: blur($blur-light) saturate(180%) !important;
     border: none !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3) !important;
 
     &:hover {
-        background: $primary-color !important;
+        background: linear-gradient(135deg, #C59B27 0%, #B88B1F 100%) !important;
+        box-shadow: 0 6px 16px rgba(212, 175, 55, 0.4) !important;
+        transform: translateY(-1px);
+    }
+    
+    &:active {
+        transform: translateY(0);
     }
 }
 

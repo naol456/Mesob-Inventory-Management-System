@@ -68,6 +68,7 @@ deployment/backups/
 deployment/config/nginx/*.key
 deployment/config/nginx/*.crt
 deployment/config/nginx/*.pem
+deployment/config/odoo.dev.conf
 
 # Docker volumes (managed by Docker)
 deployment/volumes/
