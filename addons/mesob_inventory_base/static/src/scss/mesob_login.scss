@@ -59,7 +59,8 @@ body {
 
 // Login wrapper to contain header and card
 .mesob_login_wrapper {
-    max-width: 400px;
+    max-width: 420px !important;
+    width: 100% !important;
     margin: 0 auto;
     max-height: 90vh;
     overflow: visible;
@@ -73,6 +74,37 @@ body {
     margin-top: 0.75rem !important;
     padding-top: 0.75rem !important;
     font-size: 11px !important;
+}
+
+// Hide database selector field completely
+.o_database_list,
+.oe_login_form {
+    // Hide any field with name="db" or related to database selection
+    .form-group:has(select[name="db"]),
+    .form-group:has(input[name="db"]),
+    .list-group-item:has(select[name="db"]),
+    .field-db,
+    div[data-field="db"],
+    label[for="db"] + div,
+    label[for="login"] ~ .form-group:first-of-type {
+        display: none !important;
+    }
+    
+    // Target by label text
+    .form-group:has(label:contains("Database")) {
+        display: none !important;
+    }
+}
+
+// Specific targeting for database field
+select[name="db"],
+input[name="db"] {
+    display: none !important;
+}
+
+// Hide database label
+label[for="db"] {
+    display: none !important;
 }
 
 // Custom Header Section
@@ -124,7 +156,8 @@ body {
 
 // Card Customization
 .mesob_login_wrapper .o_database_list.card {
-    max-width: 400px !important;
+    max-width: 420px !important;
+    width: 420px !important;
     border-radius: 0 0 12px 12px !important;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07) !important;
     margin-top: 0 !important;
@@ -133,8 +166,8 @@ body {
     border-top: none !important;
     
     .card-body {
-        padding: 22px 28px;
-        padding-top: 20px;
+        padding: 26px 34px !important;
+        padding-top: 24px !important;
     }
 }
 
@@ -241,7 +274,7 @@ body {
 // Responsive
 @media (max-width: 576px) {
     .mesob_login_wrapper {
-        max-width: 300px;
+        max-width: 350px;
     }
     
     .mesob_login_header {
@@ -262,7 +295,7 @@ body {
     }
     
     .mesob_login_wrapper .o_database_list.card {
-        max-width: 300px !important;
+        max-width: 350px !important;
         
         .card-body {
             padding: 20px;

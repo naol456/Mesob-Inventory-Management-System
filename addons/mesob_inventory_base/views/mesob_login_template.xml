@@ -14,8 +14,27 @@
                         <h1 class="mesob_title">Mesob</h1>
                         <p class="mesob_subtitle">Inventory management system</p>
                     </div>
-                    <div t-attf-class="card border-0 mx-auto bg-100 {{login_card_classes}} o_database_list" style="max-width: 300px;">
-                        <div class="card-body">
+                    <div t-attf-class="card border-0 mx-auto bg-100 {{login_card_classes}} o_database_list" style="max-width: 420px !important; width: 420px !important;">
+                        <div class="card-body" style="padding: 26px 34px !important;">
+                            <!-- Hide database selector field -->
+                            <style>
+                                .mesob_login_wrapper {
+                                    max-width: 420px !important;
+                                    width: 100% !important;
+                                }
+                                .mesob_login_wrapper .o_database_list.card {
+                                    max-width: 420px !important;
+                                    width: 420px !important;
+                                }
+                                .o_database_list .form-group:has(select[name="db"]),
+                                .o_database_list .form-group:has(input[name="db"]),
+                                .oe_login_form .form-group:has(select[name="db"]),
+                                .oe_login_form .form-group:has(input[name="db"]),
+                                div.field-db,
+                                .list-group-item:has(select[name="db"]) {
+                                    display: none !important;
+                                }
+                            </style>
                             <div class="text-center pb-3 border-bottom mb-4" style="display: none;">
                                 <img t-attf-src="/web/binary/company_logo{{ '?dbname='+db if db else '' }}" alt="Logo" style="max-height:120px; max-width: 100%; width:auto"/>
                             </div>
