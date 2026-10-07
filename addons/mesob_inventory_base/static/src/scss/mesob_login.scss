@@ -47,30 +47,48 @@ body {
             rgba(135, 206, 250, 0.08) 50px
         ) !important;
     
+    height: 100vh !important;
     min-height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
     background-attachment: fixed !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 // Login wrapper to contain header and card
 .mesob_login_wrapper {
     max-width: 400px;
     margin: 0 auto;
+    max-height: 90vh;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+// Hide footer on small screens to save space
+.text-center.small.mt-4.pt-3.border-top {
+    margin-top: 0.75rem !important;
+    padding-top: 0.75rem !important;
+    font-size: 11px !important;
 }
 
 // Custom Header Section
 .mesob_login_header {
     background: linear-gradient(135deg, $navy 0%, $header-blue 100%);
-    padding: 25px 20px 20px;
+    padding: 18px 20px 15px;
     text-align: center;
     margin: 0;
     border-radius: 12px 12px 0 0;
     
     .mesob_logo_container {
-        margin-bottom: 12px;
+        margin-bottom: 8px;
         
         .mesob_logo {
-            width: 70px;
-            height: 70px;
+            width: 55px;
+            height: 55px;
             margin: 0 auto;
             display: block;
             filter: drop-shadow(0 3px 8px $gold-shadow);
@@ -79,15 +97,15 @@ body {
     
     .mesob_title {
         color: white;
-        font-size: 26px;
+        font-size: 22px;
         font-weight: 700;
-        margin: 8px 0 4px;
+        margin: 6px 0 3px;
         letter-spacing: 1px;
     }
     
     .mesob_subtitle {
         color: rgba(255, 255, 255, 0.9);
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 400;
         margin: 0;
     }
@@ -95,7 +113,13 @@ body {
 
 // Login Page Container
 .container.py-5 {
-    padding-top: 3rem !important;
+    padding: 0 !important;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 // Card Customization
@@ -109,8 +133,8 @@ body {
     border-top: none !important;
     
     .card-body {
-        padding: 30px;
-        padding-top: 25px;
+        padding: 22px 28px;
+        padding-top: 20px;
     }
 }
 
@@ -119,8 +143,8 @@ body {
 .o_database_list label {
     color: $label-text;
     font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 8px;
+    font-size: 13px;
+    margin-bottom: 6px;
 }
 
 // Input Fields
@@ -132,8 +156,8 @@ body {
     background-color: $input-bg;
     border: 1.5px solid $border-default;
     border-radius: 8px;
-    padding: 14px 16px;
-    font-size: 15px;
+    padding: 11px 14px;
+    font-size: 14px;
     color: $label-text;
     transition: all 0.3s ease;
     
@@ -155,8 +179,8 @@ body {
     background: linear-gradient(135deg, $navy 0%, $header-blue 100%);
     border: none;
     border-radius: 8px;
-    padding: 14px 24px;
-    font-size: 16px;
+    padding: 12px 22px;
+    font-size: 15px;
     font-weight: 600;
     text-transform: none;
     letter-spacing: 0.5px;

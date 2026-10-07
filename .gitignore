@@ -21,6 +21,11 @@ docs/
 .env
 docs12
 
+# Docker Compose local development overrides (Windows/Mac/Linux local dev)
+docker-compose.override.yml
+docker-compose.*.local.yml
+docker-compose.dev.yml
+
 # Third-party themes (not part of Mesob project)
 addons/theme_*/
 

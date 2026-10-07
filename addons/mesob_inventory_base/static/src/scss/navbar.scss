@@ -101,7 +101,7 @@ $gold-hover: rgba(212, 175, 55, 0.14);
         white-space: nowrap !important;
         flex-wrap: nowrap !important;
         flex-grow: 1;
-        max-width: 55%; // Dynamic restriction to prevent overlap with systray
+        max-width: calc(100% - 450px); // Leave space for brand + systray
         transition: all 0.3s ease;
 
         // Hide clunky standard browser scrollbars
@@ -127,7 +127,7 @@ $gold-hover: rgba(212, 175, 55, 0.14);
         );
 
         @media (max-width: 1200px) {
-            max-width: 70%; // Grant wider menu space once the brand text is hidden!
+            max-width: calc(100% - 200px); // Grant wider menu space once the brand text is hidden!
         }
 
         .o_nav_entry, 

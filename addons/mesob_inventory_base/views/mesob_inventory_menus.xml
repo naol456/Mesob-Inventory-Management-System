@@ -286,11 +286,12 @@
               groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
               sequence="60"/>
 
-    <!-- ── Master Data ────────────────────────────────────────────── -->
+    <!-- ── Master Data (with expandable submenu) ────────────────────── -->
     <menuitem id="menu_mesob_inventory_master_data"
               name="Master Data"
               parent="menu_mesob_inventory_root"
               groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper"
+              web_icon="mesob_inventory_base,static/description/icon_folder.png"
               sequence="20"/>
 
     <menuitem id="menu_mesob_inventory_classifications"
@@ -308,6 +309,6 @@
     <menuitem id="menu_mesob_department"
               name="Departments"
               parent="menu_mesob_inventory_master_data"
-              action="action_mesob_department"
+              action="action_mesob_sub_classification"
               sequence="40"/>
 </odoo>
