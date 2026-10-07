@@ -47,26 +47,35 @@ body {
             rgba(135, 206, 250, 0.08) 50px
         ) !important;
     
-    height: 100vh !important;
-    min-height: 100vh;
-    max-height: 100vh;
-    overflow: hidden;
+    min-height: 100vh !important;
     background-attachment: fixed !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 20px 0 !important;
 }
 
 // Login wrapper to contain header and card
 .mesob_login_wrapper {
     max-width: 420px !important;
     width: 100% !important;
-    margin: 0 auto;
-    max-height: 90vh;
-    overflow: visible;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    margin: 0 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+// Login Page Container
+.container.py-5 {
+    padding: 20px 15px !important;
+    min-height: 100vh;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100%;
 }
 
 // Hide footer on small screens to save space
@@ -110,17 +119,21 @@ label[for="db"] {
 // Custom Header Section
 .mesob_login_header {
     background: linear-gradient(135deg, $navy 0%, $header-blue 100%);
-    padding: 18px 20px 15px;
+    padding: 15px 20px 13px;
     text-align: center;
     margin: 0;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
     border-radius: 12px 12px 0 0;
+    width: 100% !important;
+    max-width: 420px !important;
     
     .mesob_logo_container {
-        margin-bottom: 8px;
+        margin-bottom: 5px;
         
         .mesob_logo {
-            width: 55px;
-            height: 55px;
+            width: 48px;
+            height: 48px;
             margin: 0 auto;
             display: block;
             filter: drop-shadow(0 3px 8px $gold-shadow);
@@ -129,29 +142,18 @@ label[for="db"] {
     
     .mesob_title {
         color: white;
-        font-size: 22px;
+        font-size: 19px;
         font-weight: 700;
-        margin: 6px 0 3px;
+        margin: 4px 0 2px;
         letter-spacing: 1px;
     }
     
     .mesob_subtitle {
         color: rgba(255, 255, 255, 0.9);
-        font-size: 12px;
+        font-size: 10.5px;
         font-weight: 400;
         margin: 0;
     }
-}
-
-// Login Page Container
-.container.py-5 {
-    padding: 0 !important;
-    height: 100vh;
-    max-height: 100vh;
-    overflow: hidden;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
 }
 
 // Card Customization

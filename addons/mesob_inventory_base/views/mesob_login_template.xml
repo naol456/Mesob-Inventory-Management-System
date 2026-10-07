@@ -6,25 +6,34 @@
         <!-- Replace the entire container to add header inside -->
         <xpath expr="//div[@class='container py-5']" position="replace">
             <div class="container py-5">
-                <div class="mesob_login_wrapper">
-                    <div class="mesob_login_header">
+                <div class="mesob_login_wrapper" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto; max-width: 420px;">
+                    <div class="mesob_login_header" style="width: 100%; max-width: 420px;">
                         <div class="mesob_logo_container">
                             <img src="/mesob_inventory_base/static/img/mesob_logo.png" alt="Mesob Logo" class="mesob_logo"/>
                         </div>
                         <h1 class="mesob_title">Mesob</h1>
                         <p class="mesob_subtitle">Inventory management system</p>
                     </div>
-                    <div t-attf-class="card border-0 mx-auto bg-100 {{login_card_classes}} o_database_list" style="max-width: 420px !important; width: 420px !important;">
+                    <div t-attf-class="card border-0 mx-auto bg-100 {{login_card_classes}} o_database_list" style="max-width: 420px !important; width: 420px !important; margin-top: 0 !important;">
                         <div class="card-body" style="padding: 26px 34px !important;">
                             <!-- Hide database selector field -->
                             <style>
                                 .mesob_login_wrapper {
                                     max-width: 420px !important;
                                     width: 100% !important;
+                                    display: flex !important;
+                                    flex-direction: column !important;
+                                    align-items: center !important;
+                                }
+                                .mesob_login_wrapper .mesob_login_header {
+                                    width: 100% !important;
+                                    max-width: 420px !important;
                                 }
                                 .mesob_login_wrapper .o_database_list.card {
                                     max-width: 420px !important;
                                     width: 420px !important;
+                                    margin-left: 0 !important;
+                                    margin-right: 0 !important;
                                 }
                                 .o_database_list .form-group:has(select[name="db"]),
                                 .o_database_list .form-group:has(input[name="db"]),
