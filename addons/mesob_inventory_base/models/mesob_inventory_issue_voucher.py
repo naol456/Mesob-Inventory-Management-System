@@ -114,7 +114,7 @@ class MesobInventoryIssueVoucher(models.Model):
         [
             ("draft", "Draft"),
             ("issued", "Issued"),
-            ("received", "Received by Department"),
+            ("received", "Received"),
             ("cancelled", "Cancelled"),
         ],
         required=True,
@@ -124,8 +124,8 @@ class MesobInventoryIssueVoucher(models.Model):
         tracking=True,
         help=(
             "Draft: being prepared. "
-            "Issued: materials issued, awaiting department confirmation. "
-            "Received: department confirmed receipt. "
+            "Issued: materials issued, awaiting confirmation. "
+            "Received: confirmed receipt by requester. "
             "Cancelled: issue cancelled."
         ),
     )
@@ -205,6 +205,27 @@ class MesobInventoryIssueVoucher(models.Model):
     note = fields.Text(string="Internal Notes")
 
     # ── Computed Fields ─────────────────────────────────────────────────
+
+    receipt_status_display = fields.Char(
+        string="Receipt Status",
+        compute="_compute_receipt_status_display",
+        help="Shows who received the items"
+    )
+
+    @api.depends("state", "received_by_id")
+    def _compute_receipt_status_display(self):
+        """Display receipt status with person's name"""
+        for rec in self:
+            if rec.state == "received" and rec.received_by_id:
+                rec.receipt_status_display = f"Received by {rec.received_by_id.name}"
+            elif rec.state == "issued":
+                rec.receipt_status_display = "Awaiting Receipt Confirmation"
+            elif rec.state == "draft":
+                rec.receipt_status_display = "Draft"
+            elif rec.state == "cancelled":
+                rec.receipt_status_display = "Cancelled"
+            else:
+                rec.receipt_status_display = rec.state.capitalize()
 
     @api.depends("requisition_id.requested_by_id")
     def _compute_assigned_to(self):

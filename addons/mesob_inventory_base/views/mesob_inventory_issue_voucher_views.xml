@@ -16,7 +16,8 @@
                 <field name="requisition_id" optional="show" class="font-monospace text-muted"/>
                 <field name="requesting_department_id" optional="show" class="fw-semibold"/>
                 <field name="issued_by_id" class="fw-semibold text-muted"/>
-                <field name="received_by_id" optional="hide"/>
+                <field name="received_by_id" optional="show" string="Received By"/>
+                <field name="received_on" optional="hide" string="Received On" class="font-monospace text-muted"/>
                 <field name="state" widget="badge"
                        decoration-info="state == 'draft'"
                        decoration-warning="state == 'issued'"
@@ -38,7 +39,9 @@
                 <field name="requisition_id"/>
                 <field name="requesting_department_id"/>
                 <field name="issued_by_id"/>
+                <field name="received_by_id"/>
                 <field name="state"/>
+                <field name="receipt_status_display"/>
                 <templates>
                     <t t-name="card">
                         <div t-attf-class="oe_kanban_global_click card shadow-sm border-0 rounded p-3 mb-3 bg-white" style="min-height: 120px;">
@@ -53,6 +56,12 @@
                             <h4 class="o_kanban_record_title fw-bold text-dark fs-5 mb-1 mt-1">
                                 <t t-esc="record.requesting_department_id.value or 'General Store'"/>
                             </h4>
+                            <div class="text-muted small mb-2" t-if="record.state.raw_value == 'received' and record.received_by_id.value">
+                                <i class="fa fa-user-check me-1 text-success"/> 
+                                <span class="fw-semibold text-success">
+                                    Received by <t t-esc="record.received_by_id.value"/>
+                                </span>
+                            </div>
                             <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
                                 <span class="text-muted small">
                                     <i class="fa fa-user-circle me-1"/> <t t-esc="record.issued_by_id.value"/>
@@ -94,6 +103,18 @@
                            statusbar_visible="draft,issued,received"/>
                 </header>
                 <sheet>
+                    <!-- Receipt Status Banner -->
+                    <div class="alert alert-success d-flex align-items-center mb-4" role="alert" invisible="state != 'received' or not received_by_id">
+                        <i class="fa fa-user-check me-3 text-success" style="font-size: 2em;" title="Received"/>
+                        <div>
+                            <h5 class="alert-heading mb-1">Items Received</h5>
+                            <p class="mb-0">
+                                Received by: <strong><field name="received_by_id" readonly="1" nolabel="1" class="fw-bold"/></strong>
+                                on <strong><field name="received_on" readonly="1" nolabel="1" class="fw-bold font-monospace"/></strong>
+                            </p>
+                        </div>
+                    </div>
+                    
                     <!-- Premium Corporate Form Header: Centered Letterhead with Symmetrical Split -->
                     <div class="mesob_corporate_header">
                         <!-- Top Center: Logo & Company Name -->

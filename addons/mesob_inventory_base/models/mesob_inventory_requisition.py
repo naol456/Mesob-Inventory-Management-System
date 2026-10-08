@@ -206,7 +206,10 @@ class MesobInventoryRequisition(models.Model):
         return True
 
     def action_mark_received(self):
-        """Mark requisition as received by requester."""
+        """Mark requisition as received by requester.
+        
+        Also marks all related Issue Vouchers as received with the same user and date.
+        """
         for record in self:
             if record.state != "issued":
                 raise UserError(
@@ -217,7 +220,21 @@ class MesobInventoryRequisition(models.Model):
                 raise UserError(
                     "Only the original requester can mark this requisition as received."
                 )
+            
+            # Mark requisition as received
             record.state = "received"
+            
+            # Also mark all related Issue Vouchers as received
+            for issue_voucher in record.issue_voucher_ids:
+                if issue_voucher.state == "issued":
+                    issue_voucher.write({
+                        'state': 'received',
+                        'received_by_id': self.env.user.id,
+                        'received_on': fields.Date.today(),
+                        'quantity_verified': True,
+                        'inspection_confirmed': True,
+                        'approval_verified': True,
+                    })
         return True
         for record in self:
             if record.state != "submitted":
