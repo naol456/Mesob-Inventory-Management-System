@@ -130,15 +130,19 @@
                         <page string="Copy Distribution (FR-REC-006)" name="copies">
                             <group class="p-3" col="2">
                                 <group string="Distribution Status" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
-                                    <field name="copy_accounts" readonly="state == 'distributed'" widget="boolean_toggle" class="mb-3"/>
-                                    <field name="copy_stock_clerk" readonly="state == 'distributed'" widget="boolean_toggle" class="mb-3"/>
-                                    <field name="copy_supplier" readonly="state == 'distributed'" widget="boolean_toggle" class="mb-3"/>
-                                    <field name="copy_storekeeper" readonly="state == 'distributed'" widget="boolean_toggle" class="mb-3"/>
+                                    <field name="copy_accounts" readonly="state == 'distributed'" widget="radio" options="{'horizontal': true}" class="mb-3"/>
+                                    <field name="copy_stock_clerk" readonly="state == 'distributed'" widget="radio" options="{'horizontal': true}" class="mb-3"/>
+                                    <field name="copy_supplier" readonly="state == 'distributed'" widget="radio" options="{'horizontal': true}" class="mb-3"/>
+                                    <field name="copy_storekeeper" readonly="state == 'distributed'" widget="radio" options="{'horizontal': true}" class="mb-3"/>
                                 </group>
                                 <group string="Auditing" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
-                                    <field name="all_copies_distributed" widget="boolean_toggle" class="mb-3"/>
+                                    <field name="all_copies_distributed" readonly="1" class="mb-3"/>
                                 </group>
                             </group>
+                            <div class="alert alert-info mt-3" role="alert">
+                                <i class="fa fa-info-circle me-2"/> 
+                                <strong>Note:</strong> Mark all four copies as "Distributed" before clicking the "Mark Distributed" button.
+                            </div>
                         </page>
                     </notebook>
                 </sheet>

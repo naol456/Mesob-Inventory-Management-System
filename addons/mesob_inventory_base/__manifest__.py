@@ -75,8 +75,8 @@
         "views/mesob_asset_map_dashboard.xml",
         # Login customization
         "views/mesob_login_template.xml",
-        # Menus
-        "views/mesob_inventory_menus.xml",
+        # Menus - Using simplified version for Odoo 19 compatibility
+        "views/mesob_inventory_menus_new.xml",
         # Wizards
         "wizard/mesob_inventory_issue_receipt_wizard_views.xml",
         "wizard/mesob_abc_classification_wizard_views.xml",

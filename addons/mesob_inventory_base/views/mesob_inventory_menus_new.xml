@@ -1,75 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
-    <!-- Analytics & BI (Center Manager) -->
-    <menuitem id="menu_mesob_analytics_bi"
-              name="Analytics &amp; BI"
-              parent="menu_mesob_inventory_root"
-              groups="mesob_inventory_base.group_mesob_center_manager"
-              sequence="5"/>
-
-    <!-- Analytics submenu items displayed as top-level tabs -->
-    <menuitem id="menu_analytics_inventory_overview"
-              name="Inventory Overview"
-              parent="menu_mesob_analytics_bi"
-              action="action_analytics_inventory_overview"
-              groups="mesob_inventory_base.group_mesob_center_manager"
-              sequence="10"/>
-
-    <menuitem id="menu_analytics_stock_levels"
-              name="Stock Levels &amp; Valuation"
-              parent="menu_mesob_analytics_bi"
-              action="action_analytics_stock_levels"
-              groups="mesob_inventory_base.group_mesob_center_manager"
-              sequence="20"/>
-
-    <menuitem id="menu_analytics_requisitions"
-              name="Requisition Analytics"
-              parent="menu_mesob_analytics_bi"
-              action="action_analytics_requisitions"
-              groups="mesob_inventory_base.group_mesob_center_manager"
-              sequence="30"/>
-
-    <menuitem id="menu_analytics_receiving"
-              name="Receiving &amp; Inspection"
-              parent="menu_mesob_analytics_bi"
-              action="action_analytics_receiving"
-              groups="mesob_inventory_base.group_mesob_center_manager"
-              sequence="40"/>
-
-    <menuitem id="menu_analytics_issue_vouchers"
-              name="Issue Voucher Trends"
-              parent="menu_mesob_analytics_bi"
-              action="action_analytics_issue_vouchers"
-              groups="mesob_inventory_base.group_mesob_center_manager"
-              sequence="50"/>
-
-    <menuitem id="menu_analytics_procurement"
-              name="Procurement Performance"
-              parent="menu_mesob_analytics_bi"
-              action="action_analytics_procurement"
-              groups="mesob_inventory_base.group_mesob_center_manager"
-              sequence="60"/>
-
-    <menuitem id="menu_analytics_department_performance"
-              name="Department Performance"
-              parent="menu_mesob_analytics_bi"
-              action="action_analytics_department_performance"
-              groups="mesob_inventory_base.group_mesob_center_manager"
-              sequence="70"/>
-
-    <menuitem id="menu_analytics_stock_valuation"
-              name="Stock Valuation Report"
-              parent="menu_mesob_analytics_bi"
-              action="action_analytics_stock_valuation"
-              groups="mesob_inventory_base.group_mesob_center_manager"
-              sequence="80"/>
-
-    <!-- Operations -->
+    <!-- Operations Menu -->
     <menuitem id="menu_mesob_inventory_operations"
               name="Operations"
               parent="menu_mesob_inventory_root"
-              groups="mesob_inventory_base.group_mesob_inventory_user,mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_inspector"
+              groups="mesob_inventory_base.group_mesob_inventory_user,mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_inspector,mesob_inventory_base.group_mesob_procurement"
               sequence="10"/>
 
     <menuitem id="menu_mesob_inventory_receiving"
@@ -79,20 +14,11 @@
               groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_inspector"
               sequence="5"/>
 
-    <!-- Inspector Dashboard Menu -->
-    <menuitem id="menu_inspector_dashboard"
-              name="My Inspections"
-              parent="menu_mesob_inventory_operations"
-              action="action_inspector_dashboard"
-              groups="mesob_inventory_base.group_mesob_inspector"
-              sequence="4"/>
-
-    <!-- ONE menu for requisitions - create button hidden by get_view() method in model -->
     <menuitem id="menu_mesob_inventory_requisitions" 
               name="Requisitions (Model 20)"
               parent="menu_mesob_inventory_operations"
               action="action_mesob_inventory_requisition"
-              groups="mesob_inventory_base.group_mesob_inventory_user,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk"
+              groups="mesob_inventory_base.group_mesob_inventory_user,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_procurement"
               sequence="10"/>
 
     <menuitem id="menu_mesob_inventory_issue_vouchers" 
@@ -102,7 +28,7 @@
               groups="mesob_inventory_base.group_mesob_storekeeper,mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao"
               sequence="20"/>
 
-    <!-- Dispatch -->
+    <!-- Dispatch Menu -->
     <menuitem id="menu_mesob_inventory_dispatch"
               name="Dispatch"
               parent="menu_mesob_inventory_root"
@@ -129,7 +55,7 @@
               groups="mesob_inventory_base.group_mesob_security_guard"
               sequence="30"/>
 
-    <!-- Documents -->
+    <!-- Documents Menu -->
     <menuitem id="menu_mesob_inventory_documents"
               name="Documents"
               parent="menu_mesob_inventory_root"
@@ -148,7 +74,7 @@
               action="action_mesob_inventory_dsr"
               sequence="20"/>
 
-    <!-- Stock Records and Valuation -->
+    <!-- Stock Records & Valuation Menu -->
     <menuitem id="menu_mesob_inventory_stock_records"
               name="Stock Records &amp; Valuation"
               parent="menu_mesob_inventory_root"
@@ -192,30 +118,12 @@
               groups="mesob_inventory_base.group_mesob_pao"
               sequence="40"/>
 
-    <!-- Stock Control -->
+    <!-- Stock Control Menu -->
     <menuitem id="menu_mesob_inventory_stock_control"
               name="Stock Control"
               parent="menu_mesob_inventory_root"
               groups="mesob_inventory_base.group_mesob_stock_clerk,mesob_inventory_base.group_mesob_pao"
               sequence="17"/>
-
-    <menuitem id="menu_mesob_asset_executive_dashboard"
-              name="Executive Dashboard"
-              parent="menu_mesob_inventory_stock_control"
-              action="action_mesob_asset_executive_dashboard"
-              sequence="4"/>
-
-    <menuitem id="menu_mesob_asset_dashboard"
-              name="Asset Register"
-              parent="menu_mesob_inventory_stock_control"
-              action="action_mesob_asset_dashboard"
-              sequence="5"/>
-
-    <menuitem id="menu_mesob_asset_map"
-              name="Asset Location Map"
-              parent="menu_mesob_inventory_stock_control"
-              action="action_mesob_asset_map"
-              sequence="6"/>
 
     <menuitem id="menu_mesob_stock_reorder_alerts"
               name="Reorder Alerts"
@@ -223,12 +131,19 @@
               action="action_mesob_stock_reorder_alert"
               sequence="10"/>
 
-    <!-- Procurement (Section 4.13) -->
+    <!-- Procurement Menu -->
     <menuitem id="menu_mesob_procurement"
               name="Procurement"
               parent="menu_mesob_inventory_root"
               groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper"
               sequence="18"/>
+
+    <menuitem id="menu_mesob_procurement_order"
+              name="Purchase Orders"
+              parent="menu_mesob_procurement"
+              action="action_mesob_procurement_order"
+              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper"
+              sequence="5"/>
 
     <menuitem id="menu_mesob_procurement_plan"
               name="Annual Plans (APP)"
@@ -265,14 +180,6 @@
               groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
               sequence="40"/>
 
-    <!-- Purchase Orders (single menu for all roles) -->
-    <menuitem id="menu_mesob_procurement_order"
-              name="Purchase Orders"
-              parent="menu_mesob_procurement"
-              action="action_mesob_procurement_order"
-              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper"
-              sequence="5"/>
-
     <menuitem id="menu_mesob_procurement_payment"
               name="Payment Certificates"
               parent="menu_mesob_procurement"
@@ -287,12 +194,11 @@
               groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
               sequence="60"/>
 
-    <!-- Master Data (with expandable submenu) -->
+    <!-- Master Data Menu -->
     <menuitem id="menu_mesob_inventory_master_data"
               name="Master Data"
               parent="menu_mesob_inventory_root"
               groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_storekeeper"
-              web_icon="mesob_inventory_base,static/description/icon_folder.png"
               sequence="20"/>
 
     <menuitem id="menu_mesob_inventory_classifications"
@@ -310,7 +216,6 @@
     <menuitem id="menu_mesob_department"
               name="Departments"
               parent="menu_mesob_inventory_master_data"
-              action="action_mesob_sub_classification"
+              action="action_mesob_department"
               sequence="40"/>
-    </data>
 </odoo>

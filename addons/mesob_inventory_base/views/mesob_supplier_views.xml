@@ -36,7 +36,7 @@
         <field name="name">res.partner.supplier.tree</field>
         <field name="model">res.partner</field>
         <field name="arch" type="xml">
-            <list string="Registered Suppliers">
+            <list string="Registered Suppliers" create="1" edit="1" delete="0">
                 <field name="name"/>
                 <field name="legal_registration_number"/>
                 <field name="tin"/>
@@ -79,6 +79,11 @@
             <p>
                 Create and manage supplier registrations according to FPPA requirements.
                 Track legal documentation, performance scores, and blacklist status.
+            </p>
+            <p>
+                <a type="action" class="btn btn-primary" data-method="create_record">
+                    <i class="fa fa-plus"/> Register New Supplier
+                </a>
             </p>
         </field>
     </record>
