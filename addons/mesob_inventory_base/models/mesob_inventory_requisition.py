@@ -205,6 +205,26 @@ class MesobInventoryRequisition(models.Model):
             record.state = "rejected"
         return True
 
+    def action_mark_received(self):
+        """Mark requisition as received by requester."""
+        for record in self:
+            if record.state != "issued":
+                raise UserError(
+                    "Only issued requisitions can be marked as received."
+                )
+            # Verify that the current user is the original requester
+            if record.requested_by_id != self.env.user:
+                raise UserError(
+                    "Only the original requester can mark this requisition as received."
+                )
+            record.state = "received"
+        return True
+        for record in self:
+            if record.state != "submitted":
+                raise UserError("Only submitted requisitions can be rejected.")
+            record.state = "rejected"
+        return True
+
     def action_set_to_draft(self):
         """Reset to draft for corrections."""
         for record in self:

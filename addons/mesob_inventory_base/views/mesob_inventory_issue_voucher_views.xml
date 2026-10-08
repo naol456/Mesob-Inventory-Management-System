@@ -53,10 +53,6 @@
                             <h4 class="o_kanban_record_title fw-bold text-dark fs-5 mb-1 mt-1">
                                 <t t-esc="record.requesting_department_id.value or 'General Store'"/>
                             </h4>
-                            <p class="text-muted small mb-0 mt-2">
-                                <i class="fa fa-building me-1"/> 
-                                <t t-esc="record.requesting_department.value or 'General Store'"/>
-                            </p>
                             <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
                                 <span class="text-muted small">
                                     <i class="fa fa-user-circle me-1"/> <t t-esc="record.issued_by_id.value"/>
