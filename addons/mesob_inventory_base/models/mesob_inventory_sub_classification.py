@@ -64,6 +64,11 @@ class MesobInventorySubClassification(models.Model):
         compute="_compute_item_count",
         help="Number of items using this sub classification.",
     )
+    total_quantity = fields.Float(
+        string="Total Quantity",
+        compute="_compute_total_quantity",
+        help="Total quantity in stock based on bin card running balance (for consumables) or item count (for fixed assets).",
+    )
     item_ids = fields.One2many(
         comodel_name="mesob.inventory.item",
         inverse_name="sub_classification_id",
@@ -122,6 +127,27 @@ class MesobInventorySubClassification(models.Model):
             rec.item_count = self.env["mesob.inventory.item"].search_count(
                 [("sub_classification_id", "=", rec.id)]
             )
+
+    def _compute_total_quantity(self):
+        """Calculate total quantity in stock.
+        
+        For Fixed Assets: Count of individual items
+        For Consumables: Balance from latest bin card entry
+        """
+        for rec in self:
+            if rec.is_fixed_asset:
+                # Fixed assets: count individual item records
+                rec.total_quantity = rec.item_count
+            else:
+                # Consumables: get balance from most recent bin card
+                latest_bin_card = self.env['mesob.bin.card'].search([
+                    ('sub_classification_id', '=', rec.id)
+                ], order='date desc, id desc', limit=1)
+                
+                if latest_bin_card:
+                    rec.total_quantity = latest_bin_card.balance
+                else:
+                    rec.total_quantity = 0.0
 
     @api.constrains('code')
     def _check_code_format(self):

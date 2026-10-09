@@ -1,6 +1,9 @@
+import logging
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 from lxml import etree
+
+_logger = logging.getLogger(__name__)
 
 
 class MesobInventoryReceiving(models.Model):
@@ -323,7 +326,15 @@ class MesobInventoryReceiving(models.Model):
         
         Only the assigned inspector can complete the inspection.
         """
+        _logger.info("=" * 80)
+        _logger.info("[ACTION_ACCEPT] Method called")
+        _logger.info("=" * 80)
+        
         for rec in self:
+            _logger.info(f"[ACTION_ACCEPT] Processing receiving order: {rec.name}")
+            _logger.info(f"[ACTION_ACCEPT] Current state: {rec.state}")
+            _logger.info(f"[ACTION_ACCEPT] Number of lines: {len(rec.line_ids)}")
+            
             if rec.state != "inspecting":
                 raise UserError(
                     "Only orders under inspection can be accepted."
@@ -349,14 +360,27 @@ class MesobInventoryReceiving(models.Model):
                     "quantities on at least one line."
                 )
 
-            # Process auto-generation lines first
-            for line in rec.line_ids:
-                if line.auto_generate_items and line.qty_accepted > 0:
-                    line.generate_items_for_receiving()
+            _logger.info(f"[ACTION_ACCEPT] About to process {len(rec.line_ids)} lines")
             
-            # Aggregate and create bin cards for non-auto-generation lines
-            rec._create_aggregated_bin_cards()
-
+            # Process all receiving lines to generate items and/or bin cards
+            line_counter = 0
+            for line in rec.line_ids:
+                line_counter += 1
+                _logger.info(f"[ACTION_ACCEPT] Line {line_counter}: qty_accepted={line.qty_accepted}, sub_classification={line.sub_classification_id.name if line.sub_classification_id else 'N/A'}")
+                
+                if line.qty_accepted > 0:
+                    _logger.info(f"[ACTION_ACCEPT] Processing line {line_counter}: {line.sub_classification_id.name}, auto_generate={line.auto_generate_items}")
+                    try:
+                        line.generate_items_for_receiving()
+                        _logger.info(f"[ACTION_ACCEPT] Line {line_counter} processed successfully")
+                    except Exception as e:
+                        _logger.error(f"[ACTION_ACCEPT] Line {line_counter} FAILED: {str(e)}")
+                        raise
+                else:
+                    _logger.info(f"[ACTION_ACCEPT] Skipping line {line_counter} - qty_accepted is {line.qty_accepted}")
+            
+            _logger.info("[ACTION_ACCEPT] All lines processed, generating Model 19...")
+            
             # Generate Model 19 for accepted items
             rec._generate_model19()
 
@@ -365,6 +389,9 @@ class MesobInventoryReceiving(models.Model):
                 rec._generate_dsr()
 
             rec.state = "accepted"
+            _logger.info(f"[ACTION_ACCEPT] Receiving order {rec.name} accepted successfully")
+            _logger.info("=" * 80)
+        
         return True
 
     def action_reject(self):

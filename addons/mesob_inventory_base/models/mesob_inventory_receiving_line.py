@@ -1,5 +1,8 @@
+import logging
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
+
+_logger = logging.getLogger(__name__)
 
 
 class MesobInventoryReceivingLine(models.Model):
@@ -50,7 +53,8 @@ class MesobInventoryReceivingLine(models.Model):
     auto_generate_items = fields.Boolean(
         string="Auto-Generate Items",
         default=False,
-        help="If enabled, system will automatically generate item codes during receiving.",
+        readonly=False,
+        help="Check this for fixed assets to generate individual item codes with unique tracking. Leave unchecked for consumables.",
     )
 
     generated_item_ids = fields.Many2many(
@@ -155,8 +159,8 @@ class MesobInventoryReceivingLine(models.Model):
                 raise ValidationError(
                     "Received quantity cannot be negative."
                 )
-            # Allow accepted + rejected to exceed received (will auto-adjust received)
-            # This makes the workflow more flexible
+
+    # ── Onchange Methods ───────────────────────────────────────────
 
     @api.onchange("item_id")
     def _onchange_item_id(self):
@@ -173,12 +177,6 @@ class MesobInventoryReceivingLine(models.Model):
             if self.sub_classification_id.major_classification_id != self.major_classification_id:
                 self.sub_classification_id = False
         
-        # Auto-enable generation if major is selected
-        if self.major_classification_id:
-            self.auto_generate_items = True
-        else:
-            self.auto_generate_items = False
-        
         # Return domain to filter sub classifications
         if self.major_classification_id:
             return {
@@ -190,7 +188,6 @@ class MesobInventoryReceivingLine(models.Model):
                 }
             }
         else:
-            # No major selected - hide all sub classifications
             return {
                 'domain': {
                     'sub_classification_id': [('id', '=', False)]
@@ -199,34 +196,18 @@ class MesobInventoryReceivingLine(models.Model):
 
     @api.onchange("sub_classification_id")
     def _onchange_sub_classification(self):
-        """Auto-enable generation when sub is selected."""
+        """Suggest auto_generate_items setting based on asset type (user can override)."""
         if self.sub_classification_id:
-            self.auto_generate_items = True
+            # Suggest based on is_fixed_asset but user can override manually
+            self.auto_generate_items = self.sub_classification_id.is_fixed_asset
+        else:
+            self.auto_generate_items = False
 
-    @api.onchange("qty_received")
-    def _onchange_qty_received(self):
-        """Auto-fill qty_accepted when qty_received is entered."""
-        # Removed auto-fill - let user enter manually
-        pass
-
-    @api.onchange("qty_expected")
-    def _onchange_qty_expected(self):
-        """Auto-fill qty_received and qty_accepted with expected quantity."""
-        # Removed auto-fill - let user enter manually
-        pass
-    
     @api.onchange("qty_accepted")
     def _onchange_qty_accepted(self):
         """Auto-calculate rejected quantity when accepted quantity is entered."""
         if self.qty_received > 0 and self.qty_accepted >= 0:
-            # Calculate rejected as: received - accepted
             self.qty_rejected = self.qty_received - self.qty_accepted
-    
-    @api.onchange("qty_accepted", "qty_rejected")
-    def _onchange_accepted_rejected(self):
-        """Auto-adjust qty_received when accepted/rejected are changed."""
-        # Removed auto-adjustment - let inspector enter manually
-        pass
 
     # ── Item Code Generation ───────────────────────────────────────
 
@@ -239,102 +220,69 @@ class MesobInventoryReceivingLine(models.Model):
 
         Returns:
             str: Generated item code (e.g., "3345-456-001")
-
-        Raises:
-            ValidationError: If code format is invalid
         """
-        # Get next specific code from sequence tracker
         sequence_model = self.env['mesob.item.code.sequence']
         specific_code = sequence_model.get_next_specific_code(major_code, sub_code)
-
-        # Format as MAJOR-SUB-SPECIFIC
         item_code = f"{major_code}-{sub_code}-{specific_code}"
-
-        # Validate format
+        
         import re
         if not re.match(r'^\d{4}-\d{3}-\d{3}$', item_code):
-            raise ValidationError(
-                f"Generated item code does not match required format. Got: {item_code}"
-            )
-
+            raise ValidationError(f"Invalid item code format: {item_code}")
+        
         return item_code
 
     def generate_items_for_receiving(self):
-        """Generate multiple item records with auto-incremented codes.
+        """Generate items and create bin cards/stock records based on auto_generate_items flag.
 
-        This method creates individual item records for each unit in qty_accepted,
-        automatically generating unique sequential codes and creating corresponding
-        bin card and stock record entries.
+        Logic:
+        - If auto_generate_items = True (Fixed Assets):
+          * Create individual item records (one per unit)
+          * Create individual stock records (one per item)
+          * Do NOT create bin cards
+        
+        - If auto_generate_items = False (Consumables):
+          * Create ONE aggregated bin card entry
+          * Find or create ONE master item for the sub-classification
+          * Create ONE stock record for the total quantity
 
         Returns:
             list: IDs of created items
-
-        Raises:
-            ValidationError: If required fields are missing or invalid
         """
         self.ensure_one()
+        
+        _logger.info(f"[GENERATE_ITEMS] START - Line: {self.sub_classification_id.name if self.sub_classification_id else 'N/A'}, auto_generate={self.auto_generate_items}, qty={self.qty_accepted}")
 
         # Validation
-        if not self.auto_generate_items:
-            if self.item_id and self.qty_accepted > 0:
-                reference = self.receiving_id.name or "Receiving"
-                date = self.receiving_id.received_date or fields.Date.today()
-                quantity = self.qty_accepted
-                
-                # Create aggregated bin card entry ONCE for the entire quantity
-                self.create_bin_card_for_receiving(
-                    self.item_id.classification_id.id,
-                    self.item_id.sub_classification_id.id,
-                    quantity,
-                    reference,
-                    date
-                )
-                
-                # Create stock record entry once for the entire quantity
-                self.create_stock_record_for_item(self.item_id.id, reference, date, quantity)
-            return []
-
         if not self.major_classification_id:
-            raise ValidationError("Major Classification is required for auto-generation.")
-
+            raise ValidationError("Major Classification is required.")
         if not self.sub_classification_id:
-            raise ValidationError("Sub Classification is required for auto-generation.")
-
+            raise ValidationError("Sub Classification is required.")
         if self.qty_accepted <= 0:
             raise ValidationError("Accepted quantity must be greater than zero.")
-
         if self.unit_price < 0:
             raise ValidationError("Unit price cannot be negative.")
 
-        # Extract codes
+        # Extract codes and reference data
         major_code = self.major_classification_id.code
         sub_code = self.sub_classification_id.code
         quantity = int(self.qty_accepted)
-
-        # Reference data
         reference = self.receiving_id.name or "Receiving"
         date = self.receiving_id.received_date or fields.Date.today()
 
         created_item_ids = []
 
         try:
-            # Create aggregated bin card entry ONCE for the entire quantity
-            self.create_bin_card_for_receiving(
-                self.major_classification_id.id,
-                self.sub_classification_id.id,
-                quantity,
-                reference,
-                date
-            )
-
-            # Check if this sub-classification is a Fixed Asset
-            if self.sub_classification_id.is_fixed_asset:
-                # FIXED ASSET: Generate individual items
+            if self.auto_generate_items:
+                # ═══════════════════════════════════════════════════════
+                # FIXED ASSETS: Create individual items with unique codes
+                # ═══════════════════════════════════════════════════════
+                _logger.info(f"[FIXED ASSET] Creating {quantity} individual items")
+                
                 for i in range(quantity):
-                    # Generate unique item code
+                    # Generate unique code for each item
                     item_code = self.generate_item_code(major_code, sub_code)
-
-                    # Create item record
+                    
+                    # Create individual item record
                     item = self.env['mesob.inventory.item'].create({
                         'item_code': item_code,
                         'classification_id': self.major_classification_id.id,
@@ -343,26 +291,44 @@ class MesobInventoryReceivingLine(models.Model):
                         'name': self.description or f"Item {item_code}",
                         'active': True,
                     })
-
+                    
                     created_item_ids.append(item.id)
-
-                    # Create stock record entry per item for individual tracking
+                    _logger.info(f"[FIXED ASSET] Created item: {item_code}")
+                    
+                    # Create stock record for individual item (qty=1.0)
                     self.create_stock_record_for_item(item.id, reference, date, 1.0)
-
-                # Link generated items to receiving line
+                
+                # Link all generated items to this receiving line
                 self.generated_item_ids = [(6, 0, created_item_ids)]
+                _logger.info(f"[FIXED ASSET] SUCCESS - Created {len(created_item_ids)} items, NO bin cards")
+                
             else:
-                # NON-FIXED ASSET (CONSUMABLE): Do NOT create individual item records.
-                # Instead, find if there is an existing item record for this Sub-Classification,
-                # or create ONE master item record for this Sub-Classification if none exists yet.
+                # ═══════════════════════════════════════════════════════
+                # CONSUMABLES: Create aggregated bin card + one master item
+                # ═══════════════════════════════════════════════════════
+                _logger.info(f"[CONSUMABLE] Creating bin card and master item, qty={quantity}")
+                
+                # Step 1: Create bin card entry (aggregate transaction ledger)
+                _logger.info(f"[CONSUMABLE] Creating bin card...")
+                self.create_bin_card_for_receiving(
+                    self.major_classification_id.id,
+                    self.sub_classification_id.id,
+                    quantity,
+                    reference,
+                    date
+                )
+                _logger.info(f"[CONSUMABLE] Bin card created successfully")
+                
+                # Step 2: Find or create ONE master item for this sub-classification
                 master_item = self.env['mesob.inventory.item'].search([
                     ('sub_classification_id', '=', self.sub_classification_id.id),
                     ('active', '=', True)
                 ], limit=1)
                 
                 if not master_item:
-                    # Create ONE master item record for this Sub-Classification (code suffix "-001")
+                    # Create master item with code ending in -001
                     item_code = f"{major_code}-{sub_code}-001"
+                    _logger.info(f"[CONSUMABLE] Creating master item: {item_code}")
                     master_item = self.env['mesob.inventory.item'].create({
                         'item_code': item_code,
                         'classification_id': self.major_classification_id.id,
@@ -371,45 +337,37 @@ class MesobInventoryReceivingLine(models.Model):
                         'name': self.description or self.sub_classification_id.name,
                         'active': True,
                     })
+                else:
+                    _logger.info(f"[CONSUMABLE] Using existing master item: {master_item.item_code}")
                 
-                # Create ONE stock record entry for the entire quantity under the master item
+                # Step 3: Create ONE stock record for total quantity
                 self.create_stock_record_for_item(master_item.id, reference, date, quantity)
                 
                 created_item_ids.append(master_item.id)
                 self.generated_item_ids = [(6, 0, created_item_ids)]
+                _logger.info(f"[CONSUMABLE] SUCCESS - Bin card + master item + stock record created")
 
             return created_item_ids
 
         except Exception as e:
-            # Rollback handled by Odoo transaction management
-            raise ValidationError(
-                f"Failed to generate items: {str(e)}"
-            )
+            _logger.error(f"[GENERATE_ITEMS] FAILED: {str(e)}")
+            raise ValidationError(f"Failed to generate items: {str(e)}")
 
     def create_bin_card_for_receiving(self, major_classification_id, sub_classification_id, quantity, reference, date):
-        """Create or update aggregated bin card entry at sub-classification level.
-
-        Instead of creating individual bin cards per item, this creates one entry
-        per sub-classification showing total received quantity.
-
-        Args:
-            major_classification_id (int): ID of major classification
-            sub_classification_id (int): ID of sub classification
-            quantity (float): Quantity received
-            reference (str): Receiving document reference
-            date (date): Received date
+        """Create aggregated bin card entry at sub-classification level.
+        
+        This creates ONE entry per sub-classification showing the received quantity
+        in the Bin Card Transaction Ledger.
         """
-        # Get default UoM (unit)
+        # Get default UoM
         uom_unit = self.env.ref('uom.product_uom_unit', raise_if_not_found=False)
         if not uom_unit:
-            # Fallback: get any UoM
             uom_unit = self.env['uom.uom'].search([], limit=1)
         
-        # Get default location
         default_location = 'Main Store'
         
-        # Create bin card entry (aggregated by sub-classification)
-        self.env['mesob.bin.card'].create({
+        # Create bin card entry
+        bin_card = self.env['mesob.bin.card'].create({
             'major_classification_id': major_classification_id,
             'sub_classification_id': sub_classification_id,
             'location': default_location,
@@ -421,31 +379,14 @@ class MesobInventoryReceivingLine(models.Model):
             'uom_id': uom_unit.id if uom_unit else False,
             'received_by_id': self.env.user.id,
         })
+        _logger.info(f"[BIN_CARD] Created bin card ID={bin_card.id}, qty={quantity}")
 
     def create_stock_record_for_item(self, item_id, reference, date, quantity=1.0):
-        """Create stock record card entry for received item.
-
-        Args:
-            item_id (int): ID of the inventory item
-            reference (str): Receiving document reference
-            date (date): Received date
-            quantity (float): Quantity received
-        """
-        # Get default UoM (unit)
+        """Create stock record card entry for received item."""
+        # Get default UoM
         uom_unit = self.env.ref('uom.product_uom_unit', raise_if_not_found=False)
         if not uom_unit:
-            # Fallback: get any UoM
             uom_unit = self.env['uom.uom'].search([], limit=1)
-        
-        # Get previous balance value
-        previous_entries = self.env['mesob.stock.record.card'].search(
-            [('item_id', '=', item_id)],
-            order='date desc, id desc',
-            limit=1
-        )
-        previous_balance_value = previous_entries[0].balance_value if previous_entries else 0.0
-
-        total_cost_in = quantity * self.unit_price
 
         # Create stock record entry
         stock_record = self.env['mesob.stock.record.card'].create({
@@ -461,16 +402,10 @@ class MesobInventoryReceivingLine(models.Model):
 
         # Create FIFO layer
         self.create_fifo_layer_for_receipt(stock_record.id, item_id, quantity, self.unit_price)
+        _logger.info(f"[STOCK_RECORD] Created stock record ID={stock_record.id}, item={item_id}, qty={quantity}")
 
     def create_fifo_layer_for_receipt(self, stock_record_id, item_id, quantity, unit_cost):
-        """Create FIFO layer for receipt transaction.
-
-        Args:
-            stock_record_id (int): ID of the stock record entry
-            item_id (int): ID of the inventory item
-            quantity (float): Quantity received
-            unit_cost (float): Unit cost
-        """
+        """Create FIFO layer for receipt transaction."""
         self.env['mesob.stock.fifo.layer'].create({
             'stock_record_id': stock_record_id,
             'item_id': item_id,

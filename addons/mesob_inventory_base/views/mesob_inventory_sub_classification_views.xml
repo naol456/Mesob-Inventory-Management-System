@@ -36,7 +36,7 @@
                                     </div>
                                 </div>
                                 <div class="mesob_card_badge">
-                                    <field name="item_count"/> items
+                                    <field name="total_quantity"/> items
                                 </div>
                             </div>
                             <div class="mesob_card_footer">
@@ -75,7 +75,7 @@
                                     </div>
                                 </div>
                                 <div style="background: #e0f2fe; padding: 4px 10px; border-radius: 15px; font-size: 11px; font-weight: 600; color: #0369a1; border: 1px solid #bae6fd;">
-                                    <field name="item_count"/> items
+                                    <field name="total_quantity"/> items
                                 </div>
                             </div>
                             <div style="margin-top: 14px; border-top: 1px dashed #e2e8f0; padding-top: 10px; display: flex; justify-content: flex-end;">
@@ -117,7 +117,7 @@
                             <field name="name" readonly="1"/>
                         </group>
                         <group string="Status &amp; Statistics">
-                            <field name="item_count" string="Total Items Linked" readonly="1"/>
+                            <field name="total_quantity" string="Total Items Linked" readonly="1"/>
                             <field name="is_fixed_asset" readonly="1"/>
                             <field name="active" readonly="1"/>
                         </group>
@@ -229,7 +229,7 @@
                             <field name="name" readonly="1"/>
                         </group>
                         <group string="Status &amp; Statistics">
-                            <field name="item_count" string="Total Items Linked" readonly="1"/>
+                            <field name="total_quantity" string="Total Items Linked" readonly="1"/>
                             <field name="is_fixed_asset" readonly="1"/>
                             <field name="active" readonly="1"/>
                         </group>
