@@ -156,7 +156,7 @@
                                       decoration-danger="qty_rejected > 0">
                                     <!-- Hidden state field for readonly conditions -->
                                     <field name="state" column_invisible="1"/>
-                                    <field name="auto_generate_items" column_invisible="1"/>
+                                    <field name="auto_generate_items" optional="show" widget="boolean_toggle" string="Auto-Gen"/>
                                     
                                     <!-- Classification fields for auto-generation -->
                                     <field name="major_classification_id"

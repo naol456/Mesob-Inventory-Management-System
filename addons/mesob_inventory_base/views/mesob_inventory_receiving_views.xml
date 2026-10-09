@@ -232,7 +232,7 @@
                                     <field name="total_price" class="text-end fw-bold" sum="Total" widget="monetary"/>
                                     <field name="generated_item_count" string="Generated" optional="hide"/>
                                     <field name="rejection_reason" optional="hide" placeholder="Reason for rejection..."/>
-                                    <field name="auto_generate_items" column_invisible="1"/>
+                                    <field name="auto_generate_items" optional="show" widget="boolean_toggle" string="Auto-Gen"/>
                                 </list>
                             </field>
                         </page>

@@ -248,7 +248,8 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <!-- ==================== MENU ITEMS ==================== -->
+    <!-- ==================== MENU ITEMS - DISABLED ==================== -->
+    <!-- Storage, Safety & Security menu has been disabled per requirements
     <menuitem id="menu_mesob_storage_security_root"
               name="Storage, Safety &amp; Security"
               parent="menu_mesob_inventory_root"
@@ -278,4 +279,5 @@
               parent="menu_mesob_storage_security_root"
               action="action_mesob_storage_safety_checklist"
               sequence="40"/>
+    -->
 </odoo>
