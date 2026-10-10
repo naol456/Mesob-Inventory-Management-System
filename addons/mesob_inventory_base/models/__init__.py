@@ -18,6 +18,7 @@ from . import mesob_bin_card
 from . import mesob_stock_record_card
 from . import mesob_stock_reorder_alert
 from . import res_partner
+from . import res_users
 from . import mesob_procurement
 from . import mesob_stock_taking
 from . import mesob_stock_handover
