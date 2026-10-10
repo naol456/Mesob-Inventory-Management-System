@@ -47,7 +47,7 @@
     <record id="group_mesob_procurement" model="res.groups">
         <field name="name">Procurement Officer</field>
         <field name="privilege_id" ref="privilege_mesob_inventory"/>
-        <field name="implied_ids" eval="[(4, ref('mesob_inventory_base.group_mesob_inventory_user'))]"/>
+        <field name="implied_ids" eval="[(4, ref('mesob_inventory_base.group_mesob_inventory_user')), (4, ref('base.group_partner_manager'))]"/>
     </record>
 
     <!-- 

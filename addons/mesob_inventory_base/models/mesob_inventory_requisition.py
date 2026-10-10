@@ -47,6 +47,14 @@ class MesobInventoryRequisition(models.Model):
 
     # ── Requester Info ──────────────────────────────────────────────────
 
+    def _default_department_id(self):
+        """Auto-fill department for Department Heads."""
+        # Find department where current user is the manager
+        department = self.env["mesob.department"].search([
+            ("manager_id", "=", self.env.user.id)
+        ], limit=1)
+        return department.id if department else False
+
     requested_by_id = fields.Many2one(
         "res.users",
         string="Requested By",
@@ -58,7 +66,8 @@ class MesobInventoryRequisition(models.Model):
         string="Requesting Department",
         required=True,
         domain="[('active', '=', True)]",
-        help="Department requesting the materials.",
+        default=lambda self: self._default_department_id(),
+        help="Department requesting the materials. Auto-filled for Department Heads.",
     )
     requested_on = fields.Date(
         string="Requested On",
@@ -68,6 +77,21 @@ class MesobInventoryRequisition(models.Model):
 
     # ── Approval Info ───────────────────────────────────────────────────
 
+    # Department Head Approval (first stage)
+    dept_head_approved_by_id = fields.Many2one(
+        "res.users",
+        string="Approved By (Dept Head)",
+        readonly=True,
+        copy=False,
+        help="Department head who approved this requisition.",
+    )
+    dept_head_approved_on = fields.Date(
+        string="Dept Head Approved On",
+        readonly=True,
+        copy=False,
+    )
+    
+    # PAO Approval (final stage)
     approved_by_id = fields.Many2one(
         "res.users",
         string="Approved By (PAO)",
@@ -91,7 +115,8 @@ class MesobInventoryRequisition(models.Model):
         [
             ("draft", "Draft"),
             ("submitted", "Submitted"),
-            ("approved", "Approved"),
+            ("dept_approved", "Dept Head Approved"),
+            ("approved", "PAO Approved"),
             ("rejected", "Rejected"),
             ("issued", "Issued"),
             ("received", "Received"),
@@ -178,7 +203,7 @@ class MesobInventoryRequisition(models.Model):
     # ── Actions ─────────────────────────────────────────────────────────
 
     def action_submit(self):
-        """Submit requisition for PAO approval."""
+        """Submit requisition for Department Head approval."""
         for record in self:
             if record.state != "draft":
                 raise UserError("Only draft requisitions can be submitted.")
@@ -187,21 +212,31 @@ class MesobInventoryRequisition(models.Model):
             record.state = "submitted"
         return True
 
-    def action_approve(self):
-        """PAO approves the requisition (FR-ISSUE-002)."""
+    def action_dept_head_approve(self):
+        """Department Head approves the requisition (first stage approval)."""
         for record in self:
             if record.state != "submitted":
-                raise UserError("Only submitted requisitions can be approved.")
+                raise UserError("Only submitted requisitions can be approved by department head.")
+            record.dept_head_approved_by_id = self.env.user
+            record.dept_head_approved_on = fields.Date.today()
+            record.state = "dept_approved"
+        return True
+
+    def action_approve(self):
+        """PAO approves the requisition (final approval stage - FR-ISSUE-002)."""
+        for record in self:
+            if record.state != "dept_approved":
+                raise UserError("Only department-approved requisitions can be approved by PAO.")
             record.approved_by_id = self.env.user
             record.approved_on = fields.Date.today()
             record.state = "approved"
         return True
 
     def action_reject(self):
-        """PAO rejects the requisition with reason."""
+        """Reject the requisition with reason (can be rejected at any approval stage)."""
         for record in self:
-            if record.state != "submitted":
-                raise UserError("Only submitted requisitions can be rejected.")
+            if record.state not in ("submitted", "dept_approved"):
+                raise UserError("Only submitted or department-approved requisitions can be rejected.")
             record.state = "rejected"
         return True
 

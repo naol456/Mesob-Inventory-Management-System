@@ -103,7 +103,8 @@
                     </div>
                     <group>
                         <group>
-                            <field name="department_id" readonly="state == 'locked'"/>
+                            <field name="department_id" readonly="state == 'locked'" groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_procurement"/>
+                            <field name="department_id" readonly="1" groups="mesob_inventory_base.group_mesob_dept_head"/>
                             <field name="major_classification_id" readonly="state == 'locked'"/>
                             <field name="sub_classification_id" readonly="state == 'locked'" domain="[('major_classification_id', '=', major_classification_id)]"/>
                             <field name="item_code"/>

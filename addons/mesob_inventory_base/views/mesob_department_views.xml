@@ -8,6 +8,7 @@
             <list string="Departments" default_order="name">
                 <field name="name" class="fw-bold"/>
                 <field name="code" optional="show"/>
+                <field name="manager_id" optional="show"/>
                 <field name="active" widget="boolean_toggle"/>
             </list>
         </field>
@@ -34,6 +35,10 @@
                     <group>
                         <group>
                             <field name="code" placeholder="e.g., MTL"/>
+                            <field name="dept_head_ids" column_invisible="1"/>
+                            <field name="manager_id" 
+                                   options="{'no_create': True, 'no_open': True}"
+                                   domain="[('id', 'in', dept_head_ids)]"/>
                             <field name="active" widget="boolean_toggle"/>
                         </group>
                     </group>

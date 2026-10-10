@@ -274,11 +274,21 @@ class MesobProcurementNeed(models.Model):
     _name = "mesob.procurement.need"
     _description = "Departmental Need Request"
 
+    def _default_department_id(self):
+        """Auto-fill department for Department Heads."""
+        # Find department where current user is the manager
+        department = self.env["mesob.department"].search([
+            ("manager_id", "=", self.env.user.id)
+        ], limit=1)
+        return department.id if department else False
+
     department_id = fields.Many2one(
         "mesob.department",
         string="Requesting Department",
         required=True,
         domain="[('active', '=', True)]",
+        default=lambda self: self._default_department_id(),
+        help="Auto-filled for Department Heads with their managed department.",
     )
     item_id = fields.Many2one(
         "mesob.inventory.item",

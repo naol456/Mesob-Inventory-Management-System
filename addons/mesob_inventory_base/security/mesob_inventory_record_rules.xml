@@ -480,4 +480,56 @@
         <field name="perm_unlink">0</field>
     </record>
 
+    <!-- ══════════════════════════════════════════════════════════════
+         Department Head Record Rules
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- Department Head: Can see all requisitions from their department -->
+    <record id="rule_requisition_dept_head" model="ir.rule">
+        <field name="name">Dept Head: Department Requisitions</field>
+        <field name="model_id" ref="model_mesob_inventory_requisition"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_dept_head')])]"/>
+        <field name="domain_force">['|', ('department_id.manager_id', '=', user.id), ('id', '=', False)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- Department Head: Can see only their department's needs -->
+    <record id="rule_procurement_need_dept_head" model="ir.rule">
+        <field name="name">Dept Head: Department Needs Only</field>
+        <field name="model_id" ref="model_mesob_procurement_need"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_dept_head')])]"/>
+        <field name="domain_force">['|', ('department_id.manager_id', '=', user.id), ('id', '=', False)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Procurement Officer: Read-only access to locked needs -->
+    <record id="rule_procurement_need_procurement" model="ir.rule">
+        <field name="name">Procurement: Read Locked Needs Only</field>
+        <field name="model_id" ref="model_mesob_procurement_need"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_procurement')])]"/>
+        <field name="domain_force">[('state', '=', 'locked')]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- PAO: Full access to all procurement needs -->
+    <record id="rule_procurement_need_pao" model="ir.rule">
+        <field name="name">PAO: Full access to all Needs</field>
+        <field name="model_id" ref="model_mesob_procurement_need"/>
+        <field name="groups" eval="[(6, 0, [ref('group_mesob_pao')])]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
 </odoo>

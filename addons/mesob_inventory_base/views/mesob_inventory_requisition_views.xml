@@ -82,18 +82,22 @@
         <field name="arch" type="xml">
             <form string="Stores Requisition (Model 20)">
                 <header>
-                    <button name="action_submit" type="object" string="Submit"
+                    <button name="action_submit" type="object" string="Submit for Approval"
                             class="btn-primary"
                             invisible="state != 'draft'"
                             groups="mesob_inventory_base.group_mesob_inventory_user"/>
-                    <button name="action_approve" type="object" string="Approve"
-                            class="btn-success"
+                    <button name="action_dept_head_approve" type="object" string="Dept Head Approve"
+                            class="btn-info"
                             invisible="state != 'submitted'"
+                            groups="mesob_inventory_base.group_mesob_dept_head"/>
+                    <button name="action_approve" type="object" string="PAO Approve"
+                            class="btn-success"
+                            invisible="state != 'dept_approved'"
                             groups="mesob_inventory_base.group_mesob_pao"/>
                     <button name="action_reject" type="object" string="Reject"
                             class="btn-danger"
-                            invisible="state != 'submitted'"
-                            groups="mesob_inventory_base.group_mesob_pao"/>
+                            invisible="state not in ('submitted', 'dept_approved')"
+                            groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_dept_head"/>
                     <button name="action_create_issue_voucher" type="object" string="Create Issue Voucher"
                             class="btn-primary"
                             invisible="state != 'approved'"
@@ -110,7 +114,7 @@
                             groups="mesob_inventory_base.group_mesob_inventory_user"
                             confirm="Are you sure you want to cancel this requisition?"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,submitted,approved,issued,received"/>
+                           statusbar_visible="draft,submitted,dept_approved,approved,issued,received"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
@@ -146,7 +150,8 @@
                     <group class="mb-4" col="2">
                         <group string="Requisition Information" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
                             <field name="issue_mode" widget="radio" options="{'horizontal': true}" readonly="state != 'draft'" class="mb-3"/>
-                            <field name="department_id" placeholder="Select requesting department..." readonly="state != 'draft'" class="mb-3"/>
+                            <field name="department_id" placeholder="Select requesting department..." readonly="state != 'draft'" class="mb-3" groups="mesob_inventory_base.group_mesob_pao,mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_inventory_user"/>
+                            <field name="department_id" placeholder="Your department (auto-filled)" readonly="1" class="mb-3" groups="mesob_inventory_base.group_mesob_dept_head"/>
                             <field name="requested_by_id" 
                                    readonly="1"
                                    options="{'no_open': True, 'no_create': True}" 
@@ -164,10 +169,16 @@
                     </group>
 
                     <!-- Approvals Audit Card: Separated and Dynamically Displayed Direct Below Primary Card -->
-                    <group class="mb-4" invisible="state not in ('approved', 'rejected')">
+                    <group class="mb-4" invisible="state not in ('dept_approved', 'approved', 'rejected', 'issued', 'received')">
                         <group string="Approval &amp; Audit Logs" col="2" class="glass-card p-4 rounded shadow-sm border w-100">
-                            <field name="approved_by_id" readonly="True" class="mb-3"/>
-                            <field name="approved_on" readonly="True" class="mb-3"/>
+                            <field name="dept_head_approved_by_id" readonly="True" class="mb-3" 
+                                   invisible="state not in ('dept_approved', 'approved', 'issued', 'received')"/>
+                            <field name="dept_head_approved_on" readonly="True" class="mb-3"
+                                   invisible="state not in ('dept_approved', 'approved', 'issued', 'received')"/>
+                            <field name="approved_by_id" readonly="True" class="mb-3"
+                                   invisible="state not in ('approved', 'issued', 'received')"/>
+                            <field name="approved_on" readonly="True" class="mb-3"
+                                   invisible="state not in ('approved', 'issued', 'received')"/>
                             <field name="rejection_reason" invisible="state != 'rejected'" readonly="True" class="mb-3 text-danger fw-semibold" colspan="2"/>
                         </group>
                     </group>
