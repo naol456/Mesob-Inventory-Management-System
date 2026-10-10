@@ -229,27 +229,6 @@
               groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
               sequence="25"/>
 
-    <menuitem id="menu_mesob_procurement_tender"
-              name="Bidding &amp; Tenders"
-              parent="menu_mesob_procurement"
-              action="action_mesob_procurement_tender"
-              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
-              sequence="30"/>
-
-    <menuitem id="menu_mesob_procurement_contract"
-              name="Contracts"
-              parent="menu_mesob_procurement"
-              action="action_mesob_procurement_contract"
-              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
-              sequence="40"/>
-
-    <menuitem id="menu_mesob_procurement_payment"
-              name="Payment Certificates"
-              parent="menu_mesob_procurement"
-              action="action_mesob_procurement_payment"
-              groups="mesob_inventory_base.group_mesob_procurement,mesob_inventory_base.group_mesob_pao"
-              sequence="50"/>
-
     <menuitem id="menu_mesob_procurement_complaint"
               name="Complaints &amp; Appeals"
               parent="menu_mesob_procurement"

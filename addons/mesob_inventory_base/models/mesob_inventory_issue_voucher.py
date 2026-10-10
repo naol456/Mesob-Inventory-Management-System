@@ -394,10 +394,10 @@ class MesobInventoryIssueVoucher(models.Model):
     # ── Stock Integration Methods ───────────────────────────────────────
 
     def _validate_stock_availability(self):
-        """Validate that sufficient stock is available for issue based on bin card balances."""
+        """Validate that sufficient stock is available for issue based on bin card balances and item availability."""
         self.ensure_one()
         
-        # Group items by sub-classification to check bin card balances
+        # Group items by sub-classification to check availability
         items_by_subclass = {}
         for line in self.line_ids:
             if not line.item_id or not line.item_id.sub_classification_id:
@@ -408,31 +408,66 @@ class MesobInventoryIssueVoucher(models.Model):
                 items_by_subclass[sub_id] = {
                     'sub_classification': line.item_id.sub_classification_id,
                     'quantity': 0.0,
-                    'items': []
+                    'items': [],
+                    'item_ids': []
                 }
             
             items_by_subclass[sub_id]['quantity'] += line.quantity_issued
             items_by_subclass[sub_id]['items'].append(line.item_id.item_code)
+            items_by_subclass[sub_id]['item_ids'].append(line.item_id.id)
         
-        # Check bin card balance for each sub-classification
+        # Check availability for each sub-classification
         BinCard = self.env['mesob.bin.card']
         for subclass_data in items_by_subclass.values():
-            # Get latest bin card balance
-            latest_bin_card = BinCard.search([
+            # Get all items in this sub-classification
+            all_items = self.env['mesob.inventory.item'].search([
                 ('sub_classification_id', '=', subclass_data['sub_classification'].id),
-                ('location', '=', 'Main Store')
-            ], order='date desc, id desc', limit=1)
+                ('active', '=', True)
+            ])
             
-            available_qty = latest_bin_card.balance if latest_bin_card else 0.0
-            requested_qty = subclass_data['quantity']
+            # Check if these are fixed assets or consumables
+            has_stock = any(item.current_stock > 0 for item in all_items)
             
-            if available_qty < requested_qty:
-                raise ValidationError(
-                    f"Insufficient stock for {subclass_data['sub_classification'].name}. "
-                    f"Available: {available_qty}, Requested: {requested_qty}\n"
-                    f"Items: {', '.join(subclass_data['items'][:5])}"
-                    f"{'...' if len(subclass_data['items']) > 5 else ''}"
+            if has_stock:
+                # CONSUMABLE: Check bin card balance
+                latest_bin_card = BinCard.search([
+                    ('sub_classification_id', '=', subclass_data['sub_classification'].id),
+                    ('location', '=', 'Main Store')
+                ], order='date desc, id desc', limit=1)
+                
+                available_qty = latest_bin_card.balance if latest_bin_card else 0.0
+                requested_qty = subclass_data['quantity']
+                
+                if available_qty < requested_qty:
+                    raise ValidationError(
+                        f"Insufficient stock for {subclass_data['sub_classification'].name}. "
+                        f"Available: {available_qty}, Requested: {requested_qty}\n"
+                        f"Items: {', '.join(subclass_data['items'][:5])}"
+                        f"{'...' if len(subclass_data['items']) > 5 else ''}"
+                    )
+            else:
+                # FIXED ASSET: Check if items are not already issued
+                # Get already issued items
+                issued_item_ids = (
+                    self.env["mesob.inventory.issue.voucher.line"]
+                    .search([("voucher_id.state", "in", ["issued", "received"])])
+                    .mapped("item_id")
+                    .ids
                 )
+                
+                # Count how many items in this voucher are being issued
+                items_to_issue = subclass_data['item_ids']
+                
+                # Check if any of these items are already issued
+                already_issued = [item_id for item_id in items_to_issue if item_id in issued_item_ids]
+                
+                if already_issued:
+                    already_issued_codes = self.env['mesob.inventory.item'].browse(already_issued).mapped('item_code')
+                    raise ValidationError(
+                        f"Some items in {subclass_data['sub_classification'].name} have already been issued:\n"
+                        f"{', '.join(already_issued_codes)}\n"
+                        f"Please remove these items from the voucher."
+                    )
     
     def _create_product_for_item(self, item):
         """Auto-create product for inventory item."""

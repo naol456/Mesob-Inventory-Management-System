@@ -362,6 +362,7 @@ class MesobInventoryRequisition(models.Model):
                         "Please receive items first before creating an issue voucher."
                     )
 
+                # Get already issued items to filter them out
                 issued_item_ids = (
                     self.env["mesob.inventory.issue.voucher.line"]
                     .search([("voucher_id.state", "in", ["issued", "received"])])
@@ -369,8 +370,9 @@ class MesobInventoryRequisition(models.Model):
                     .ids
                 )
 
+                # Filter available items - those not yet issued OR with sufficient stock
                 available_items = all_items.filtered(
-                    lambda i: i.id not in issued_item_ids
+                    lambda i: i.id not in issued_item_ids or i.current_stock >= req_line.quantity
                 )
 
                 if not available_items:
@@ -379,32 +381,67 @@ class MesobInventoryRequisition(models.Model):
                         if req_line.sub_classification_id
                         else ""
                     )
+                    # Calculate total available stock
+                    not_issued_count = len([i for i in all_items if i.id not in issued_item_ids])
+                    total_stock = sum(all_items.mapped('current_stock'))
                     raise UserError(
-                        f"No available items found for classification "
+                        f"Not enough stock available for classification "
                         f"'{req_line.major_classification_id.name}'{sub_label}. "
-                        f"All {len(all_items)} item(s) have already been issued."
+                        f"Requested: {req_line.quantity}, "
+                        f"Available items not issued: {not_issued_count}, "
+                        f"Total stock quantity: {total_stock}."
                     )
 
-                available_items = available_items[: int(req_line.quantity)]
-
-                if len(available_items) < req_line.quantity:
-                    raise UserError(
-                        f"Not enough available items for classification "
-                        f"'{req_line.major_classification_id.name}'. "
-                        f"Requested: {int(req_line.quantity)}, "
-                        f"Available: {len(available_items)}, "
-                        f"Total: {len(all_items)}."
+                # Determine if we're dealing with consumables (has stock) or fixed assets (individual items)
+                has_stock = any(item.current_stock > 0 for item in available_items)
+                
+                if has_stock:
+                    # CONSUMABLE: Find item with sufficient stock
+                    items_with_stock = available_items.filtered(
+                        lambda i: i.current_stock >= req_line.quantity
                     )
-
-                for item in available_items:
+                    if not items_with_stock:
+                        raise UserError(
+                            f"Not enough stock available. "
+                            f"Requested: {req_line.quantity}, "
+                            f"Maximum available in single item: {max(available_items.mapped('current_stock'))}."
+                        )
+                    item = items_with_stock[0]
                     voucher_vals["line_ids"].append((0, 0, {
                         "item_id": item.id,
-                        "quantity_issued": 1.0,
+                        "quantity_issued": req_line.quantity,
                         "uom_id": (
                             item.uom_id.id if item.uom_id else req_line.uom_id.id
                         ),
                         "note": req_line.note,
                     }))
+                else:
+                    # FIXED ASSET: Issue individual items (one per line)
+                    # Filter to get only items that are not issued
+                    not_issued_items = available_items.filtered(
+                        lambda i: i.id not in issued_item_ids
+                    )
+                    
+                    if len(not_issued_items) < req_line.quantity:
+                        raise UserError(
+                            f"Not enough available items for classification "
+                            f"'{req_line.major_classification_id.name}'. "
+                            f"Requested: {int(req_line.quantity)}, "
+                            f"Available: {len(not_issued_items)}, "
+                            f"Total: {len(all_items)}."
+                        )
+                    
+                    # Issue the requested number of individual items
+                    items_to_issue = not_issued_items[: int(req_line.quantity)]
+                    for item in items_to_issue:
+                        voucher_vals["line_ids"].append((0, 0, {
+                            "item_id": item.id,
+                            "quantity_issued": 1.0,
+                            "uom_id": (
+                                item.uom_id.id if item.uom_id else req_line.uom_id.id
+                            ),
+                            "note": req_line.note,
+                        }))
 
             # ── Case 3: invalid line ────────────────────────────────────
             else:
