@@ -282,6 +282,32 @@ class MesobProcurementNeed(models.Model):
         ], limit=1)
         return department.id if department else False
 
+    @api.model
+    def get_view(self, view_id=None, view_type='form', **options):
+        """Override to hide create button for PAO and Procurement Officers.
+        Only Department Heads can create needs collection."""
+        result = super().get_view(view_id=view_id, view_type=view_type, **options)
+        
+        # Hide create button for PAO and Procurement Officers
+        # Only Department Heads can create needs collection
+        is_pao = self.env.user.has_group('mesob_inventory_base.group_mesob_pao')
+        is_procurement = self.env.user.has_group('mesob_inventory_base.group_mesob_procurement')
+        
+        if is_pao or is_procurement:
+            if view_type in ['tree', 'list', 'form']:
+                # Parse the view arch
+                from lxml import etree
+                doc = etree.XML(result['arch'])
+                
+                # Add create="false" attribute to root element if it's a list/tree view
+                if view_type in ['tree', 'list']:
+                    root = doc
+                    root.set('create', 'false')
+                
+                result['arch'] = etree.tostring(doc, encoding='unicode')
+        
+        return result
+
     department_id = fields.Many2one(
         "mesob.department",
         string="Requesting Department",
